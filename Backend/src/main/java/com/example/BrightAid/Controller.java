@@ -1,13 +1,24 @@
 package com.example.BrightAid;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+import java.util.List;
 
 @RestController
-@RequestMapping("/abc")
+@RequestMapping("/api")
+@CrossOrigin(origins = "http://localhost:5173")
 public class Controller {
-    @GetMapping("/hello")
-    public String show(){
-        return "Hello World";
+    
+    @Autowired
+    private StudentRepository studentRepository;
+    
+    @GetMapping("/test")
+    public String test(){
+        return "Backend is working!";
+    }
+    
+    @GetMapping("/students")
+    public List<Student> getStudents(){
+        return studentRepository.findAll();
     }
 }
