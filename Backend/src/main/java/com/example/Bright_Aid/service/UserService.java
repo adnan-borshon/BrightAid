@@ -51,7 +51,9 @@ public class UserService {
                     existingUser.setUsername(userDTO.getUsername());
                     existingUser.setPasswordHash(userDTO.getPasswordHash());
                     existingUser.setIsActive(userDTO.getIsActive());
-                    existingUser.setUserType(userDTO.getUserType());
+                   if (userDTO.getUserType() != null) {
+    existingUser.setUserType(User.UserType.valueOf(userDTO.getUserType()));
+}
                     User updatedUser = userRepository.save(existingUser);
                     return convertToDTO(updatedUser);
                 });
@@ -70,26 +72,35 @@ public class UserService {
     public boolean existsByEmail(String email) {
         return userRepository.existsByEmail(email);
     }
+private UserDTO convertToDTO(User user) {
+    return UserDTO.builder()
+            .userId(user.getUserId())
+            .email(user.getEmail())
+            .username(user.getUsername())
+            .passwordHash(user.getPasswordHash())
+            .isActive(user.getIsActive())
+            .userType(user.getUserType() != null ? user.getUserType().toString().toUpperCase() : null)
+            .build();
+}
 
-    private UserDTO convertToDTO(User user) {
-        return UserDTO.builder()
-                .userId(user.getUserId())
-                .email(user.getEmail())
-                .username(user.getUsername())
-                .passwordHash(user.getPasswordHash())
-                .isActive(user.getIsActive())
-                .userType(user.getUserType())
-                .build();
-    }
 
     private User convertToEntity(UserDTO userDTO) {
+            User.UserType userType = null;
+    if (userDTO.getUserType() != null) {
+        try {
+            userType = User.UserType.valueOf(userDTO.getUserType().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            // Optional: handle invalid value, e.g., throw exception or default to SCHOOL
+            userType = User.UserType.SCHOOL;
+        }
+    }
+  
         return User.builder()
-                .userId(userDTO.getUserId())
-                .email(userDTO.getEmail())
-                .username(userDTO.getUsername())
-                .passwordHash(userDTO.getPasswordHash())
-                .isActive(userDTO.getIsActive())
-                .userType(userDTO.getUserType())
-                .build();
+            .email(userDTO.getEmail())
+            .username(userDTO.getUsername())
+            .passwordHash(userDTO.getPasswordHash())
+            .isActive(userDTO.getIsActive() != null ? userDTO.getIsActive() : true)
+            .userType(userType)
+            .build();
     }
 }

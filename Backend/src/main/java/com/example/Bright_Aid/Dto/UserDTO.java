@@ -1,6 +1,7 @@
 package com.example.Bright_Aid.Dto;
 
-import com.example.Bright_Aid.Entity.User.UserType;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.*;
 
 @Data
@@ -14,7 +15,8 @@ public class UserDTO {
     private String username;
     private String passwordHash;
     private Boolean isActive;
-    private UserType userType;
+       @JsonProperty("userType")
+    private String userType;
 
 
 }

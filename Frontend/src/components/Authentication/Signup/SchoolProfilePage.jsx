@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+
 const SchoolProfilePage = () => {
   const [formData, setFormData] = useState({
     officialContact: '',
@@ -16,11 +17,92 @@ const SchoolProfilePage = () => {
     postcode: ''
   });
 
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [userInfo, setUserInfo] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Retrieve user info from session storage
+    const savedUserInfo = sessionStorage.getItem("userInfo");
+    if (savedUserInfo) {
+      const parsed = JSON.parse(savedUserInfo);
+      setUserInfo(parsed);
+      console.log("Retrieved user info:", parsed);
+    } else {
+      // If no user info, redirect back to registration
+      setError("Please complete registration first");
+      setTimeout(() => navigate("/signup"), 2000);
+    }
+  }, [navigate]);
+
   const handleInputChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    if (!userInfo?.userId) {
+      setError("User ID not found. Please register again.");
+      return;
+    }
+
+    // Prepare payload according to API schema
+    const payload = {
+      schoolId: 0, // Backend will generate
+      userId: userInfo.userId,
+      schoolName: formData.fullName,
+      registrationNumber: formData.registrationNumber,
+      schoolType: formData.schoolType,
+      address: formData.detailedAddress,
+      divisionId: parseInt(formData.division) || 0, // You'll need to map division name to ID
+      districtId: parseInt(formData.district) || 0, // You'll need to map district name to ID
+      upazilaId: parseInt(formData.upazila) || 0,   // You'll need to map upazila name to ID
+      latitude: 0,
+      longitude: 0,
+      verificationStatus: "PENDING",
+      status: "ACTIVE"
+    };
+
+    try {
+      setLoading(true);
+      const token = sessionStorage.getItem("authToken");
+      console.log("Token:", token);
+      
+      const res = await fetch("http://localhost:8080/api/schools", {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          // ...(token && { "Authorization": `Bearer ${token}` })
+        },
+        body: JSON.stringify(payload),
+      });
+      console.log("Response:", res)
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.message || "Failed to create school profile");
+      }
+
+      const data = await res.json();
+      console.log("School profile created:", data);
+
+      // Save school info to session storage
+      sessionStorage.setItem("schoolInfo", JSON.stringify(data));
+
+      // Navigate to document verification
+      navigate("/document-verification");
+
+    } catch (err) {
+      setError(err.message);
+      console.error("Error creating school profile:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -37,9 +119,14 @@ const SchoolProfilePage = () => {
         <p className="text-gray-600 text-sm">
           Please provide detailed information about your school. This information will be visible to donors and NGOs.
         </p>
+        {userInfo && (
+          <p className="text-xs text-green-600 mt-2">
+            Setting up profile for: {userInfo.username} ({userInfo.email})
+          </p>
+        )}
       </div>
       
-      <div className="bg-white rounded-2xl shadow-lg p-8">
+      <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-lg p-8">
         <div className="grid grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -71,7 +158,7 @@ const SchoolProfilePage = () => {
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Full School Name
+              Full School Name*
             </label>
             <input
               type="text"
@@ -80,12 +167,13 @@ const SchoolProfilePage = () => {
               onChange={handleInputChange}
               placeholder="Jagannath Adhimik Biddalaya"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+              required
             />
           </div>
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Registration Number
+              Registration Number*
             </label>
             <input
               type="text"
@@ -94,17 +182,19 @@ const SchoolProfilePage = () => {
               onChange={handleInputChange}
               placeholder="registration"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+              required
             />
           </div>
           
           <div className="col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              School Type
+              School Type*
             </label>
             <div className="flex space-x-2">
               {['Primary', 'Secondary', 'High School', 'Madrassa'].map((type) => (
                 <button
                   key={type}
+                  type="button"
                   onClick={() => setFormData({...formData, schoolType: type})}
                   className={`px-4 py-2 rounded-lg border text-sm font-medium ${
                     formData.schoolType === type
@@ -120,13 +210,14 @@ const SchoolProfilePage = () => {
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Country
+              Country*
             </label>
             <select
               name="country"
               value={formData.country}
               onChange={handleInputChange}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+              required
             >
               <option value="">Select</option>
               <option value="Bangladesh">Bangladesh</option>
@@ -135,7 +226,7 @@ const SchoolProfilePage = () => {
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Detailed Address
+              Detailed Address*
             </label>
             <input
               type="text"
@@ -143,51 +234,55 @@ const SchoolProfilePage = () => {
               value={formData.detailedAddress}
               onChange={handleInputChange}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+              required
             />
           </div>
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Upazila
+              Upazila*
             </label>
             <select
               name="upazila"
               value={formData.upazila}
               onChange={handleInputChange}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+              required
             >
               <option value="">Select</option>
-              <option value="Dhaka">Dhaka</option>
+              <option value="1">Dhaka</option>
             </select>
           </div>
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              District
+              District*
             </label>
             <select
               name="district"
               value={formData.district}
               onChange={handleInputChange}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+              required
             >
               <option value="">Select</option>
-              <option value="Dhaka">Dhaka</option>
+              <option value="1">Dhaka</option>
             </select>
           </div>
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Division
+              Division*
             </label>
             <select
               name="division"
               value={formData.division}
               onChange={handleInputChange}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
+              required
             >
               <option value="">Select</option>
-              <option value="Dhaka">Dhaka</option>
+              <option value="1">Dhaka</option>
             </select>
           </div>
           
@@ -204,15 +299,21 @@ const SchoolProfilePage = () => {
             />
           </div>
         </div>
+
+        {error && (
+          <p className="text-red-500 text-sm mt-4">{error}</p>
+        )}
         
-        <Link
-          to="/document-verification"
-          className="w-full bg-green-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-green-700 transition-colors mt-6 block text-center"
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-green-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-green-700 transition-colors mt-6 disabled:bg-gray-400"
         >
-          Continue
-        </Link>
-      </div>
+          {loading ? "Saving..." : "Continue"}
+        </button>
+      </form>
     </div>
   );
 };
+
 export default SchoolProfilePage;

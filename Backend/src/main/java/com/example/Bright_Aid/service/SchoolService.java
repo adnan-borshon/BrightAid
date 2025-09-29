@@ -34,24 +34,37 @@ public class SchoolService {
 
     // Create or update School
     public SchoolDto saveSchool(SchoolDto schoolDto) {
+        if (schoolDto.getUserId() == null || schoolDto.getUserId() <= 0) {
+            throw new RuntimeException("Valid User ID is required");
+        }
+        
         User user = userRepository.findById(schoolDto.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + schoolDto.getUserId()));
 
-        Division division = divisionRepository.findById(schoolDto.getDivisionId())
-                .orElseThrow(() -> new RuntimeException("Division not found"));
-
-        District district = districtRepository.findById(schoolDto.getDistrictId())
-                .orElseThrow(() -> new RuntimeException("District not found"));
-
-        Upazila upazila = upazilaRepository.findById(schoolDto.getUpazilaId())
-                .orElseThrow(() -> new RuntimeException("Upazila not found"));
+        Division division = null;
+        District district = null;
+        Upazila upazila = null;
+        
+        if (schoolDto.getDivisionId() != null) {
+            division = divisionRepository.findById(schoolDto.getDivisionId())
+                    .orElse(null);
+        }
+        
+        if (schoolDto.getDistrictId() != null) {
+            district = districtRepository.findById(schoolDto.getDistrictId())
+                    .orElse(null);
+        }
+        
+        if (schoolDto.getUpazilaId() != null) {
+            upazila = upazilaRepository.findById(schoolDto.getUpazilaId())
+                    .orElse(null);
+        }
 
         School school = School.builder()
-                .schoolId(schoolDto.getSchoolId())
                 .user(user)
                 .schoolName(schoolDto.getSchoolName())
                 .registrationNumber(schoolDto.getRegistrationNumber())
-                .schoolType(School.SchoolType.valueOf(schoolDto.getSchoolType()))
+                .schoolType(School.SchoolType.valueOf(schoolDto.getSchoolType().toUpperCase()))
                 .address(schoolDto.getAddress())
                 .division(division)
                 .district(district)

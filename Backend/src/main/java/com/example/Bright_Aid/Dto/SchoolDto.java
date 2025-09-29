@@ -31,13 +31,10 @@ public class SchoolDto {
 
     private String address;
 
-    @NotNull(message = "Division ID is required")
     private Integer divisionId;
 
-    @NotNull(message = "District ID is required")
     private Integer districtId;
 
-    @NotNull(message = "Upazila ID is required")
     private Integer upazilaId;
 
     private BigDecimal latitude;

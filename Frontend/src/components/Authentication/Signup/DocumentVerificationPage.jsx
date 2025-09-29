@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Check, Delete, DeleteIcon, Trash, Trash2, TrashIcon, Upload, X } from "lucide-react";
 
 const DocumentVerificationPage = () => {
-  const [uploadedFiles, setUploadedFiles] = useState({}); // starts empty
+  const [uploadedFiles, setUploadedFiles] = useState({}); 
 
   const documents = [
     {

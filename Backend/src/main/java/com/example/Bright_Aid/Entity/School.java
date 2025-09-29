@@ -20,13 +20,13 @@ import java.util.List;
 public class School {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "school_id")
     @EqualsAndHashCode.Include
     private Integer schoolId;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    @MapsId
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
     @NotNull
     private User user;
 
@@ -47,20 +47,17 @@ public class School {
     private String address;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "division_id", nullable = false)
-    @NotNull
+    @JoinColumn(name = "division_id")
     @ToString.Exclude
     private Division division;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "district_id", nullable = false)
-    @NotNull
+    @JoinColumn(name = "district_id")
     @ToString.Exclude
     private District district;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "upazila_id", nullable = false)
-    @NotNull
+    @JoinColumn(name = "upazila_id")
     @ToString.Exclude
     private Upazila upazila;
 

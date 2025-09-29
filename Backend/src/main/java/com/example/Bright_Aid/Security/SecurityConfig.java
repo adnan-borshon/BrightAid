@@ -53,6 +53,7 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(Arrays.asList(
                 "http://localhost:3000", // React
                 "http://localhost:4200", // Angular
+                "http://localhost:5173", //vite
                 "http://localhost:8080"  // backend
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
@@ -72,6 +73,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/schools").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/divisions/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/districts/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/upazilas/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/error").permitAll()

@@ -28,6 +28,7 @@ public class AuthService {
 
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
+    private final UserService userService;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
 
@@ -58,17 +59,11 @@ public class AuthService {
             throw new RuntimeException("Email already exists: " + userDTO.getEmail());
         }
 
-        User user = User.builder()
-                .email(userDTO.getEmail())
-                .username(userDTO.getUsername())
-                .passwordHash(passwordEncoder.encode(userDTO.getPasswordHash()))
-                .isActive(true)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build();
-
-        User savedUser = userRepository.save(user);
-        return mapToDTO(savedUser);
+        // Encode password before creating user
+        userDTO.setPasswordHash(passwordEncoder.encode(userDTO.getPasswordHash()));
+        
+        // Use UserService which has proper userType conversion
+        return userService.createUser(userDTO);
     }
 
     public void logout() {
@@ -81,7 +76,7 @@ public class AuthService {
                 .email(user.getEmail())
                 .username(user.getUsername())
                 .isActive(user.getIsActive())
-
+                .userType(user.getUserType() != null ? user.getUserType().name() : null)
                 .build();
     }
 }

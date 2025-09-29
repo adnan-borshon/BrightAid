@@ -18,8 +18,7 @@ public class UserController {
 
     @GetMapping
     public ResponseEntity<List<UserDTO>> getAllUsers() {
-        List<UserDTO> users = userService.getAllUsers();
-        return ResponseEntity.ok(users);
+        return ResponseEntity.ok(userService.getAllUsers());
     }
 
     @GetMapping("/{userId}")
@@ -38,6 +37,10 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<UserDTO> createUser(@RequestBody UserDTO userDTO) {
+        // Always set userType SCHOOL if null
+        if (userDTO.getUserType() == null || userDTO.getUserType().isEmpty()) {
+            userDTO.setUserType("SCHOOL");
+        }
         UserDTO createdUser = userService.createUser(userDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
     }
@@ -51,13 +54,13 @@ public class UserController {
 
     @DeleteMapping("/{userId}")
     public ResponseEntity<Void> deleteUser(@PathVariable Integer userId) {
-        boolean deleted = userService.deleteUser(userId);
-        return deleted ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
+        return userService.deleteUser(userId)
+                ? ResponseEntity.noContent().build()
+                : ResponseEntity.notFound().build();
     }
 
     @GetMapping("/exists/{email}")
     public ResponseEntity<Boolean> existsByEmail(@PathVariable String email) {
-        boolean exists = userService.existsByEmail(email);
-        return ResponseEntity.ok(exists);
+        return ResponseEntity.ok(userService.existsByEmail(email));
     }
 }
