@@ -1,1 +1,41 @@
 @import "tailwindcss";
+
+/* Set Plus Jakarta Sans as the default font across the app */
+:root {
+  font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+}
+
+/* Global button color */
+button {
+  background-color: #0E792E;
+  color: #ffffff;
+   cursor: pointer;
+}
+
+button:hover {
+  background-color: #0c6a28;
+}
+
+/* Secondary Button */
+button.secondary {
+  background-color: #ffffff;  
+  color: #0E792E;              
+  border: 2px solid #0E792E;     
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+/* Hover effect */
+button.secondary:hover {
+  background-color: #0E792E;     /* Green background */
+  color: #ffffff;                /* White text */
+}

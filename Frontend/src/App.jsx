@@ -1,45 +1,27 @@
-import { Routes, Route } from 'react-router-dom'
-import { useState, useEffect } from 'react'
+import React from 'react';
 
+import Stats from './components/Landing page/Stats';
+import Eligibility from './components/Landing page/Eligibility';
+import Projects from './components/Landing page/Projects';
+import About from './components/Landing page/About';
+import Testimonials from './components/Landing page/Testimonials';
+import Navbar from './Fixed components/Navbar';
+import Hero from './components/Landing page/Hero';
+import Login from './components/Authentication/Login'
+import SignUp from './components/Authentication/Signup/SignUp';
 function App() {
-  const [students, setStudents] = useState([])
-
-  useEffect(() => {
-    console.log('Fetching students...')
-    fetch('http://localhost:8080/api/students')
-      .then(res => {
-        console.log('Response status:', res.status)
-        return res.json()
-      })
-      .then(data => {
-        console.log('Students data:', data)
-        setStudents(data)
-      })
-      .catch(err => console.error('Error:', err))
-  }, [])
-
   return (
-    <Routes>
-      <Route path="/" element={
-        <div className='p-4'>
-          <h1 className='text-3xl font-bold mb-4'>Bright AId - Students</h1>
-          <p>Students found: {students.length}</p>
-          {students.length === 0 ? (
-            <p>No students found or loading...</p>
-          ) : (
-            students.map(student => (
-              <div key={student.id} className='border p-4 mb-4 rounded'>
-                <h3 className='text-xl font-bold'>{student.name}</h3>
-                <p><strong>School:</strong> {student.school_name}</p>
-                <p><strong>Father:</strong> {student.father_name}</p>
-                <p><strong>Mother:</strong> {student.mother_name}</p>
-              </div>
-            ))
-          )}
-        </div>
-      } />
-    </Routes>
-  )
+    <div className="min-h-screen bg-white">
+       <SignUp/>
+        {/* <Login/> */}
+      {/* <Hero />
+      <Stats />
+      <Eligibility />
+      <Projects />
+      <About />
+      <Testimonials /> */}
+    </div>
+  );
 }
 
-export default App
+export default App;
