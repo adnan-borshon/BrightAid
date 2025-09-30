@@ -1,9 +1,14 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Check, Delete, DeleteIcon, Trash, Trash2, TrashIcon, Upload, X } from "lucide-react";
 
 const DocumentVerificationPage = () => {
-  const [uploadedFiles, setUploadedFiles] = useState({}); 
+  const [uploadedFiles, setUploadedFiles] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [schoolData, setSchoolData] = useState(null);
+  const [userData, setUserData] = useState(null);
+  const navigate = useNavigate(); 
 
   const documents = [
     {
@@ -25,39 +30,62 @@ const DocumentVerificationPage = () => {
     {
       id: "schoolRegistrationCertificate",
       label: "School Registration Certificate",
-      type: "infrastructure",
+      type: "INFRASTRUCTURE",
       size: "2MB",
     },
     {
       id: "headmasterNIDVerification",
       label: "Headmaster's NID/Verification",
-      type: "staff",
+      type: "STAFF",
       size: "2MB",
     },
     {
       id: "headmasterElectricityBill",
       label: "Headmaster's Electricity Bill",
-      type: "other",
+      type: "OTHER",
       size: "2MB",
     },
   ];
+
+  useEffect(() => {
+    // Get school and user data from storage
+    const schoolInfo = sessionStorage.getItem("schoolInfo");
+    const userInfo = sessionStorage.getItem("userInfo");
+    
+    if (schoolInfo) {
+      setSchoolData(JSON.parse(schoolInfo));
+    }
+    
+    if (userInfo) {
+      setUserData(JSON.parse(userInfo));
+    }
+    
+    // If no school data, redirect back
+    if (!schoolInfo) {
+      setError("School information not found. Please complete school profile first.");
+    }
+  }, []);
 
   // Handle file upload
   const handleFileChange = (e, field) => {
     const file = e.target.files[0];
     if (!file) return;
 
+    // Validate file size (2MB limit)
+    if (file.size > 2 * 1024 * 1024) {
+      setError(`File ${file.name} is too large. Maximum size is 2MB.`);
+      return;
+    }
+
     // create file metadata to match SCHOOL_DOCUMENTS schema
     const fileMeta = {
-      document_type: field.type,
-      document_title: field.label,
-      document_description: "",
-      file_url: URL.createObjectURL(file), // preview purpose only
-      file_hash: null, // backend will generate
-      upload_date: new Date().toISOString().split("T")[0],
-      uploaded_by: 1, // temp user_id, replace with logged-in user
-      is_current: true,
-      created_at: new Date().toISOString(),
+      documentType: field.type,
+      documentTitle: field.label,
+      documentDescription: `${field.label} for school verification`,
+      fileUrl: `uploads/${file.name}`, // In real app, upload to server first
+      uploadDate: new Date().toISOString().split("T")[0],
+      uploadedBy: userData?.userId || 1,
+      isCurrent: true,
       file,
     };
 
@@ -65,6 +93,8 @@ const DocumentVerificationPage = () => {
       ...prev,
       [field.id]: fileMeta,
     }));
+    
+    setError(""); // Clear any previous errors
   };
 
   // Remove uploaded file
@@ -74,6 +104,67 @@ const DocumentVerificationPage = () => {
       delete newFiles[fieldId];
       return newFiles;
     });
+  };
+
+  // Submit documents to API
+  const handleSubmit = async () => {
+    if (!schoolData || !userData) {
+      setError("Missing school or user information. Please try again.");
+      return;
+    }
+
+    if (Object.keys(uploadedFiles).length === 0) {
+      setError("Please upload at least one document before submitting.");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    try {
+      // Upload each document to the API
+      const uploadPromises = Object.values(uploadedFiles).map(async (fileData) => {
+        const payload = {
+          schoolId: schoolData.schoolId,
+          documentType: fileData.documentType,
+          documentTitle: fileData.documentTitle,
+          documentDescription: fileData.documentDescription,
+          fileUrl: fileData.fileUrl,
+          uploadDate: fileData.uploadDate,
+          uploadedBy: fileData.uploadedBy,
+          isCurrent: fileData.isCurrent
+        };
+
+        const response = await fetch("http://localhost:8081/api/school-documents", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Failed to upload document");
+        }
+
+        return await response.json();
+      });
+
+      // Wait for all uploads to complete
+      await Promise.all(uploadPromises);
+      
+      console.log("All documents uploaded successfully");
+      
+      // Navigate to approval page
+      navigate("/approval");
+      
+    } catch (err) {
+      setError(err.message || "Failed to upload documents. Please try again.");
+      console.error("Error uploading documents:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -166,13 +257,25 @@ const DocumentVerificationPage = () => {
           ))}
         </div>
 
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            {error}
+          </div>
+        )}
+
         {/* Submit */}
-        <Link
-          to="/approval"
-          className="w-full bg-green-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-green-700 transition-colors mt-6 block text-center"
+        <button
+          onClick={handleSubmit}
+          disabled={loading || Object.keys(uploadedFiles).length === 0}
+          className={`w-full py-3 px-4 rounded-lg font-medium transition-colors mt-6 ${
+            loading || Object.keys(uploadedFiles).length === 0
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-green-600 hover:bg-green-700"
+          } text-white`}
         >
-          Submit
-        </Link>
+          {loading ? "Uploading Documents..." : "Submit Documents"}
+        </button>
 
         <div className="text-center mt-4">
           <Link to="/" className="text-sm text-gray-500 hover:text-gray-700">

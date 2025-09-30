@@ -25,10 +25,7 @@ public class Student extends BaseEntity {
     @EqualsAndHashCode.Include
     private Integer studentId;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false, unique = true)
-    @NotNull
-    private User user;
+
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "school_id", nullable = false)

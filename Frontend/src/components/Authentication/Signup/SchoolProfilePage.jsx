@@ -61,7 +61,7 @@ const SchoolProfilePage = () => {
       schoolType: formData.schoolType,
       address: formData.detailedAddress,
       divisionId: parseInt(formData.division) || 0, // You'll need to map division name to ID
-      districtId: parseInt(formData.district) || 0, // You'll need to map district name to ID
+      districtId: parseInt(formData.district) || 28, // You'll need to map district name to ID
       upazilaId: parseInt(formData.upazila) || 0,   // You'll need to map upazila name to ID
       latitude: 0,
       longitude: 0,
@@ -74,7 +74,7 @@ const SchoolProfilePage = () => {
       const token = sessionStorage.getItem("authToken");
       console.log("Token:", token);
       
-      const res = await fetch("http://localhost:8080/api/schools", {
+      const res = await fetch("http://localhost:8081/api/schools", {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
@@ -250,7 +250,7 @@ const SchoolProfilePage = () => {
               required
             >
               <option value="">Select</option>
-              <option value="1">Dhaka</option>
+              <option value="19">Dhaka</option>
             </select>
           </div>
           
@@ -266,7 +266,7 @@ const SchoolProfilePage = () => {
               required
             >
               <option value="">Select</option>
-              <option value="1">Dhaka</option>
+              <option value="26">Dhaka</option>
             </select>
           </div>
           

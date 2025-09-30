@@ -14,28 +14,21 @@ import java.util.stream.Collectors;
 public class StudentService {
 
     private final StudentRepository studentRepository;
-    private final UserRepository userRepository;
     private final SchoolRepository schoolRepository;
 
     public StudentService(StudentRepository studentRepository,
-                          UserRepository userRepository,
                           SchoolRepository schoolRepository) {
         this.studentRepository = studentRepository;
-        this.userRepository = userRepository;
         this.schoolRepository = schoolRepository;
     }
 
     // Create or update Student
     public StudentDto saveStudent(StudentDto studentDto) {
-        User user = userRepository.findById(studentDto.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
         School school = schoolRepository.findById(studentDto.getSchoolId())
                 .orElseThrow(() -> new RuntimeException("School not found"));
 
         Student student = Student.builder()
                 .studentId(studentDto.getStudentId())
-                .user(user)
                 .school(school)
                 .studentName(studentDto.getStudentName())
                 .studentIdNumber(studentDto.getStudentIdNumber())
@@ -108,7 +101,6 @@ public class StudentService {
     private StudentDto mapToDto(Student student) {
         return StudentDto.builder()
                 .studentId(student.getStudentId())
-                .userId(student.getUser().getUserId())
                 .schoolId(student.getSchool().getSchoolId())
                 .studentName(student.getStudentName())
                 .studentIdNumber(student.getStudentIdNumber())

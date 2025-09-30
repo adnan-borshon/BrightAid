@@ -77,6 +77,13 @@ public class School {
     @Builder.Default
     private SchoolStatus status = SchoolStatus.ACTIVE;
 
+    @Column(name = "created_at", nullable = false, updatable = false)
+    @Builder.Default
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
     @OneToMany(mappedBy = "school", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @ToString.Exclude
     private List<Student> students;
@@ -85,7 +92,10 @@ public class School {
     @ToString.Exclude
     private List<SchoolDocument> documents;
 
-
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
 
     public enum SchoolType {
         PRIMARY, SECONDARY, HIGH_SCHOOL, MADRASA

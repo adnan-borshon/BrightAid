@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -31,11 +32,14 @@ public class SchoolDto {
 
     private String address;
 
+    @NotNull(message = "Division ID is required")
     private Integer divisionId;
+
+    @NotNull(message = "District ID is required")
     private Integer districtId;
+
+    @NotNull(message = "Upazila ID is required")
     private Integer upazilaId;
-
-
 
     private BigDecimal latitude;
     private BigDecimal longitude;
@@ -45,4 +49,7 @@ public class SchoolDto {
 
     @Builder.Default
     private String status = "ACTIVE";
+
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }
