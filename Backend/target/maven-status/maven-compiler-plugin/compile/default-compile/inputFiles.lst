@@ -10,6 +10,7 @@
 /Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Dto/DonorDto.java
 /Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Dto/DonorGamificationDto.java
 /Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Dto/DropoutPredictionDto.java
+/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Dto/DropoutPredictionResponse.java
 /Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Dto/FinancialReportDto.java
 /Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Dto/FundTransparencyDto.java
 /Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Dto/FundUtilizationDto.java

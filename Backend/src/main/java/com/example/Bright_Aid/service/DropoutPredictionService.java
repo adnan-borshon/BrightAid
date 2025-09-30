@@ -1,162 +1,94 @@
 package com.example.Bright_Aid.service;
 
-import com.example.Bright_Aid.Dto.DropoutPredictionDto;
 import com.example.Bright_Aid.Entity.DropoutPrediction;
 import com.example.Bright_Aid.Entity.Student;
 import com.example.Bright_Aid.repository.DropoutPredictionRepository;
-import com.example.Bright_Aid.repository.StudentRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
-@Transactional(readOnly = true)
 public class DropoutPredictionService {
 
-    private final DropoutPredictionRepository dropoutPredictionRepository;
-    private final StudentRepository studentRepository;
+    private final DropoutPredictionRepository repository;
 
-    @Transactional
-    public DropoutPredictionDto createDropoutPrediction(DropoutPredictionDto dropoutPredictionDto) {
-        log.info("Creating dropout prediction for student ID: {}", dropoutPredictionDto.getStudentId());
+    public DropoutPrediction calculateAndSavePrediction(Student student,
+                                                        double attendanceRate,
+                                                        double familyIncome,
+                                                        boolean fatherAlive,
+                                                        boolean motherAlive,
+                                                        String interventionNotes) {
 
-        Student student = studentRepository.findById(dropoutPredictionDto.getStudentId())
-                .orElseThrow(() -> new RuntimeException("Student not found with ID: " + dropoutPredictionDto.getStudentId()));
+        DropoutPrediction prediction = new DropoutPrediction();
+        prediction.setStudent(student);
 
-        DropoutPrediction prediction = DropoutPrediction.builder()
-                .student(student)
-                .attendanceRate(dropoutPredictionDto.getAttendanceRate())
-                .familyIncomeScore(dropoutPredictionDto.getFamilyIncomeScore())
-                .parentStatusScore(dropoutPredictionDto.getParentStatusScore())
-                .overallRiskScore(dropoutPredictionDto.getOverallRiskScore())
-                .riskLevel(dropoutPredictionDto.getRiskLevel())
-                .calculatedRiskFactors(dropoutPredictionDto.getCalculatedRiskFactors())
-                .predictionDate(dropoutPredictionDto.getPredictionDate())
-                .interventionTaken(dropoutPredictionDto.getInterventionTaken())
-                .interventionNotes(dropoutPredictionDto.getInterventionNotes())
-                .lastCalculated(dropoutPredictionDto.getLastCalculated() != null ?
-                        dropoutPredictionDto.getLastCalculated() : LocalDateTime.now())
-                .build();
-
-        DropoutPrediction savedPrediction = dropoutPredictionRepository.save(prediction);
-        log.info("Successfully created dropout prediction with ID: {}", savedPrediction.getPredictionId());
-
-        return convertToDto(savedPrediction);
-    }
-
-    public DropoutPredictionDto getDropoutPredictionById(Integer predictionId) {
-        log.info("Fetching dropout prediction with ID: {}", predictionId);
-
-        DropoutPrediction prediction = dropoutPredictionRepository.findById(predictionId)
-                .orElseThrow(() -> new RuntimeException("Dropout prediction not found with ID: " + predictionId));
-
-        return convertToDto(prediction);
-    }
-
-    public List<DropoutPredictionDto> getAllDropoutPredictions() {
-        log.info("Fetching all dropout predictions");
-
-        List<DropoutPrediction> predictions = dropoutPredictionRepository.findAll();
-        return predictions.stream()
-                .map(this::convertToDto)
-                .collect(Collectors.toList());
-    }
-
-    public Page<DropoutPredictionDto> getAllDropoutPredictions(Pageable pageable) {
-        log.info("Fetching dropout predictions with pagination: {}", pageable);
-
-        Page<DropoutPrediction> predictions = dropoutPredictionRepository.findAll(pageable);
-        return predictions.map(this::convertToDto);
-    }
-
-    @Transactional
-    public DropoutPredictionDto updateDropoutPrediction(Integer predictionId, DropoutPredictionDto dropoutPredictionDto) {
-        log.info("Updating dropout prediction with ID: {}", predictionId);
-
-        DropoutPrediction existingPrediction = dropoutPredictionRepository.findById(predictionId)
-                .orElseThrow(() -> new RuntimeException("Dropout prediction not found with ID: " + predictionId));
-
-        if (dropoutPredictionDto.getStudentId() != null &&
-                !dropoutPredictionDto.getStudentId().equals(existingPrediction.getStudent().getStudentId())) {
-            Student student = studentRepository.findById(dropoutPredictionDto.getStudentId())
-                    .orElseThrow(() -> new RuntimeException("Student not found with ID: " + dropoutPredictionDto.getStudentId()));
-            existingPrediction.setStudent(student);
+        // Attendance Score
+        int attendanceScore;
+        if (attendanceRate >= 75) {
+            attendanceScore = (int) Math.round(100 - attendanceRate);
+        } else if (attendanceRate >= 50) {
+            attendanceScore = (int) Math.round(26 + (74 - attendanceRate));
+        } else {
+            double normalized = (50 - attendanceRate) / 50.0;
+            attendanceScore = (int) Math.round(51 + normalized * 49);
         }
 
-        if (dropoutPredictionDto.getAttendanceRate() != null) {
-            existingPrediction.setAttendanceRate(dropoutPredictionDto.getAttendanceRate());
-        }
-        if (dropoutPredictionDto.getFamilyIncomeScore() != null) {
-            existingPrediction.setFamilyIncomeScore(dropoutPredictionDto.getFamilyIncomeScore());
-        }
-        if (dropoutPredictionDto.getParentStatusScore() != null) {
-            existingPrediction.setParentStatusScore(dropoutPredictionDto.getParentStatusScore());
-        }
-        if (dropoutPredictionDto.getOverallRiskScore() != null) {
-            existingPrediction.setOverallRiskScore(dropoutPredictionDto.getOverallRiskScore());
-        }
-        if (dropoutPredictionDto.getRiskLevel() != null) {
-            existingPrediction.setRiskLevel(dropoutPredictionDto.getRiskLevel());
-        }
-        if (dropoutPredictionDto.getCalculatedRiskFactors() != null) {
-            existingPrediction.setCalculatedRiskFactors(dropoutPredictionDto.getCalculatedRiskFactors());
-        }
-        if (dropoutPredictionDto.getPredictionDate() != null) {
-            existingPrediction.setPredictionDate(dropoutPredictionDto.getPredictionDate());
-        }
-        if (dropoutPredictionDto.getInterventionTaken() != null) {
-            existingPrediction.setInterventionTaken(dropoutPredictionDto.getInterventionTaken());
-        }
-        if (dropoutPredictionDto.getInterventionNotes() != null) {
-            existingPrediction.setInterventionNotes(dropoutPredictionDto.getInterventionNotes());
-        }
-        if (dropoutPredictionDto.getLastCalculated() != null) {
-            existingPrediction.setLastCalculated(dropoutPredictionDto.getLastCalculated());
+        // Family Income Score
+        int incomeScore;
+        if (familyIncome >= 20000) {
+            double cappedIncome = Math.min(familyIncome, 50000);
+            double normalized = (cappedIncome - 20000) / 30000.0;
+            incomeScore = (int) Math.round(25 * (1 - normalized));
+        } else if (familyIncome >= 12000) {
+            incomeScore = (int) Math.round(50 - ((familyIncome - 12000) / 8000.0 * 24));
+        } else {
+            double minIncome = 5000;
+            double cappedIncome = Math.max(familyIncome, 0);
+            double normalized = cappedIncome / minIncome;
+            incomeScore = (int) Math.round(100 - (Math.min(normalized, 1) * 49));
         }
 
-        DropoutPrediction updatedPrediction = dropoutPredictionRepository.save(existingPrediction);
-        log.info("Successfully updated dropout prediction with ID: {}", predictionId);
+        // Parent Status Score
+        int parentScore;
+        if (fatherAlive && motherAlive) parentScore = 0;
+        else if (!fatherAlive && !motherAlive) parentScore = 100;
+        else if (!fatherAlive) parentScore = 60;
+        else parentScore = 40;
 
-        return convertToDto(updatedPrediction);
-    }
+        // Overall Score
+        int overallScore = (int) Math.round(attendanceScore * 0.45 + incomeScore * 0.35 + parentScore * 0.20);
 
-    @Transactional
-    public void deleteDropoutPrediction(Integer predictionId) {
-        log.info("Deleting dropout prediction with ID: {}", predictionId);
+        DropoutPrediction.RiskLevel riskLevel;
+        if (overallScore >= 70) riskLevel = DropoutPrediction.RiskLevel.CRITICAL;
+        else if (overallScore >= 50) riskLevel = DropoutPrediction.RiskLevel.HIGH;
+        else if (overallScore >= 30) riskLevel = DropoutPrediction.RiskLevel.MEDIUM;
+        else riskLevel = DropoutPrediction.RiskLevel.LOW;
 
-        if (!dropoutPredictionRepository.existsById(predictionId)) {
-            throw new RuntimeException("Dropout prediction not found with ID: " + predictionId);
-        }
+        // Risk Factors
+        List<String> riskFactors = new ArrayList<>();
+        if (attendanceScore >= 51) riskFactors.add("Chronic absenteeism (<50% attendance)");
+        else if (attendanceScore >= 26) riskFactors.add("Low attendance (50-75%)");
 
-        dropoutPredictionRepository.deleteById(predictionId);
-        log.info("Successfully deleted dropout prediction with ID: {}", predictionId);
-    }
+        if (incomeScore >= 51) riskFactors.add("Extreme poverty (<৳12,000/month)");
+        else if (incomeScore >= 26) riskFactors.add("Low family income (৳12,000-20,000/month)");
 
-    private DropoutPredictionDto convertToDto(DropoutPrediction prediction) {
-        return DropoutPredictionDto.builder()
-                .predictionId(prediction.getPredictionId())
-                .studentId(prediction.getStudent().getStudentId())
-                .attendanceRate(prediction.getAttendanceRate())
-                .familyIncomeScore(prediction.getFamilyIncomeScore())
-                .parentStatusScore(prediction.getParentStatusScore())
-                .overallRiskScore(prediction.getOverallRiskScore())
-                .riskLevel(prediction.getRiskLevel())
-                .calculatedRiskFactors(prediction.getCalculatedRiskFactors())
-                .predictionDate(prediction.getPredictionDate())
-                .interventionTaken(prediction.getInterventionTaken())
-                .interventionNotes(prediction.getInterventionNotes())
-                .lastCalculated(prediction.getLastCalculated())
-                .createdAt(prediction.getCreatedAt())
-                .updatedAt(prediction.getUpdatedAt())
-                .build();
+        if (parentScore == 100) riskFactors.add("Orphan - both parents deceased");
+        else if (parentScore >= 40) riskFactors.add("Single parent household");
+
+        // Save
+        prediction.setAttendanceRate(attendanceScore);
+        prediction.setFamilyIncomeScore(incomeScore);
+        prediction.setParentStatusScore(parentScore);
+        prediction.setOverallRiskScore(overallScore);
+        prediction.setRiskLevel(riskLevel);
+        prediction.setCalculatedRiskFactors(riskFactors);
+        prediction.setInterventionNotes(interventionNotes);
+        prediction.setLastCalculated(LocalDateTime.now());
+
+        return repository.save(prediction);
     }
 }

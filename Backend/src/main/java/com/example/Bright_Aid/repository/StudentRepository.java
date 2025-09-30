@@ -37,4 +37,10 @@ public interface StudentRepository extends JpaRepository<Student, Integer> {
     // Example custom query: search by partial name
     @Query("SELECT s FROM Student s WHERE s.studentName LIKE %:name%")
     List<Student> searchByName(@Param("name") String name);
+
+    // ✅ New: Find students by profile image URL
+    Optional<Student> findByProfileImage(String profileImage);
+
+    // ✅ New: Find students where profile image is not null (students with images)
+    List<Student> findByProfileImageIsNotNull();
 }
