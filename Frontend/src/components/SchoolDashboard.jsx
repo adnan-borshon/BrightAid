@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { ChevronRight, MoreVertical, Users, Briefcase, Plus, Download } from 'lucide-react';
 import Sidebar from './DashSidebar';
+import SchoolStudents from './SchoolStudents';
 
 // Empty data structure
 const emptyData = {
@@ -203,11 +204,15 @@ export default function SchoolDashboard() {
 
       {/* Main Content */}
       <div className="flex-1 overflow-auto">
-        {apiError && (
-          <div className="m-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
-            ⚠ Using demo data. Connect to backend at <code className="bg-yellow-100 px-2 py-1 rounded">{API_BASE_URL}</code>
-          </div>
-        )}
+        {activeNav === 'Students' ? (
+          <SchoolStudents schoolId={schoolId} />
+        ) : (
+          <>
+            {apiError && (
+              <div className="m-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
+                ⚠ Using demo data. Connect to backend at <code className="bg-yellow-100 px-2 py-1 rounded">{API_BASE_URL}</code>
+              </div>
+            )}
 
         {/* Hero Banner */}
         <div className="bg-gradient-to-r from-green-50 to-green-100 m-6 rounded-2xl p-8 flex items-center justify-between relative overflow-hidden">
@@ -525,6 +530,8 @@ export default function SchoolDashboard() {
             </button>
           </div>
         </div>
+          </>
+        )}
       </div>
     </div>
   );

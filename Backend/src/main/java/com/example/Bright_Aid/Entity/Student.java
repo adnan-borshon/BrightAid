@@ -25,8 +25,6 @@ public class Student extends BaseEntity {
     @EqualsAndHashCode.Include
     private Integer studentId;
 
-
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "school_id", nullable = false)
     @NotNull
@@ -94,8 +92,6 @@ public class Student extends BaseEntity {
     @ToString.Exclude
     private List<DropoutPrediction> dropoutPredictions;
 
-
-
     public enum Gender {
         MALE, FEMALE, OTHER
     }
@@ -115,4 +111,3 @@ public class Student extends BaseEntity {
         }
     }
 }
-

@@ -1,110 +1,58 @@
 package com.example.Bright_Aid.service;
 
-import com.example.Bright_Aid.Entity.*;
+import com.example.Bright_Aid.Entity.School;
+import com.example.Bright_Aid.Entity.Student;
 import com.example.Bright_Aid.Dto.StudentDto;
-import com.example.Bright_Aid.repository.*;
+import com.example.Bright_Aid.repository.SchoolRepository;
+import com.example.Bright_Aid.repository.StudentRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@Transactional
+@RequiredArgsConstructor
 public class StudentService {
 
     private final StudentRepository studentRepository;
     private final SchoolRepository schoolRepository;
 
-    public StudentService(StudentRepository studentRepository,
-                          SchoolRepository schoolRepository) {
-        this.studentRepository = studentRepository;
-        this.schoolRepository = schoolRepository;
-    }
+    // Convert DTO → Entity
+    private Student mapToEntity(StudentDto dto) {
+        School school = schoolRepository.findById(dto.getSchoolId())
+                .orElseThrow(() -> new EntityNotFoundException("School not found"));
 
-    // Create or update Student
-    public StudentDto saveStudent(StudentDto studentDto) {
-        School school = schoolRepository.findById(studentDto.getSchoolId())
-                .orElseThrow(() -> new RuntimeException("School not found"));
-
-        Student student = Student.builder()
-                .studentId(studentDto.getStudentId())
+        return Student.builder()
+                .studentId(dto.getStudentId())
+                .studentName(dto.getStudentName())
+                .studentIdNumber(dto.getStudentIdNumber())
+                .gender(dto.getGender())
+                .dateOfBirth(dto.getDateOfBirth())
+                .fatherName(dto.getFatherName())
+                .fatherAlive(dto.getFatherAlive())
+                .fatherOccupation(dto.getFatherOccupation())
+                .motherName(dto.getMotherName())
+                .motherAlive(dto.getMotherAlive())
+                .motherOccupation(dto.getMotherOccupation())
+                .guardianPhone(dto.getGuardianPhone())
+                .address(dto.getAddress())
+                .classLevel(dto.getClassLevel())
+                .familyMonthlyIncome(dto.getFamilyMonthlyIncome())
+                .hasScholarship(dto.getHasScholarship())
                 .school(school)
-                .studentName(studentDto.getStudentName())
-                .studentIdNumber(studentDto.getStudentIdNumber())
-                .gender(studentDto.getGender() != null ?
-                        Student.Gender.valueOf(studentDto.getGender()) : null)
-                .dateOfBirth(studentDto.getDateOfBirth())
-                .fatherName(studentDto.getFatherName())
-                .fatherAlive(studentDto.getFatherAlive() != null ?
-                        studentDto.getFatherAlive() : true)
-                .fatherOccupation(studentDto.getFatherOccupation())
-                .motherName(studentDto.getMotherName())
-                .motherAlive(studentDto.getMotherAlive() != null ?
-                        studentDto.getMotherAlive() : true)
-                .motherOccupation(studentDto.getMotherOccupation())
-                .guardianPhone(studentDto.getGuardianPhone())
-                .address(studentDto.getAddress())
-                .classLevel(Student.ClassLevel.valueOf(studentDto.getClassLevel()))
-                .familyMonthlyIncome(studentDto.getFamilyMonthlyIncome())
-                .hasScholarship(studentDto.getHasScholarship() != null ?
-                        studentDto.getHasScholarship() : false)
                 .build();
-
-        Student saved = studentRepository.save(student);
-        return mapToDto(saved);
     }
 
-    // Get all students
-    public List<StudentDto> getAllStudents() {
-        return studentRepository.findAll().stream()
-                .map(this::mapToDto)
-                .collect(Collectors.toList());
-    }
-
-    // Get student by ID
-    public StudentDto getStudentById(Integer studentId) {
-        return studentRepository.findById(studentId)
-                .map(this::mapToDto)
-                .orElseThrow(() -> new RuntimeException("Student not found"));
-    }
-
-    // Delete student
-    public void deleteStudent(Integer studentId) {
-        if (!studentRepository.existsById(studentId)) {
-            throw new RuntimeException("Student not found");
-        }
-        studentRepository.deleteById(studentId);
-    }
-
-    // Update scholarship status
-    public StudentDto updateScholarshipStatus(Integer studentId, Boolean hasScholarship) {
-        Student student = studentRepository.findById(studentId)
-                .orElseThrow(() -> new RuntimeException("Student not found"));
-
-        student.setHasScholarship(hasScholarship);
-        Student saved = studentRepository.save(student);
-        return mapToDto(saved);
-    }
-
-    // Grant scholarship
-    public StudentDto grantScholarship(Integer studentId) {
-        return updateScholarshipStatus(studentId, true);
-    }
-
-    // Remove scholarship
-    public StudentDto removeScholarship(Integer studentId) {
-        return updateScholarshipStatus(studentId, false);
-    }
-
-    // Map Student entity to DTO
-    private StudentDto mapToDto(Student student) {
+    // Convert Entity → DTO
+    private StudentDto mapToDTO(Student student) {
         return StudentDto.builder()
                 .studentId(student.getStudentId())
                 .schoolId(student.getSchool().getSchoolId())
                 .studentName(student.getStudentName())
                 .studentIdNumber(student.getStudentIdNumber())
-                .gender(student.getGender() != null ? student.getGender().name() : null)
+                .gender(student.getGender())
                 .dateOfBirth(student.getDateOfBirth())
                 .fatherName(student.getFatherName())
                 .fatherAlive(student.getFatherAlive())
@@ -114,11 +62,42 @@ public class StudentService {
                 .motherOccupation(student.getMotherOccupation())
                 .guardianPhone(student.getGuardianPhone())
                 .address(student.getAddress())
-                .classLevel(student.getClassLevel().name())
+                .classLevel(student.getClassLevel())
                 .familyMonthlyIncome(student.getFamilyMonthlyIncome())
                 .hasScholarship(student.getHasScholarship())
-                .createdAt(student.getCreatedAt())
-                .updatedAt(student.getUpdatedAt())
                 .build();
+    }
+
+    // CRUD operations
+
+    public StudentDto createStudent(StudentDto dto) {
+        Student student = mapToEntity(dto);
+        return mapToDTO(studentRepository.save(student));
+    }
+
+    public StudentDto updateStudent(Integer id, StudentDto dto) {
+        Student existing = studentRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Student not found"));
+        Student updated = mapToEntity(dto);
+        updated.setStudentId(existing.getStudentId()); // preserve ID
+        return mapToDTO(studentRepository.save(updated));
+    }
+
+    public StudentDto getStudentById(Integer id) {
+        return studentRepository.findById(id)
+                .map(this::mapToDTO)
+                .orElseThrow(() -> new EntityNotFoundException("Student not found"));
+    }
+
+    public List<StudentDto> getAllStudents() {
+        return studentRepository.findAll().stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
+
+    public void deleteStudent(Integer id) {
+        if (!studentRepository.existsById(id))
+            throw new EntityNotFoundException("Student not found");
+        studentRepository.deleteById(id);
     }
 }
