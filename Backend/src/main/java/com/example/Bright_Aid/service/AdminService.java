@@ -24,39 +24,48 @@ public class AdminService {
         this.userRepository = userRepository;
     }
 
-    // Create or update Admin
+    // Create or update Admin safely
     public AdminDto saveAdmin(AdminDto adminDto) {
         User user = userRepository.findById(adminDto.getUserId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Admin admin = Admin.builder()
-                .adminId(adminDto.getAdminId())
-                .user(user)
-                .permissions(adminDto.getPermissions())
-                .isActive(adminDto.getIsActive() != null ? adminDto.getIsActive() : true)
-                .assignedAt(adminDto.getAssignedAt())
-                .adminNotes(adminDto.getAdminNotes())
-                .build();
+        Admin admin;
+        if (adminDto.getAdminId() != null) {
+            // Update existing admin
+            admin = adminRepository.findById(adminDto.getAdminId())
+                    .orElseThrow(() -> new RuntimeException("Admin not found"));
+            admin.setUser(user);
+            admin.setPermissions(adminDto.getPermissions());
+            admin.setIsActive(adminDto.getIsActive() != null ? adminDto.getIsActive() : true);
+            admin.setAssignedAt(adminDto.getAssignedAt());
+            admin.setAdminNotes(adminDto.getAdminNotes());
+        } else {
+            // Create new admin
+            admin = Admin.builder()
+                    .user(user)
+                    .permissions(adminDto.getPermissions())
+                    .isActive(adminDto.getIsActive() != null ? adminDto.getIsActive() : true)
+                    .assignedAt(adminDto.getAssignedAt())
+                    .adminNotes(adminDto.getAdminNotes())
+                    .build();
+        }
 
         Admin saved = adminRepository.save(admin);
         return mapToDto(saved);
     }
 
-    // Get all admins
     public List<AdminDto> getAllAdmins() {
         return adminRepository.findAll().stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
     }
 
-    // Get admin by ID
     public AdminDto getAdminById(Integer adminId) {
         return adminRepository.findById(adminId)
                 .map(this::mapToDto)
                 .orElseThrow(() -> new RuntimeException("Admin not found"));
     }
 
-    // Delete admin
     public void deleteAdmin(Integer adminId) {
         if (!adminRepository.existsById(adminId)) {
             throw new RuntimeException("Admin not found");
@@ -64,7 +73,6 @@ public class AdminService {
         adminRepository.deleteById(adminId);
     }
 
-    // Get all verified NGOs for an admin
     public List<Integer> getVerifiedNgoIds(Integer adminId) {
         Admin admin = adminRepository.findById(adminId)
                 .orElseThrow(() -> new RuntimeException("Admin not found"));
@@ -73,7 +81,6 @@ public class AdminService {
         return verifiedNgos.stream().map(Ngo::getNgoId).collect(Collectors.toList());
     }
 
-    // Map Admin entity to DTO
     private AdminDto mapToDto(Admin admin) {
         List<Integer> ngoIds = admin.getVerifiedNgos() != null ?
                 admin.getVerifiedNgos().stream().map(Ngo::getNgoId).toList() :

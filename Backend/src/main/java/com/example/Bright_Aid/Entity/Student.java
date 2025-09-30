@@ -20,13 +20,13 @@ import java.util.List;
 public class Student extends BaseEntity {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "student_id")
     @EqualsAndHashCode.Include
     private Integer studentId;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    @MapsId
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
     @NotNull
     private User user;
 

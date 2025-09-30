@@ -19,13 +19,13 @@ import java.time.LocalDateTime;
 public class UserProfile extends BaseEntity {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "profile_id")
     @EqualsAndHashCode.Include
     private Integer profileId;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    @MapsId
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
     @NotNull
     private User user;
 

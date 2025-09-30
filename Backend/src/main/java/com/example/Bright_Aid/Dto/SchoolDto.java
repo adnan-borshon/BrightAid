@@ -32,13 +32,12 @@ public class SchoolDto {
     private String address;
 
     private Integer divisionId;
-
     private Integer districtId;
-
     private Integer upazilaId;
 
-    private BigDecimal latitude;
 
+
+    private BigDecimal latitude;
     private BigDecimal longitude;
 
     @Builder.Default

@@ -14,4 +14,5 @@ import java.util.Optional;
 public interface UpazilaRepository extends JpaRepository<Upazila, Integer> {
 
 
+    Optional<Upazila> findByUpazilaName(String upazilaName);
 }
