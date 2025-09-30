@@ -13,8 +13,8 @@ import SchoolDashboard from './components/SchoolDashboard';
 function App() {
   return (
     <div className="min-h-screen bg-white">
-<SchoolDashboard/>
-       {/* <SignUp/> */}
+{/* <SchoolDashboard/> */}
+       <SignUp/>
         {/* <Login/> */}
       {/* <Hero />
       <Stats />

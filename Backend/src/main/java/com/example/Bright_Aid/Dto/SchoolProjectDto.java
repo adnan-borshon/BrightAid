@@ -20,8 +20,7 @@ public class SchoolProjectDto {
     @NotNull(message = "School ID is required")
     private Integer schoolId;
 
-    @NotNull(message = "Created by is required")
-    private Integer createdBy;
+
 
     @NotBlank(message = "Project title is required")
     private String projectTitle;

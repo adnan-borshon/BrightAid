@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
+
 @Entity
 @Table(name = "upazilas")
 @Data
@@ -29,11 +30,11 @@ public class Upazila {
     private District district;
 
     @NotBlank
-    @Column(name = "upazila_name", nullable = false)
+    @Column(name = "upazila_name", nullable = false, length = 100)
     private String upazilaName;
 
     @NotBlank
-    @Column(name = "upazila_code", unique = true, nullable = false)
+    @Column(name = "upazila_code", unique = true, nullable = false, length = 20)
     private String upazilaCode;
 
     @OneToMany(mappedBy = "upazila", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

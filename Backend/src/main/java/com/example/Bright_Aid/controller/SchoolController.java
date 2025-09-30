@@ -22,42 +22,31 @@ public class SchoolController {
 
     // -------------------- CRUD --------------------
 
-    // Create new school
-    // -------------------- AUTO-CREATE ENDPOINTS --------------------
-
-
-
-    // Regular create (requires all foreign keys to exist)
     @PostMapping
     public ResponseEntity<SchoolDto> createSchool(@Valid @RequestBody SchoolDto schoolDto) {
-        SchoolDto createdSchool = schoolService.saveSchool(schoolDto);
+        SchoolDto createdSchool = schoolService.createSchool(schoolDto);
         return new ResponseEntity<>(createdSchool, HttpStatus.CREATED);
     }
 
-    // Get all schools
     @GetMapping
     public ResponseEntity<List<SchoolDto>> getAllSchools() {
         List<SchoolDto> schools = schoolService.getAllSchools();
         return new ResponseEntity<>(schools, HttpStatus.OK);
     }
 
-    // Get school by ID
     @GetMapping("/{schoolId}")
     public ResponseEntity<SchoolDto> getSchoolById(@PathVariable Integer schoolId) {
         SchoolDto school = schoolService.getSchoolById(schoolId);
         return new ResponseEntity<>(school, HttpStatus.OK);
     }
 
-    // Update school
     @PutMapping("/{schoolId}")
     public ResponseEntity<SchoolDto> updateSchool(@PathVariable Integer schoolId,
                                                   @Valid @RequestBody SchoolDto schoolDto) {
-        schoolDto.setSchoolId(schoolId);
-        SchoolDto updatedSchool = schoolService.saveSchool(schoolDto);
+        SchoolDto updatedSchool = schoolService.updateSchool(schoolId, schoolDto);
         return new ResponseEntity<>(updatedSchool, HttpStatus.OK);
     }
 
-    // Delete school
     @DeleteMapping("/{schoolId}")
     public ResponseEntity<Void> deleteSchool(@PathVariable Integer schoolId) {
         schoolService.deleteSchool(schoolId);
@@ -66,7 +55,6 @@ public class SchoolController {
 
     // -------------------- STATUS & VERIFICATION --------------------
 
-    // Update verification status
     @PatchMapping("/{schoolId}/verification-status")
     public ResponseEntity<SchoolDto> updateVerificationStatus(@PathVariable Integer schoolId,
                                                               @RequestParam String verificationStatus) {
@@ -75,7 +63,6 @@ public class SchoolController {
         return new ResponseEntity<>(updatedSchool, HttpStatus.OK);
     }
 
-    // Update school status
     @PatchMapping("/{schoolId}/status")
     public ResponseEntity<SchoolDto> updateSchoolStatus(@PathVariable Integer schoolId,
                                                         @RequestParam String status) {
@@ -84,14 +71,12 @@ public class SchoolController {
         return new ResponseEntity<>(updatedSchool, HttpStatus.OK);
     }
 
-    // Verify school
     @PatchMapping("/{schoolId}/verify")
     public ResponseEntity<SchoolDto> verifySchool(@PathVariable Integer schoolId) {
         SchoolDto verifiedSchool = schoolService.verifySchool(schoolId);
         return new ResponseEntity<>(verifiedSchool, HttpStatus.OK);
     }
 
-    // Reject school verification
     @PatchMapping("/{schoolId}/reject")
     public ResponseEntity<SchoolDto> rejectSchool(@PathVariable Integer schoolId) {
         SchoolDto rejectedSchool = schoolService.rejectSchool(schoolId);
@@ -100,14 +85,12 @@ public class SchoolController {
 
     // -------------------- CUSTOM QUERY ENDPOINTS --------------------
 
-    // Get schools by name (partial match)
     @GetMapping("/search")
     public ResponseEntity<List<SchoolDto>> searchSchoolsByName(@RequestParam String name) {
         List<SchoolDto> schools = schoolService.findSchoolsByName(name);
         return new ResponseEntity<>(schools, HttpStatus.OK);
     }
 
-    // Get schools by status
     @GetMapping("/status/{status}")
     public ResponseEntity<List<SchoolDto>> getSchoolsByStatus(@PathVariable String status) {
         School.SchoolStatus schoolStatus = School.SchoolStatus.valueOf(status.toUpperCase());
@@ -115,11 +98,22 @@ public class SchoolController {
         return new ResponseEntity<>(schools, HttpStatus.OK);
     }
 
-    // Get schools by verification status
     @GetMapping("/verification/{status}")
     public ResponseEntity<List<SchoolDto>> getSchoolsByVerificationStatus(@PathVariable String status) {
         School.VerificationStatus verificationStatus = School.VerificationStatus.valueOf(status.toUpperCase());
         List<SchoolDto> schools = schoolService.findSchoolsByVerificationStatus(verificationStatus);
+        return new ResponseEntity<>(schools, HttpStatus.OK);
+    }
+
+    @GetMapping("/division/{divisionId}")
+    public ResponseEntity<List<SchoolDto>> getSchoolsByDivision(@PathVariable Integer divisionId) {
+        List<SchoolDto> schools = schoolService.findSchoolsByDivision(divisionId);
+        return new ResponseEntity<>(schools, HttpStatus.OK);
+    }
+
+    @GetMapping("/district/{districtId}")
+    public ResponseEntity<List<SchoolDto>> getSchoolsByDistrict(@PathVariable Integer districtId) {
+        List<SchoolDto> schools = schoolService.findSchoolsByDistrict(districtId);
         return new ResponseEntity<>(schools, HttpStatus.OK);
     }
 }
