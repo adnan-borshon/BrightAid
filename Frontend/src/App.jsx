@@ -7,21 +7,19 @@ import About from './components/Landing page/About';
 import Testimonials from './components/Landing page/Testimonials';
 import Navbar from './Fixed components/Navbar';
 import Hero from './components/Landing page/Hero';
-import Login from './components/Authentication/Login'
+import Login from './components/Authentication/SignUp1'
 import SignUp from './components/Authentication/Signup/SignUp';
 import SchoolDashboard from './components/SchoolDashboard';
 function App() {
   return (
     <div className="min-h-screen bg-white">
-{/* <SchoolDashboard/> */}
-       <SignUp/>
-        {/* <Login/> */}
-      {/* <Hero />
+      
+      <Hero />
       <Stats />
       <Eligibility />
       <Projects />
       <About />
-      <Testimonials /> */}
+      <Testimonials />
     </div>
   );
 }

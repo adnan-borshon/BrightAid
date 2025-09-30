@@ -29,12 +29,16 @@ const Hero = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4">
-            <button className="bg-green-600 text-white px-6 sm:px-8 py-3 rounded-lg hover:bg-green-700 transition-colors flex items-center">
+            <Link
+            to="/signup1"
+            className="bg-green-600 text-white px-6 sm:px-8 py-3 rounded-lg hover:bg-green-700 transition-colors flex items-center">
               <span className="mr-2">💚</span> Donate in Project
-            </button>
-            <button className="border-2 border-gray-300 text-gray-700 px-6 sm:px-8 py-3 rounded-lg hover:border-green-600 hover:text-green-600 transition-colors flex items-center">
+            </Link>
+            <Link
+            to="/signup1"
+            className="border-2 border-gray-300 text-gray-700 px-6 sm:px-8 py-3 rounded-lg hover:border-green-600 hover:text-green-600 transition-colors flex items-center">
               <span className="mr-2">👨‍🎓</span> Sponsor a Student
-            </button>
+            </Link>
           </div>
         </div>
 

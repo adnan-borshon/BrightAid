@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 
 const Navbar = () => {
   return (
-    <div className="flex items-center justify-center flex-wrap gap-4 lg:gap-8 text-sm font-semibold sm:p-6 text-[#3F4246]">
+    <div className="flex items-center justify-center flex-wrap gap-4 lg:gap-4 text-sm font-semibold sm:p-6 text-[#3F4246]">
       <Link to="/how-it-works" className="hover:underline">
         How it works
       </Link>
@@ -20,9 +20,12 @@ const Navbar = () => {
       <Link to="/about" className="hover:underline">
         About
       </Link>
-      <button className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+        <Link to="/login" className="bg-white text-green-600 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors">
+        Login
+      </Link>
+      <Link to="/signup1" className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
         Sign Up
-      </button>
+      </Link>
     </div>
   );
 };
