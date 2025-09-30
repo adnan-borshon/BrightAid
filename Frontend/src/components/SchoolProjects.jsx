@@ -1,24 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Search, Plus, AlertTriangle, Users as UsersIcon, Layers } from 'lucide-react';
-import Sidebar from './DashSidebar';
-import StudentEnrollmentModal from './Modal/StudentEnrollmentModal';
+
 
 const emptyData = {
   school: null,
-  students: [],
+  projects: [],
   totalCount: 0,
   highRiskCount: 0,
   scholarshipPendingCount: 0
 };
 
-export default function SchoolStudents() {
+export default function SchoolProjects() {
   const { schoolId } = useParams();
-  const [activeNav, setActiveNav] = useState('Students');
+  const [activeNav, setActiveNav] = useState('Projects');
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(emptyData);
   const [apiError, setApiError] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
@@ -27,24 +26,24 @@ export default function SchoolStudents() {
   
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const studentsPerPage = 10;
+  const projectsPerPage = 8;
   
   const API_BASE_URL = 'http://localhost:8081/api';
 
   useEffect(() => {
     if (schoolId) {
-      fetchStudentsData();
+      fetchProjectsData();
     }
   }, [schoolId]);
 
-  const fetchStudentsData = async () => {
+  const fetchProjectsData = async () => {
     setLoading(true);
     try {
-      console.log('Fetching students for school ID:', schoolId);
+      console.log('Fetching projects for school ID:', schoolId);
       
-      const [schoolRes, studentsRes] = await Promise.all([
+      const [schoolRes, projectsRes] = await Promise.all([
         fetch(`${API_BASE_URL}/schools/${schoolId}`).catch(() => null),
-        fetch(`${API_BASE_URL}/students`).catch(() => null),
+        fetch(`${API_BASE_URL}/school-projects`).catch(() => null),
       ]);
 
       const newData = { ...emptyData };
@@ -59,41 +58,40 @@ export default function SchoolStudents() {
         };
       }
       
-      if (studentsRes && studentsRes.ok) {
-        const studentsData = await studentsRes.json();
-        const students = Array.isArray(studentsData) ? studentsData : studentsData.data || [];
+      if (projectsRes && projectsRes.ok) {
+        const projectsData = await projectsRes.json();
+        const projects = Array.isArray(projectsData) ? projectsData : projectsData.data || [];
         
-        const schoolStudents = students
-          .filter(student => (student.schoolId || student.school_id) == schoolId)
-          .map(student => ({
-            student_id: student.studentId || student.student_id,
-            student_name: student.studentName || student.student_name,
-            class_level: student.classLevel || student.class_level,
-            scholarship_amount: student.scholarshipAmount || student.scholarship_amount || 0,
-            total_amount: student.totalAmount || student.total_amount || 0,
-            risk_status: student.riskStatus || student.risk_status || 'Low Risk',
-            attendance_rate: student.attendanceRate || student.attendance_rate || 0,
-            performance_score: student.performanceScore || student.performance_score || 0,
-            gender: student.gender || 'Not specified',
-            status: student.status || 'active',
-            donor_username: student.donorUsername || student.donor_username || '',
-            profile_image: student.profileImage || student.profile_image
+        const schoolProjects = projects
+          .filter(project => (project.schoolId || project.school_id) == schoolId)
+          .map(project => ({
+            project_id: project.projectId || project.project_id,
+            project_name: project.projectName || project.project_name,
+            project_type: project.projectType || project.project_type,
+            scholarship_amount: project.scholarshipAmount || project.scholarship_amount || 0,
+            total_amount: project.totalAmount || project.total_amount || 0,
+            risk_status: project.riskStatus || project.risk_status || 'Low Risk',
+            completion_rate: project.completionRate || project.completion_rate || 0,
+            performance_score: project.performanceScore || project.performance_score || 0,
+            category: project.category || 'General',
+            status: project.status || 'active',
+            donor_username: project.donorUsername || project.donor_username || '@anisha3208'
           }));
         
-        newData.students = schoolStudents;
-        newData.totalCount = schoolStudents.length;
-        newData.highRiskCount = schoolStudents.filter(s => 
-          s.risk_status && (s.risk_status.toLowerCase().includes('high') || s.risk_status.toLowerCase().includes('at risk'))
+        newData.projects = schoolProjects;
+        newData.totalCount = schoolProjects.length;
+        newData.highRiskCount = schoolProjects.filter(p => 
+          p.risk_status && (p.risk_status.toLowerCase().includes('high') || p.risk_status.toLowerCase().includes('at risk'))
         ).length;
-        newData.scholarshipPendingCount = schoolStudents.filter(s => 
-          s.status && s.status.toLowerCase() === 'unpaid'
+        newData.scholarshipPendingCount = schoolProjects.filter(p => 
+          p.status && p.status.toLowerCase() === 'unpaid'
         ).length;
       }
       
       setData(newData);
       setApiError(false);
     } catch (error) {
-      console.error('Error fetching students data:', error);
+      console.error('Error fetching projects data:', error);
       setApiError(true);
       setData(emptyData);
     } finally {
@@ -101,60 +99,12 @@ export default function SchoolStudents() {
     }
   };
 
-  const handleEnrollStudent = async (formData) => {
-    try {
-      // Convert FormData to backend DTO format
-      const jsonData = {
-        schoolId: parseInt(schoolId),
-        studentName: formData.get('student_name'),
-        studentIdNumber: formData.get('student_id_number'),
-        gender: formData.get('gender').toUpperCase(),
-        dateOfBirth: formData.get('date_of_birth'),
-        classLevel: mapClassLevel(formData.get('class_level')),
-        fatherName: formData.get('father_name') || null,
-        fatherAlive: formData.get('father_alive') === 'true',
-        fatherOccupation: formData.get('father_occupation') || null,
-        motherName: formData.get('mother_name') || null,
-        motherAlive: formData.get('mother_alive') === 'true',
-        motherOccupation: formData.get('mother_occupation') || null,
-        guardianPhone: formData.get('guardian_phone'),
-        address: formData.get('address') || null,
-        familyMonthlyIncome: formData.get('family_monthly_income') ? parseFloat(formData.get('family_monthly_income')) : null,
-        hasScholarship: false
-      };
-      
-      const response = await fetch(`${API_BASE_URL}/students`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(jsonData)
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Student enrolled successfully:', data);
-        setIsModalOpen(false);
-        fetchStudentsData();
-      }
-    } catch (error) {
-      console.error('Error enrolling student:', error);
-    }
-  };
-
-  const mapClassLevel = (classLevel) => {
-    const mapping = {
-      '1': 'ONE', '2': 'TWO', '3': 'THREE', '4': 'FOUR', '5': 'FIVE',
-      '6': 'SIX', '7': 'SEVEN', '8': 'EIGHT', '9': 'NINE', '10': 'TEN'
-    };
-    return mapping[classLevel] || 'ONE';
-  };
   const formatCurrency = (amount) => {
     return `$${Math.abs(amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
-  const formatClassLevel = (classLevel) => {
-    return classLevel ? classLevel.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'N/A';
+  const formatProjectType = (projectType) => {
+    return projectType ? projectType.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'N/A';
   };
 
   const getStatusBadge = (status) => {
@@ -170,27 +120,27 @@ export default function SchoolStudents() {
     return badge;
   };
 
-  // Filter students
-  const filteredStudents = data.students.filter(student => {
-    const matchesSearch = student.student_name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === 'All' || student.status?.toLowerCase() === statusFilter.toLowerCase();
-    const matchesGender = genderFilter === 'All' || student.gender?.toLowerCase() === genderFilter.toLowerCase();
+  // Filter projects
+  const filteredProjects = data.projects.filter(project => {
+    const matchesSearch = project.project_name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = statusFilter === 'All' || project.status?.toLowerCase() === statusFilter.toLowerCase();
+    const matchesCategory = genderFilter === 'All' || project.category?.toLowerCase() === genderFilter.toLowerCase();
     const matchesRisk = riskFilter === 'All' || 
-      (riskFilter === 'High Risk' && (student.risk_status?.toLowerCase().includes('high') || student.risk_status?.toLowerCase().includes('at risk'))) ||
-      (riskFilter === 'Low Risk' && student.risk_status?.toLowerCase().includes('low'));
+      (riskFilter === 'High Risk' && (project.risk_status?.toLowerCase().includes('high') || project.risk_status?.toLowerCase().includes('at risk'))) ||
+      (riskFilter === 'Low Risk' && project.risk_status?.toLowerCase().includes('low'));
     
-    return matchesSearch && matchesStatus && matchesGender && matchesRisk;
+    return matchesSearch && matchesStatus && matchesCategory && matchesRisk;
   });
 
   // Pagination
-  const totalPages = Math.ceil(filteredStudents.length / studentsPerPage);
-  const indexOfLastStudent = currentPage * studentsPerPage;
-  const indexOfFirstStudent = indexOfLastStudent - studentsPerPage;
-  const currentStudents = filteredStudents.slice(indexOfFirstStudent, indexOfLastStudent);
+  const totalPages = Math.ceil(filteredProjects.length / projectsPerPage);
+  const indexOfLastProject = currentPage * projectsPerPage;
+  const indexOfFirstProject = indexOfLastProject - projectsPerPage;
+  const currentProjects = filteredProjects.slice(indexOfFirstProject, indexOfLastProject);
 
-  const handleStudentClick = (studentId) => {
-    console.log('Viewing student details for ID:', studentId);
-    // Navigate to student detail page
+  const handleProjectClick = (projectId) => {
+    console.log('Viewing project details for ID:', projectId);
+    // Navigate to project detail page
   };
 
   if (loading) {
@@ -198,14 +148,13 @@ export default function SchoolStudents() {
       <div className="flex items-center justify-center h-screen bg-gray-50">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading students...</p>
+          <p className="text-gray-600">Loading projects...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <>
     <div className="flex h-screen bg-gray-50">
       {/* <Sidebar activeNav={activeNav} setActiveNav={setActiveNav} schoolData={data.school} /> */}
 
@@ -219,7 +168,7 @@ export default function SchoolStudents() {
         <div className="p-6">
           {/* Header */}
           <div className="mb-6">
-            <h1 className="text-2xl font-bold text-gray-800">Student Overview</h1>
+            <h1 className="text-2xl font-bold text-gray-800">Project Overview</h1>
             <p className="text-sm text-gray-500">View your key stats at a glance</p>
           </div>
 
@@ -231,7 +180,7 @@ export default function SchoolStudents() {
                   <UsersIcon className="w-6 h-6 text-green-600" />
                 </div>
                 <div>
-                  <div className="text-sm text-gray-500">Total Students</div>
+                  <div className="text-sm text-gray-500">Total Projects</div>
                   <div className="text-3xl font-bold text-gray-800">{data.totalCount}</div>
                 </div>
               </div>
@@ -243,7 +192,7 @@ export default function SchoolStudents() {
                   <AlertTriangle className="w-6 h-6 text-red-600" />
                 </div>
                 <div>
-                  <div className="text-sm text-gray-500">High Risk Students</div>
+                  <div className="text-sm text-gray-500">High Risk Projects</div>
                   <div className="text-3xl font-bold text-gray-800">{data.highRiskCount}</div>
                 </div>
               </div>
@@ -262,15 +211,13 @@ export default function SchoolStudents() {
             </div>
           </div>
 
-          {/* Find Students Section */}
+          {/* Find Projects Section */}
           <div className="bg-green-50 rounded-xl p-6 mb-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-800">Find Students</h2>
-              <button
-                onClick={() => setIsModalOpen(true)}
-              className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-700 transition-colors">
+              <h2 className="text-xl font-bold text-gray-800">Find Projects</h2>
+              <button className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-700 transition-colors">
                 <Plus className="w-4 h-4" />
-                Add Student
+                Add Project
               </button>
             </div>
 
@@ -302,9 +249,11 @@ export default function SchoolStudents() {
                 onChange={(e) => setGenderFilter(e.target.value)}
                 className="px-3 py-2 bg-white rounded-lg text-sm border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-300"
               >
-                <option value="All">All</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
+                <option value="All">All Categories</option>
+                <option value="infrastructure">Infrastructure</option>
+                <option value="education">Education</option>
+                <option value="health">Health</option>
+                <option value="general">General</option>
               </select>
 
               <select
@@ -319,46 +268,34 @@ export default function SchoolStudents() {
             </div>
           </div>
 
-          {/* Students Grid */}
+          {/* Projects Grid */}
           <div className="grid grid-cols-4 gap-4 mb-6">
-            {currentStudents.length > 0 ? currentStudents.map((student) => {
-              const badge = getStatusBadge(student.risk_status);
+            {currentProjects.length > 0 ? currentProjects.map((project) => {
+              const badge = getStatusBadge(project.risk_status);
               return (
                 <div
-                  key={student.student_id}
+                  key={project.project_id}
                   className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-shadow"
-                  onClick={() => handleStudentClick(student.student_id)}
+                  onClick={() => handleProjectClick(project.project_id)}
                 >
-               <div className="relative h-40 bg-gray-100 flex items-center justify-center">
-  <img 
-    src={student.profile_image 
-      ? `${API_BASE_URL}${student.profile_image}` 
-      : 'https://via.placeholder.com/150?text=No+Image'
-    }
-    alt={student.student_name}
-    className="w-full h-full object-cover"
-    onError={(e) => {
-      e.target.onerror = null;
-      e.target.src = 'https://via.placeholder.com/150?text=No+Image';
-    }}
-  />
-  <span className={`absolute top-3 right-3 ${badge.bg} ${badge.text} px-2 py-1 rounded-full text-xs font-medium`}>
-    • {badge.label}
-  </span>
-</div>
+                  <div className="relative h-40 bg-gradient-to-br from-green-400 to-green-600">
+                    <span className={`absolute top-3 right-3 ${badge.bg} ${badge.text} px-2 py-1 rounded-full text-xs font-medium`}>
+                      • {badge.label}
+                    </span>
+                  </div>
                   <div className="p-4">
-                    <div className="text-xs text-green-600 mb-1">Scholarship from {student.donor_username}</div>
+                    <div className="text-xs text-green-600 mb-1">Funded by {project.donor_username}</div>
                     <div className="text-sm font-semibold text-gray-800 mb-2">
-                      {student.student_name}, {formatClassLevel(student.class_level)}
+                      {project.project_name}, {formatProjectType(project.project_type)}
                     </div>
                     <div className="text-xs text-gray-500 mb-4">
-                      Fund Received: {formatCurrency(student.scholarship_amount)} / {formatCurrency(student.total_amount)}
+                      Fund Received: {formatCurrency(project.scholarship_amount)} / {formatCurrency(project.total_amount)}
                     </div>
                     <button
-                      className="w-full py-2 text-sm text-green-600 bg-white rounded-lg hover:bg-green-100 transition-colors"
+                      className="w-full py-2 text-sm text-green-600 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
                       onClick={(e) => {
                         e.stopPropagation();
-                        console.log('Update report for student:', student.student_id);
+                        console.log('Update report for project:', project.project_id);
                       }}
                     >
                       Update Report
@@ -369,8 +306,8 @@ export default function SchoolStudents() {
             }) : (
               <div className="col-span-4 text-center py-12 text-gray-500">
                 <div className="flex flex-col items-center gap-3">
-                  <span className="text-4xl">👨‍🎓</span>
-                  <span className="text-lg font-medium">No students found</span>
+                  <span className="text-4xl">🏗️</span>
+                  <span className="text-lg font-medium">No projects found</span>
                   <span className="text-sm">Try adjusting your filters</span>
                 </div>
               </div>
@@ -432,12 +369,5 @@ export default function SchoolStudents() {
         </div>
       </div>
     </div>
-    
-    <StudentEnrollmentModal
-      isOpen={isModalOpen}
-      onClose={() => setIsModalOpen(false)}
-      onSubmit={handleEnrollStudent}
-    />
-    </>
   );
 }

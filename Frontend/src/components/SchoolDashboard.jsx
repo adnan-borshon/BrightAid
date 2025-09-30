@@ -221,7 +221,7 @@ export default function SchoolDashboard() {
             <div className="text-3xl font-bold text-gray-800 mb-2 flex items-center gap-2">
               {data.school?.schoolName || data.school?.school_name || `School ${schoolId}`}
               {data.school && <span className="text-blue-500">✓</span>}
-              <span className="text-sm text-gray-500 font-normal">(ID: {schoolId})</span>
+          
             </div>
             <div className="text-sm text-gray-600 mb-2">
               {data.school ? 'Your dedication is transforming education and reducing dropouts in your community' : 'Welcome to your school dashboard'}
@@ -314,7 +314,7 @@ export default function SchoolDashboard() {
 
             {data.students.length > 0 ? data.students.slice(0, 3).map((student) => (
               <div key={student.student_id} className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleStudentClick(student.student_id)}>
-                <div className="relative h-40 bg-gradient-to-br from-green-400 to-green-600">
+                <div className="relative h-40  ">
                   <span className="absolute top-3 right-3 bg-white px-2 py-1 rounded-full text-xs font-medium text-orange-600">
                     {student.risk_status || 'At Risk'}
                   </span>
