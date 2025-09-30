@@ -45,10 +45,10 @@ public class NgoService {
                 .contactPhone(ngoDto.getContactPhone())
                 .verificationStatus(ngoDto.getVerificationStatus());
 
-        // Set verified by admin if provided
+        // Set verified by admin if provided (optional)
         if (ngoDto.getVerifiedBy() != null) {
             Admin verifiedBy = adminRepository.findById(ngoDto.getVerifiedBy())
-                    .orElseThrow(() -> new RuntimeException("Admin not found with ID: " + ngoDto.getVerifiedBy()));
+                    .orElse(null); // Make it optional instead of throwing exception
             ngoBuilder.verifiedBy(verifiedBy);
         }
 
@@ -104,11 +104,11 @@ public class NgoService {
             existingNgo.setUser(user);
         }
 
-        // Update verified by admin if provided
+        // Update verified by admin if provided (optional)
         if (ngoDto.getVerifiedBy() != null &&
                 (existingNgo.getVerifiedBy() == null || !ngoDto.getVerifiedBy().equals(existingNgo.getVerifiedBy().getAdminId()))) {
             Admin verifiedBy = adminRepository.findById(ngoDto.getVerifiedBy())
-                    .orElseThrow(() -> new RuntimeException("Admin not found with ID: " + ngoDto.getVerifiedBy()));
+                    .orElse(null); // Make it optional instead of throwing exception
             existingNgo.setVerifiedBy(verifiedBy);
         }
 

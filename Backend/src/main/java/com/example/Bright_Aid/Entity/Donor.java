@@ -19,13 +19,13 @@ import java.util.List;
 public class Donor extends BaseEntity {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "donor_id")
     @EqualsAndHashCode.Include
     private Integer donorId;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    @MapsId
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
     @NotNull
     private User user;
 

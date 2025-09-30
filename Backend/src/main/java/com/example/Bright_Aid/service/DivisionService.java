@@ -22,6 +22,11 @@ public class DivisionService {
         this.divisionRepository = divisionRepository;
     }
 
+    // ✅ Insert all divisions of Bangladesh (custom query)
+    public void insertDefaultBangladeshDivisions() {
+        divisionRepository.insertAllBangladeshDivisions();
+    }
+
     // Create or update Division
     public DivisionDto saveDivision(DivisionDto divisionDto) {
         Division division = Division.builder()

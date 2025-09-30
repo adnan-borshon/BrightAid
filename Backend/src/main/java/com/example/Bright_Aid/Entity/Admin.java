@@ -21,13 +21,13 @@ import java.util.List;
 public class Admin {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "admin_id")
     @EqualsAndHashCode.Include
     private Integer adminId;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    @MapsId
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
     @NotNull
     private User user;
 

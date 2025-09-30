@@ -18,8 +18,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -37,7 +35,7 @@ public class AuthService {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(authDTO.getEmail(), authDTO.getPassword())
             );
-            
+
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
             String jwtToken = jwtUtil.generateToken(userDetails);
 
@@ -61,7 +59,7 @@ public class AuthService {
 
         // Encode password before creating user
         userDTO.setPasswordHash(passwordEncoder.encode(userDTO.getPasswordHash()));
-        
+
         // Use UserService which has proper userType conversion
         return userService.createUser(userDTO);
     }
