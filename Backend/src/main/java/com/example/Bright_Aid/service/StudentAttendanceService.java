@@ -3,15 +3,11 @@ package com.example.Bright_Aid.service;
 import com.example.Bright_Aid.Dto.StudentAttendanceDto;
 import com.example.Bright_Aid.Entity.Student;
 import com.example.Bright_Aid.Entity.StudentAttendance;
-import com.example.Bright_Aid.Entity.User;
 import com.example.Bright_Aid.repository.StudentAttendanceRepository;
 import com.example.Bright_Aid.repository.StudentRepository;
-import com.example.Bright_Aid.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,83 +15,55 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class StudentAttendanceService {
 
-    private final StudentAttendanceRepository studentAttendanceRepository;
+    private final StudentAttendanceRepository attendanceRepository;
     private final StudentRepository studentRepository;
-    private final UserRepository userRepository;
 
-    @Transactional
-    public StudentAttendanceDto createAttendance(StudentAttendanceDto dto) {
+    // Save attendance
+    public StudentAttendanceDto saveAttendance(StudentAttendanceDto dto) {
         Student student = studentRepository.findById(dto.getStudentId())
-                .orElseThrow(() -> new RuntimeException("Student not found with id: " + dto.getStudentId()));
-
-        User user = userRepository.findById(dto.getRecordedBy())
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + dto.getRecordedBy()));
+                .orElseThrow(() -> new RuntimeException("Student not found"));
 
         StudentAttendance attendance = StudentAttendance.builder()
                 .student(student)
                 .attendanceDate(dto.getAttendanceDate())
                 .present(dto.getPresent())
                 .absenceReason(dto.getAbsenceReason())
-                .recordedAt(LocalDateTime.now())
-                .recordedBy(user)
                 .build();
 
-        StudentAttendance saved = studentAttendanceRepository.save(attendance);
-        return convertToDto(saved);
+        attendance = attendanceRepository.save(attendance);
+
+        dto.setAttendanceId(attendance.getAttendanceId());
+        return dto;
     }
 
-    @Transactional(readOnly = true)
-    public StudentAttendanceDto getAttendanceById(Integer id) {
-        StudentAttendance attendance = studentAttendanceRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Attendance not found with id: " + id));
-        return convertToDto(attendance);
-    }
+    // Get all attendance for a student
+    public List<StudentAttendanceDto> getAttendanceByStudent(Integer studentId) {
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Student not found"));
 
-    @Transactional(readOnly = true)
-    public List<StudentAttendanceDto> getAllAttendances() {
-        return studentAttendanceRepository.findAll().stream()
-                .map(this::convertToDto)
+        return attendanceRepository.findByStudent(student)
+                .stream()
+                .map(sa -> new StudentAttendanceDto(
+                        sa.getAttendanceId(),
+                        sa.getStudent().getStudentId(),
+                        sa.getAttendanceDate(),
+                        sa.getPresent(),
+                        sa.getAbsenceReason()
+                ))
                 .collect(Collectors.toList());
     }
 
-    @Transactional
-    public StudentAttendanceDto updateAttendance(Integer id, StudentAttendanceDto dto) {
-        StudentAttendance attendance = studentAttendanceRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Attendance not found with id: " + id));
-
-        Student student = studentRepository.findById(dto.getStudentId())
-                .orElseThrow(() -> new RuntimeException("Student not found with id: " + dto.getStudentId()));
-
-        User user = userRepository.findById(dto.getRecordedBy())
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + dto.getRecordedBy()));
-
-        attendance.setStudent(student);
-        attendance.setAttendanceDate(dto.getAttendanceDate());
-        attendance.setPresent(dto.getPresent());
-        attendance.setAbsenceReason(dto.getAbsenceReason());
-        attendance.setRecordedBy(user);
-
-        StudentAttendance updated = studentAttendanceRepository.save(attendance);
-        return convertToDto(updated);
+    // Count present days
+    public Long countPresentDays(Integer studentId) {
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Student not found"));
+        return attendanceRepository.countPresentDays(student);
     }
 
-    @Transactional
-    public void deleteAttendance(Integer id) {
-        if (!studentAttendanceRepository.existsById(id)) {
-            throw new RuntimeException("Attendance not found with id: " + id);
-        }
-        studentAttendanceRepository.deleteById(id);
-    }
-
-    private StudentAttendanceDto convertToDto(StudentAttendance attendance) {
-        return StudentAttendanceDto.builder()
-                .attendanceId(attendance.getAttendanceId())
-                .studentId(attendance.getStudent().getStudentId())
-                .attendanceDate(attendance.getAttendanceDate())
-                .present(attendance.getPresent())
-                .absenceReason(attendance.getAbsenceReason())
-                .recordedAt(attendance.getRecordedAt())
-                .recordedBy(attendance.getRecordedBy().getUserId())
-                .build();
+    // Count absent days
+    public Long countAbsentDays(Integer studentId) {
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Student not found"));
+        return attendanceRepository.countAbsentDays(student);
     }
 }

@@ -77,6 +77,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/schools/**").permitAll()
                         .requestMatchers("/api/students/**").permitAll()
+                        .requestMatchers("/api/attendances/**").permitAll()
+                        .requestMatchers("/api/dropout-predictions/**").permitAll()
                         .requestMatchers("/api/donations/**").permitAll()
                         .requestMatchers("/api/ngos/**").permitAll()
                         .requestMatchers("/api/admin-activities/**").permitAll()

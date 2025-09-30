@@ -7,9 +7,15 @@ import com.example.Bright_Aid.repository.SchoolRepository;
 import com.example.Bright_Aid.repository.StudentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
-import jakarta.persistence.EntityNotFoundException;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -19,34 +25,8 @@ public class StudentService {
     private final StudentRepository studentRepository;
     private final SchoolRepository schoolRepository;
 
-    // Convert DTO → Entity
-    private Student mapToEntity(StudentDto dto) {
-        School school = schoolRepository.findById(dto.getSchoolId())
-                .orElseThrow(() -> new EntityNotFoundException("School not found"));
-
-        return Student.builder()
-                .studentId(dto.getStudentId())
-                .studentName(dto.getStudentName())
-                .studentIdNumber(dto.getStudentIdNumber())
-                .gender(dto.getGender())
-                .dateOfBirth(dto.getDateOfBirth())
-                .fatherName(dto.getFatherName())
-                .fatherAlive(dto.getFatherAlive())
-                .fatherOccupation(dto.getFatherOccupation())
-                .motherName(dto.getMotherName())
-                .motherAlive(dto.getMotherAlive())
-                .motherOccupation(dto.getMotherOccupation())
-                .guardianPhone(dto.getGuardianPhone())
-                .address(dto.getAddress())
-                .classLevel(dto.getClassLevel())
-                .familyMonthlyIncome(dto.getFamilyMonthlyIncome())
-                .hasScholarship(dto.getHasScholarship())
-                .school(school)
-                .build();
-    }
-
-    // Convert Entity → DTO
-    private StudentDto mapToDTO(Student student) {
+    // Convert Entity -> DTO
+    private StudentDto convertToDTO(Student student) {
         return StudentDto.builder()
                 .studentId(student.getStudentId())
                 .schoolId(student.getSchool().getSchoolId())
@@ -65,39 +45,80 @@ public class StudentService {
                 .classLevel(student.getClassLevel())
                 .familyMonthlyIncome(student.getFamilyMonthlyIncome())
                 .hasScholarship(student.getHasScholarship())
+                .profileImage(student.getProfileImage())
                 .build();
     }
 
-    // CRUD operations
+    // Convert DTO -> Entity
+    private Student convertToEntity(StudentDto dto) {
+        School school = schoolRepository.findById(dto.getSchoolId())
+                .orElseThrow(() -> new RuntimeException("School not found"));
 
-    public StudentDto createStudent(StudentDto dto) {
-        Student student = mapToEntity(dto);
-        return mapToDTO(studentRepository.save(student));
-    }
-
-    public StudentDto updateStudent(Integer id, StudentDto dto) {
-        Student existing = studentRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Student not found"));
-        Student updated = mapToEntity(dto);
-        updated.setStudentId(existing.getStudentId()); // preserve ID
-        return mapToDTO(studentRepository.save(updated));
-    }
-
-    public StudentDto getStudentById(Integer id) {
-        return studentRepository.findById(id)
-                .map(this::mapToDTO)
-                .orElseThrow(() -> new EntityNotFoundException("Student not found"));
+        return Student.builder()
+                .studentId(dto.getStudentId())
+                .school(school)
+                .studentName(dto.getStudentName())
+                .studentIdNumber(dto.getStudentIdNumber())
+                .gender(dto.getGender())
+                .dateOfBirth(dto.getDateOfBirth())
+                .fatherName(dto.getFatherName())
+                .fatherAlive(dto.getFatherAlive())
+                .fatherOccupation(dto.getFatherOccupation())
+                .motherName(dto.getMotherName())
+                .motherAlive(dto.getMotherAlive())
+                .motherOccupation(dto.getMotherOccupation())
+                .guardianPhone(dto.getGuardianPhone())
+                .address(dto.getAddress())
+                .classLevel(dto.getClassLevel())
+                .familyMonthlyIncome(dto.getFamilyMonthlyIncome())
+                .hasScholarship(dto.getHasScholarship())
+                .profileImage(dto.getProfileImage())
+                .build();
     }
 
     public List<StudentDto> getAllStudents() {
-        return studentRepository.findAll().stream()
-                .map(this::mapToDTO)
+        return studentRepository.findAll()
+                .stream().map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
 
+    public Optional<StudentDto> getStudentById(Integer id) {
+        return studentRepository.findById(id).map(this::convertToDTO);
+    }
+
+    public StudentDto createStudent(StudentDto dto) {
+        Student student = convertToEntity(dto);
+        return convertToDTO(studentRepository.save(student));
+    }
+
+    public StudentDto updateStudent(Integer id, StudentDto dto) {
+        return studentRepository.findById(id).map(existing -> {
+            Student updated = convertToEntity(dto);
+            updated.setStudentId(existing.getStudentId());
+            return convertToDTO(studentRepository.save(updated));
+        }).orElseThrow(() -> new RuntimeException("Student not found"));
+    }
+
     public void deleteStudent(Integer id) {
-        if (!studentRepository.existsById(id))
-            throw new EntityNotFoundException("Student not found");
         studentRepository.deleteById(id);
+    }
+
+    public String saveImage(MultipartFile file) {
+        try {
+            String uploadDir = "src/main/resources/static/images/students/";
+            Path uploadPath = Paths.get(uploadDir);
+            
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
+            
+            String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+            Path filePath = uploadPath.resolve(fileName);
+            Files.copy(file.getInputStream(), filePath);
+            
+            return "/images/students/" + fileName;
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to save image: " + e.getMessage());
+        }
     }
 }

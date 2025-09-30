@@ -18,8 +18,7 @@ public class SchoolDto {
 
     private Integer schoolId;
 
-    @NotNull(message = "User ID is required")
-    private Integer userId;
+
 
     @NotBlank(message = "School name is required")
     private String schoolName;

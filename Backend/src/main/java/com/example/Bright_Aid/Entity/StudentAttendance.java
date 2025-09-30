@@ -6,7 +6,6 @@ import lombok.experimental.SuperBuilder;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "student_attendance")
@@ -38,13 +37,4 @@ public class StudentAttendance {
 
     @Column(name = "absence_reason")
     private String absenceReason;
-
-    @Column(name = "recorded_at", nullable = false)
-    private LocalDateTime recordedAt;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "recorded_by", nullable = false)
-    @NotNull
-    @ToString.Exclude
-    private User recordedBy;
 }
