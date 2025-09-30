@@ -15,18 +15,15 @@ import java.util.stream.Collectors;
 public class SchoolService {
 
     private final SchoolRepository schoolRepository;
-    private final UserRepository userRepository;
     private final DivisionRepository divisionRepository;
     private final DistrictRepository districtRepository;
     private final UpazilaRepository upazilaRepository;
 
     public SchoolService(SchoolRepository schoolRepository,
-                         UserRepository userRepository,
                          DivisionRepository divisionRepository,
                          DistrictRepository districtRepository,
                          UpazilaRepository upazilaRepository) {
         this.schoolRepository = schoolRepository;
-        this.userRepository = userRepository;
         this.divisionRepository = divisionRepository;
         this.districtRepository = districtRepository;
         this.upazilaRepository = upazilaRepository;
@@ -38,9 +35,6 @@ public class SchoolService {
         if (schoolRepository.existsByRegistrationNumber(schoolDto.getRegistrationNumber())) {
             throw new RuntimeException("Registration number already exists: " + schoolDto.getRegistrationNumber());
         }
-
-        User user = userRepository.findById(schoolDto.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found with ID: " + schoolDto.getUserId()));
 
         // Validate geographic hierarchy
         validateGeographicHierarchy(schoolDto.getDivisionId(), schoolDto.getDistrictId(), schoolDto.getUpazilaId());
@@ -55,7 +49,6 @@ public class SchoolService {
                 .orElseThrow(() -> new RuntimeException("Upazila not found with ID: " + schoolDto.getUpazilaId()));
 
         School school = School.builder()
-                .user(user)
                 .schoolName(schoolDto.getSchoolName())
                 .registrationNumber(schoolDto.getRegistrationNumber())
                 .schoolType(parseSchoolType(schoolDto.getSchoolType()))
@@ -219,7 +212,6 @@ public class SchoolService {
     private SchoolDto mapToDto(School school) {
         return SchoolDto.builder()
                 .schoolId(school.getSchoolId())
-                .userId(school.getUser().getUserId())
                 .schoolName(school.getSchoolName())
                 .registrationNumber(school.getRegistrationNumber())
                 .schoolType(school.getSchoolType().name())

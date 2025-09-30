@@ -2,50 +2,44 @@ package com.example.Bright_Aid.controller;
 
 import com.example.Bright_Aid.Dto.StudentAttendanceDto;
 import com.example.Bright_Aid.service.StudentAttendanceService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/student-attendances")
+@RequestMapping("/api/attendances")
 @RequiredArgsConstructor
 public class StudentAttendanceController {
 
-    private final StudentAttendanceService studentAttendanceService;
+    private final StudentAttendanceService attendanceService;
 
+    // Create attendance
     @PostMapping
-    public ResponseEntity<StudentAttendanceDto> createAttendance(@Valid @RequestBody StudentAttendanceDto dto) {
-        StudentAttendanceDto created = studentAttendanceService.createAttendance(dto);
-        return new ResponseEntity<>(created, HttpStatus.CREATED);
+    public ResponseEntity<StudentAttendanceDto> createAttendance(@RequestBody StudentAttendanceDto dto) {
+        StudentAttendanceDto savedDto = attendanceService.saveAttendance(dto);
+        return ResponseEntity.ok(savedDto);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<StudentAttendanceDto> getAttendanceById(@PathVariable Integer id) {
-        StudentAttendanceDto dto = studentAttendanceService.getAttendanceById(id);
-        return ResponseEntity.ok(dto);
+    // Get all attendance for a student
+    @GetMapping("/student/{studentId}")
+    public ResponseEntity<List<StudentAttendanceDto>> getAttendanceByStudent(@PathVariable Integer studentId) {
+        List<StudentAttendanceDto> list = attendanceService.getAttendanceByStudent(studentId);
+        return ResponseEntity.ok(list);
     }
 
-    @GetMapping
-    public ResponseEntity<List<StudentAttendanceDto>> getAllAttendances() {
-        List<StudentAttendanceDto> attendances = studentAttendanceService.getAllAttendances();
-        return ResponseEntity.ok(attendances);
+    // Get count of present days
+    @GetMapping("/student/{studentId}/present-count")
+    public ResponseEntity<Long> getPresentCount(@PathVariable Integer studentId) {
+        Long count = attendanceService.countPresentDays(studentId);
+        return ResponseEntity.ok(count);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<StudentAttendanceDto> updateAttendance(
-            @PathVariable Integer id,
-            @Valid @RequestBody StudentAttendanceDto dto) {
-        StudentAttendanceDto updated = studentAttendanceService.updateAttendance(id, dto);
-        return ResponseEntity.ok(updated);
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteAttendance(@PathVariable Integer id) {
-        studentAttendanceService.deleteAttendance(id);
-        return ResponseEntity.noContent().build();
+    // Get count of absent days
+    @GetMapping("/student/{studentId}/absent-count")
+    public ResponseEntity<Long> getAbsentCount(@PathVariable Integer studentId) {
+        Long count = attendanceService.countAbsentDays(studentId);
+        return ResponseEntity.ok(count);
     }
 }
