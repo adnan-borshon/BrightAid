@@ -27,11 +27,7 @@ public class SchoolProject extends BaseEntity {
     @ToString.Exclude
     private School school;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "created_by", nullable = false)
-    @NotNull
-    @ToString.Exclude
-    private User createdBy;
+
 
     @NotBlank
     @Column(name = "project_title", nullable = false)

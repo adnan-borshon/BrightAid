@@ -8,35 +8,34 @@ import Login from './components/Authentication/Login.jsx'
 import SchoolProfilePage from './components/Authentication/Signup/SchoolProfilePage.jsx'
 import DocumentVerificationPage from './components/Authentication/Signup/DocumentVerificationPage.jsx'
 import ApprovalPage from './components/Authentication/Signup/ApprovalPage.jsx'
+import SchoolDashboard from './components/SchoolDashboard'
 
 
 const router = createBrowserRouter([
-  {
-    path: "/",
-    element: <App />,
-    children: [
-      { 
-        path: "/", 
-        element: <App /> 
-      },
-      { 
-        path: "/signup", 
-        element: <SignUp/> 
-      },
-      { 
-        path: "/school-profile", 
-        element: <SchoolProfilePage /> 
-      },
-      { 
-        path: "/document-verification", 
-        element: <DocumentVerificationPage /> 
-      },
-      { 
-        path: "/approval", 
-        element: <ApprovalPage /> 
-      },
-    ],
-  }
+  { 
+    path: "/", 
+    element: <App /> 
+  },
+  { 
+    path: "/signup", 
+    element: <SignUp/> 
+  },
+  { 
+    path: "/school-profile", 
+    element: <SchoolProfilePage /> 
+  },
+  { 
+    path: "/document-verification", 
+    element: <DocumentVerificationPage /> 
+  },
+  { 
+    path: "/approval", 
+    element: <ApprovalPage /> 
+  },
+  { 
+    path: "/dashboard/:schoolId", 
+    element: <SchoolDashboard /> 
+  },
 ])
 createRoot(document.getElementById('root')).render(
   <StrictMode>

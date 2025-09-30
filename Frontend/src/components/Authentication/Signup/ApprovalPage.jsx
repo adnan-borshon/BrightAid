@@ -1,8 +1,28 @@
 
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Check, Upload } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Check, LinkIcon, Upload } from "lucide-react";
 const ApprovalPage = () => {
+  const [schoolData, setSchoolData] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Get school data from sessionStorage
+    const schoolInfo = sessionStorage.getItem("schoolInfo");
+    if (schoolInfo) {
+      setSchoolData(JSON.parse(schoolInfo));
+    }
+  }, []);
+
+  const handleExploreDashboard = () => {
+    if (schoolData && schoolData.schoolId) {
+      navigate(`/dashboard/${schoolData.schoolId}`);
+    } else {
+      // Fallback if no school ID found
+      navigate("/dashboard/1");
+    }
+  };
+
   return (
     <div className="w-full max-w-md">
       <div className="text-center mb-8">
@@ -22,7 +42,9 @@ const ApprovalPage = () => {
         <h2 className="text-2xl font-bold text-gray-900 mb-4">You're Registration Has been Approved</h2>
         <p className="text-gray-600 mb-8">Thank you for registering!</p>
         
-        <button className="w-full bg-green-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center justify-center">
+        <button 
+        onClick={handleExploreDashboard}
+        className="w-full bg-green-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center justify-center">
           Explore Dashboard
           <span className="ml-2">→</span>
         </button>

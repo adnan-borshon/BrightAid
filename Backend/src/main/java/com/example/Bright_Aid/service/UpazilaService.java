@@ -7,6 +7,7 @@ import com.example.Bright_Aid.Entity.Upazila;
 import com.example.Bright_Aid.repository.DistrictRepository;
 import com.example.Bright_Aid.repository.UpazilaRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,17 +23,23 @@ public class UpazilaService {
 
     @Transactional
     public UpazilaDto createUpazila(UpazilaDto dto) {
-        District district = districtRepository.findById(dto.getDistrictId())
-                .orElseThrow(() -> new RuntimeException("District not found with id: " + dto.getDistrictId()));
+        try {
+            District district = districtRepository.findById(dto.getDistrictId())
+                    .orElseThrow(() -> new RuntimeException("District not found with id: " + dto.getDistrictId()));
 
-        Upazila upazila = Upazila.builder()
-                .district(district)
-                .upazilaName(dto.getUpazilaName())
-                .upazilaCode(dto.getUpazilaCode())
-                .build();
+            Upazila upazila = Upazila.builder()
+                    .district(district)
+                    .upazilaName(dto.getUpazilaName().trim())
+                    .upazilaCode(dto.getUpazilaCode().trim())
+                    .build();
 
-        Upazila saved = upazilaRepository.save(upazila);
-        return convertToDto(saved);
+            Upazila saved = upazilaRepository.save(upazila);
+            return convertToDto(saved);
+        } catch (DataIntegrityViolationException e) {
+            throw new RuntimeException("Upazila code already exists or invalid data: " + e.getMessage());
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to create upazila: " + e.getMessage());
+        }
     }
 
     @Transactional(readOnly = true)
@@ -51,18 +58,24 @@ public class UpazilaService {
 
     @Transactional
     public UpazilaDto updateUpazila(Integer id, UpazilaDto dto) {
-        Upazila upazila = upazilaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Upazila not found with id: " + id));
+        try {
+            Upazila upazila = upazilaRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Upazila not found with id: " + id));
 
-        District district = districtRepository.findById(dto.getDistrictId())
-                .orElseThrow(() -> new RuntimeException("District not found with id: " + dto.getDistrictId()));
+            District district = districtRepository.findById(dto.getDistrictId())
+                    .orElseThrow(() -> new RuntimeException("District not found with id: " + dto.getDistrictId()));
 
-        upazila.setDistrict(district);
-        upazila.setUpazilaName(dto.getUpazilaName());
-        upazila.setUpazilaCode(dto.getUpazilaCode());
+            upazila.setDistrict(district);
+            upazila.setUpazilaName(dto.getUpazilaName().trim());
+            upazila.setUpazilaCode(dto.getUpazilaCode().trim());
 
-        Upazila updated = upazilaRepository.save(upazila);
-        return convertToDto(updated);
+            Upazila updated = upazilaRepository.save(upazila);
+            return convertToDto(updated);
+        } catch (DataIntegrityViolationException e) {
+            throw new RuntimeException("Upazila code already exists or invalid data: " + e.getMessage());
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to update upazila: " + e.getMessage());
+        }
     }
 
     @Transactional
@@ -84,6 +97,7 @@ public class UpazilaService {
         return UpazilaDto.builder()
                 .upazilaId(upazila.getUpazilaId())
                 .districtId(upazila.getDistrict().getDistrictId())
+                .districtName(upazila.getDistrict().getDistrictName())
                 .upazilaName(upazila.getUpazilaName())
                 .upazilaCode(upazila.getUpazilaCode())
                 .schoolIds(schoolIds)

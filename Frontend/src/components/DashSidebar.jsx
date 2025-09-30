@@ -4,8 +4,8 @@ import { Home, Users, Briefcase, FileText, CreditCard, HelpCircle, Settings, Che
 export default function DashSidebar({ activeNav, setActiveNav, schoolData }) {
   const navItems = [
     { name: 'Dashboard', icon: Home, badge: null },
-    { name: 'Students', icon: Users, badge: schoolData?.total_students?.toString() || '10' },
-    { name: 'Projects', icon: Briefcase, badge: schoolData?.active_projects?.toString() || '10' },
+    { name: 'Students', icon: Users, badge: schoolData?.total_students?.toString() || '0' },
+    { name: 'Projects', icon: Briefcase, badge: schoolData?.active_projects?.toString() || '0' },
     { name: 'Reporting', icon: FileText, badge: 'Pending', badgeColor: 'text-red-600' },
     { name: 'Account', icon: CreditCard, badge: null },
     { name: 'Support', icon: HelpCircle, badge: null }, // divider will appear above this

@@ -76,14 +76,18 @@ public class SecurityConfig {
                         // Public endpoints
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/schools/**").permitAll()
+                        .requestMatchers("/api/students/**").permitAll()
+                        .requestMatchers("/api/donations/**").permitAll()
                         .requestMatchers("/api/ngos/**").permitAll()
                         .requestMatchers("/api/admin-activities/**").permitAll()
+                        .requestMatchers("/api/school-projects/**").permitAll()
+                        .requestMatchers("/api/school-documents/**").permitAll()
                         .requestMatchers("/swagger-ui/**","/v3/api-docs/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/error").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/divisions/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/districts/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/upazilas/**").permitAll()
+                        .requestMatchers("/api/divisions/**").permitAll()
+                        .requestMatchers("/api/districts/**").permitAll()
+                        .requestMatchers("/api/upazilas/**").permitAll()
 
                         // All other endpoints require authentication
                         .anyRequest().authenticated()

@@ -18,15 +18,23 @@ public class UpazilaController {
     private final UpazilaService upazilaService;
 
     @PostMapping
-    public ResponseEntity<UpazilaDto> createUpazila(@Valid @RequestBody UpazilaDto dto) {
-        UpazilaDto created = upazilaService.createUpazila(dto);
-        return new ResponseEntity<>(created, HttpStatus.CREATED);
+    public ResponseEntity<?> createUpazila(@Valid @RequestBody UpazilaDto dto) {
+        try {
+            UpazilaDto created = upazilaService.createUpazila(dto);
+            return new ResponseEntity<>(created, HttpStatus.CREATED);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UpazilaDto> getUpazilaById(@PathVariable Integer id) {
-        UpazilaDto dto = upazilaService.getUpazilaById(id);
-        return ResponseEntity.ok(dto);
+    public ResponseEntity<?> getUpazilaById(@PathVariable Integer id) {
+        try {
+            UpazilaDto dto = upazilaService.getUpazilaById(id);
+            return ResponseEntity.ok(dto);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
     }
 
     @GetMapping
@@ -36,16 +44,24 @@ public class UpazilaController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UpazilaDto> updateUpazila(
+    public ResponseEntity<?> updateUpazila(
             @PathVariable Integer id,
             @Valid @RequestBody UpazilaDto dto) {
-        UpazilaDto updated = upazilaService.updateUpazila(id, dto);
-        return ResponseEntity.ok(updated);
+        try {
+            UpazilaDto updated = upazilaService.updateUpazila(id, dto);
+            return ResponseEntity.ok(updated);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUpazila(@PathVariable Integer id) {
-        upazilaService.deleteUpazila(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<?> deleteUpazila(@PathVariable Integer id) {
+        try {
+            upazilaService.deleteUpazila(id);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
     }
 }

@@ -15,16 +15,13 @@ public class SchoolProjectService {
 
     private final SchoolProjectRepository schoolProjectRepository;
     private final SchoolRepository schoolRepository;
-    private final UserRepository userRepository;
     private final ProjectTypeRepository projectTypeRepository;
 
     public SchoolProjectService(SchoolProjectRepository schoolProjectRepository,
                                 SchoolRepository schoolRepository,
-                                UserRepository userRepository,
                                 ProjectTypeRepository projectTypeRepository) {
         this.schoolProjectRepository = schoolProjectRepository;
         this.schoolRepository = schoolRepository;
-        this.userRepository = userRepository;
         this.projectTypeRepository = projectTypeRepository;
     }
 
@@ -33,16 +30,12 @@ public class SchoolProjectService {
         School school = schoolRepository.findById(schoolProjectDto.getSchoolId())
                 .orElseThrow(() -> new RuntimeException("School not found"));
 
-        User createdBy = userRepository.findById(schoolProjectDto.getCreatedBy())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
         ProjectType projectType = projectTypeRepository.findById(schoolProjectDto.getProjectTypeId())
                 .orElseThrow(() -> new RuntimeException("Project type not found"));
 
         SchoolProject schoolProject = SchoolProject.builder()
                 .projectId(schoolProjectDto.getProjectId())
                 .school(school)
-                .createdBy(createdBy)
                 .projectTitle(schoolProjectDto.getProjectTitle())
                 .projectDescription(schoolProjectDto.getProjectDescription())
                 .projectType(projectType)
@@ -79,7 +72,6 @@ public class SchoolProjectService {
         return SchoolProjectDto.builder()
                 .projectId(schoolProject.getProjectId())
                 .schoolId(schoolProject.getSchool().getSchoolId())
-                .createdBy(schoolProject.getCreatedBy().getUserId())
                 .projectTitle(schoolProject.getProjectTitle())
                 .projectDescription(schoolProject.getProjectDescription())
                 .projectTypeId(schoolProject.getProjectType().getProjectTypeId())
