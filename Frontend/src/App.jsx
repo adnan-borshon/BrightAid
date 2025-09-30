@@ -9,10 +9,12 @@ import Navbar from './Fixed components/Navbar';
 import Hero from './components/Landing page/Hero';
 import Login from './components/Authentication/Login'
 import SignUp from './components/Authentication/Signup/SignUp';
+import SchoolDashboard from './components/SchoolDashboard';
 function App() {
   return (
     <div className="min-h-screen bg-white">
-       <SignUp/>
+<SchoolDashboard/>
+       {/* <SignUp/> */}
         {/* <Login/> */}
       {/* <Hero />
       <Stats />
