@@ -88,6 +88,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/project-updates/**").permitAll()
                         .requestMatchers("/api/ngo-projects/**").permitAll()
                         .requestMatchers("/api/payment-transactions/**").permitAll()
+                        .requestMatchers("/api/payments/**").permitAll()
                         .requestMatchers("/api/school-documents/**").permitAll()
                         .requestMatchers("/swagger-ui/**","/v3/api-docs/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
