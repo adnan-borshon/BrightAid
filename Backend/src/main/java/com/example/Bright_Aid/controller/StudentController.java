@@ -45,9 +45,36 @@ public class StudentController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/upload-image")
-    public ResponseEntity<Map<String, String>> uploadImage(@RequestParam("file") MultipartFile file) {
-        String imageUrl = studentService.saveImage(file);
-        return ResponseEntity.ok(Map.of("imageUrl", imageUrl));
+
+
+    @PostMapping("/{id}/image")
+    public ResponseEntity<Map<String, String>> uploadStudentImage(
+            @PathVariable Integer id, 
+            @RequestParam("image") MultipartFile file) {
+        try {
+            System.out.println("Received image upload request for student ID: " + id);
+            System.out.println("File name: " + file.getOriginalFilename());
+            System.out.println("File size: " + file.getSize());
+            System.out.println("File empty: " + file.isEmpty());
+            
+            if (file.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "File is empty"));
+            }
+            
+            String imagePath = studentService.updateStudentImage(id, file);
+            return ResponseEntity.ok(Map.of("imagePath", imagePath));
+        } catch (Exception e) {
+            System.err.println("Error uploading image: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
+    
+    @GetMapping("/count/school/{schoolId}")
+    public ResponseEntity<Map<String, Long>> getStudentCountBySchool(@PathVariable Integer schoolId) {
+        Long count = studentService.getStudentCountBySchoolId(schoolId);
+        return ResponseEntity.ok(Map.of("count", count));
+    }
+
+
 }

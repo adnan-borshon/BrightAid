@@ -18,15 +18,18 @@ public class SchoolService {
     private final DivisionRepository divisionRepository;
     private final DistrictRepository districtRepository;
     private final UpazilaRepository upazilaRepository;
+    private final UserRepository userRepository;
 
     public SchoolService(SchoolRepository schoolRepository,
                          DivisionRepository divisionRepository,
                          DistrictRepository districtRepository,
-                         UpazilaRepository upazilaRepository) {
+                         UpazilaRepository upazilaRepository,
+                         UserRepository userRepository) {
         this.schoolRepository = schoolRepository;
         this.divisionRepository = divisionRepository;
         this.districtRepository = districtRepository;
         this.upazilaRepository = upazilaRepository;
+        this.userRepository = userRepository;
     }
 
     // -------------------- CRUD --------------------
@@ -48,7 +51,11 @@ public class SchoolService {
         Upazila upazila = upazilaRepository.findById(schoolDto.getUpazilaId())
                 .orElseThrow(() -> new RuntimeException("Upazila not found with ID: " + schoolDto.getUpazilaId()));
 
+        User user = userRepository.findById(schoolDto.getUserId())
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + schoolDto.getUserId()));
+
         School school = School.builder()
+                .user(user)
                 .schoolName(schoolDto.getSchoolName())
                 .registrationNumber(schoolDto.getRegistrationNumber())
                 .schoolType(parseSchoolType(schoolDto.getSchoolType()))
@@ -212,6 +219,7 @@ public class SchoolService {
     private SchoolDto mapToDto(School school) {
         return SchoolDto.builder()
                 .schoolId(school.getSchoolId())
+                .userId(school.getUser() != null ? school.getUser().getUserId() : null)
                 .schoolName(school.getSchoolName())
                 .registrationNumber(school.getRegistrationNumber())
                 .schoolType(school.getSchoolType().name())

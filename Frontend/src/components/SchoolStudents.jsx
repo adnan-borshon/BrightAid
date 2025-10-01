@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Search, Plus, AlertTriangle, Users as UsersIcon, Layers } from 'lucide-react';
+import { Search, Plus, AlertTriangle, Users as UsersIcon, Layers, Camera } from 'lucide-react';
 import Sidebar from './DashSidebar';
 import StudentEnrollmentModal from './Modal/StudentEnrollmentModal';
+import ImageUpload from './ImageUpload';
 
 const emptyData = {
   school: null,
@@ -42,18 +43,26 @@ export default function SchoolStudents() {
     try {
       console.log('Fetching students for school ID:', schoolId);
       
-      const [schoolRes, studentsRes] = await Promise.all([
+      const [schoolRes, studentsRes, studentCountRes] = await Promise.all([
         fetch(`${API_BASE_URL}/schools/${schoolId}`).catch(() => null),
         fetch(`${API_BASE_URL}/students`).catch(() => null),
+        fetch(`${API_BASE_URL}/students/count/school/${schoolId}`).catch(() => null),
       ]);
 
       const newData = { ...emptyData };
+      
+      // Get actual student count from backend
+      let actualStudentCount = 0;
+      if (studentCountRes && studentCountRes.ok) {
+        const countData = await studentCountRes.json();
+        actualStudentCount = countData.count || 0;
+      }
       
       if (schoolRes && schoolRes.ok) {
         const schoolData = await schoolRes.json();
         newData.school = {
           ...schoolData,
-          total_students: schoolData.totalStudents || schoolData.total_students || 0,
+          total_students: actualStudentCount, // Use actual count from backend
           active_projects: schoolData.activeProjects || schoolData.active_projects || 0,
           total_received: schoolData.totalReceived || schoolData.total_received || 0
         };
@@ -81,7 +90,7 @@ export default function SchoolStudents() {
           }));
         
         newData.students = schoolStudents;
-        newData.totalCount = schoolStudents.length;
+        newData.totalCount = actualStudentCount; // Use actual count from backend
         newData.highRiskCount = schoolStudents.filter(s => 
           s.risk_status && (s.risk_status.toLowerCase().includes('high') || s.risk_status.toLowerCase().includes('at risk'))
         ).length;
@@ -103,7 +112,7 @@ export default function SchoolStudents() {
 
   const handleEnrollStudent = async (formData) => {
     try {
-      // Convert FormData to backend DTO format
+      // Create student with JSON data first
       const jsonData = {
         schoolId: parseInt(schoolId),
         studentName: formData.get('student_name'),
@@ -132,10 +141,31 @@ export default function SchoolStudents() {
       });
       
       if (response.ok) {
-        const data = await response.json();
-        console.log('Student enrolled successfully:', data);
+        const studentData = await response.json();
+        console.log('Student created successfully:', studentData);
+        
+        // Upload image separately if provided
+        const profileImage = formData.get('profile_image');
+        if (profileImage && profileImage.size > 0) {
+          const imageFormData = new FormData();
+          imageFormData.append('image', profileImage);
+          
+          const imageResponse = await fetch(`${API_BASE_URL}/students/${studentData.studentId}/image`, {
+            method: 'POST',
+            body: imageFormData,
+          });
+          
+          if (!imageResponse.ok) {
+            console.error('Image upload failed:', await imageResponse.text());
+          }
+        }
+
         setIsModalOpen(false);
         fetchStudentsData();
+      } else {
+        const errorData = await response.text();
+        console.error('Student creation failed:', errorData);
+        alert('Failed to create student: ' + errorData);
       }
     } catch (error) {
       console.error('Error enrolling student:', error);
@@ -191,6 +221,17 @@ export default function SchoolStudents() {
   const handleStudentClick = (studentId) => {
     console.log('Viewing student details for ID:', studentId);
     // Navigate to student detail page
+  };
+
+  const handleImageUpdate = (studentId, imagePath) => {
+    setData(prevData => ({
+      ...prevData,
+      students: prevData.students.map(student => 
+        student.student_id === studentId 
+          ? { ...student, profile_image: imagePath }
+          : student
+      )
+    }));
   };
 
   if (loading) {
@@ -329,22 +370,58 @@ export default function SchoolStudents() {
                   className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-shadow"
                   onClick={() => handleStudentClick(student.student_id)}
                 >
-               <div className="relative h-40 bg-gray-100 flex items-center justify-center">
-  <img 
-    src={student.profile_image 
-      ? `${API_BASE_URL}${student.profile_image}` 
-      : 'https://via.placeholder.com/150?text=No+Image'
-    }
-    alt={student.student_name}
-    className="w-full h-full object-cover"
-    onError={(e) => {
-      e.target.onerror = null;
-      e.target.src = 'https://via.placeholder.com/150?text=No+Image';
-    }}
-  />
+               <div className="relative h-40 bg-gray-100 flex items-center justify-center group">
+  {student.profile_image ? (
+    <img 
+      src={`http://localhost:8081${student.profile_image}`}
+      alt={student.student_name}
+      className="w-full h-full object-cover"
+      onError={(e) => {
+        e.target.style.display = 'none';
+        e.target.nextSibling.style.display = 'flex';
+      }}
+    />
+  ) : null}
+  <div 
+    className={`w-full h-full flex items-center justify-center text-gray-400 ${student.profile_image ? 'hidden' : 'flex'}`}
+    style={{ display: student.profile_image ? 'none' : 'flex' }}
+  >
+    <div className="text-center">
+      <Camera className="w-8 h-8 mx-auto mb-2" />
+      <span className="text-sm">No Image</span>
+    </div>
+  </div>
   <span className={`absolute top-3 right-3 ${badge.bg} ${badge.text} px-2 py-1 rounded-full text-xs font-medium`}>
     • {badge.label}
   </span>
+  <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+    <label className="cursor-pointer">
+      <input
+        type="file"
+        accept="image/*"
+        onChange={(e) => {
+          const file = e.target.files[0];
+          if (file) {
+            const formData = new FormData();
+            formData.append('image', file);
+            fetch(`http://localhost:8081/api/students/${student.student_id}/image`, {
+              method: 'POST',
+              body: formData,
+            })
+            .then(response => response.json())
+            .then(data => {
+              handleImageUpdate(student.student_id, data.imagePath);
+            })
+            .catch(error => console.error('Error uploading image:', error));
+          }
+        }}
+        className="hidden"
+      />
+      <div className="bg-white bg-opacity-90 rounded-full p-2 hover:bg-opacity-100 transition-all">
+        <Camera className="w-5 h-5 text-gray-700" />
+      </div>
+    </label>
+  </div>
 </div>
                   <div className="p-4">
                     <div className="text-xs text-green-600 mb-1">Scholarship from {student.donor_username}</div>

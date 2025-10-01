@@ -103,22 +103,79 @@ public class StudentService {
         studentRepository.deleteById(id);
     }
 
-    public String saveImage(MultipartFile file) {
+public String saveStudentImage(MultipartFile file, Integer studentId) {
+    try {
+        System.out.println("Saving image for student ID: " + studentId);
+        String uploadDir = "src/main/resources/static/images/students/";
+        Path uploadPath = Paths.get(uploadDir);
+        
+        System.out.println("Upload directory: " + uploadPath.toAbsolutePath());
+        
+        if (!Files.exists(uploadPath)) {
+            System.out.println("Creating directory: " + uploadPath);
+            Files.createDirectories(uploadPath);
+        }
+        
+        String fileExtension = getFileExtension(file.getOriginalFilename());
+        String fileName = "student_" + studentId + fileExtension;
+        Path filePath = uploadPath.resolve(fileName);
+        
+        System.out.println("Saving file to: " + filePath.toAbsolutePath());
+        Files.copy(file.getInputStream(), filePath);
+        System.out.println("File saved successfully");
+        
+        // ✅ CHANGED: Return without /static prefix
+        return "/images/students/" + fileName;
+    } catch (IOException e) {
+        System.err.println("IOException while saving image: " + e.getMessage());
+        e.printStackTrace();
+        throw new RuntimeException("Failed to save image: " + e.getMessage());
+    }
+}
+    public String saveUserImage(MultipartFile file, Integer userId) {
         try {
-            String uploadDir = "src/main/resources/static/images/students/";
+            String uploadDir = "src/main/resources/static/images/users/";
             Path uploadPath = Paths.get(uploadDir);
             
             if (!Files.exists(uploadPath)) {
                 Files.createDirectories(uploadPath);
             }
             
-            String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+            String fileExtension = getFileExtension(file.getOriginalFilename());
+            String fileName = "user_" + userId + fileExtension;
             Path filePath = uploadPath.resolve(fileName);
             Files.copy(file.getInputStream(), filePath);
             
-            return "/images/students/" + fileName;
+            return "/static/images/users/" + fileName;
         } catch (IOException e) {
             throw new RuntimeException("Failed to save image: " + e.getMessage());
         }
     }
+    
+    private String getFileExtension(String filename) {
+        if (filename == null || filename.lastIndexOf('.') == -1) {
+            return ".png";
+        }
+        return filename.substring(filename.lastIndexOf('.'));
+    }
+
+    public String updateStudentImage(Integer studentId, MultipartFile file) {
+        System.out.println("Updating image for student ID: " + studentId);
+        Student student = studentRepository.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Student not found"));
+        
+        String imagePath = saveStudentImage(file, studentId);
+        System.out.println("Image saved at path: " + imagePath);
+        student.setProfileImage(imagePath);
+        studentRepository.save(student);
+        System.out.println("Student profile image updated successfully");
+        
+        return imagePath;
+    }
+    
+    public Long getStudentCountBySchoolId(Integer schoolId) {
+        return studentRepository.countStudentsBySchoolId(schoolId);
+    }
+
+
 }

@@ -32,15 +32,15 @@ const router = createBrowserRouter([
   },
   { 
     path: "/school-profile", 
-    element: <SchoolProfilePage /> 
+    element: <SignUp /> 
   },
   { 
     path: "/document-verification", 
-    element: <DocumentVerificationPage /> 
+    element: <SignUp /> 
   },
   { 
     path: "/approval", 
-    element: <ApprovalPage /> 
+    element: <SignUp /> 
   },
   { 
     path: "/dashboard/:schoolId", 
