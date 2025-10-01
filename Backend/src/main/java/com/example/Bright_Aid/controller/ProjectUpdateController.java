@@ -1,5 +1,22 @@
 package com.example.Bright_Aid.controller;
 
+<<<<<<< HEAD
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/project-updates")
+@CrossOrigin(origins = "*")
+public class ProjectUpdateController {
+
+    @PostMapping
+    public ResponseEntity<String> createProjectUpdate(@RequestBody Map<String, Object> updateData) {
+        // Simple response for now
+        return new ResponseEntity<>("Project update created successfully", HttpStatus.CREATED);
+=======
 import com.example.Bright_Aid.Dto.ProjectUpdateDto;
 import com.example.Bright_Aid.Entity.ProjectUpdate;
 import com.example.Bright_Aid.service.ProjectUpdateService;
@@ -56,6 +73,7 @@ public class ProjectUpdateController {
     public ResponseEntity<Void> deleteUpdate(@PathVariable Integer id) {
         projectUpdateService.deleteUpdate(id);
         return ResponseEntity.noContent().build();
+>>>>>>> 18c7ca92b80ef355aa614726d7c9eed6ac3b72bb
     }
 
     // Helper methods to convert

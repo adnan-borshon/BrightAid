@@ -11,6 +11,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/school-projects")
+@CrossOrigin(origins = "*")
 public class SchoolProjectController {
 
     private final SchoolProjectService schoolProjectService;
@@ -55,4 +56,26 @@ public class SchoolProjectController {
         schoolProjectService.deleteSchoolProject(projectId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
+    
+    // Get all project types
+    @GetMapping("/types")
+    public ResponseEntity<List<com.example.Bright_Aid.Entity.ProjectType>> getProjectTypes() {
+        List<com.example.Bright_Aid.Entity.ProjectType> projectTypes = schoolProjectService.getAllProjectTypes();
+        return new ResponseEntity<>(projectTypes, HttpStatus.OK);
+    }
+    
+    // Initialize project types (for testing)
+    @PostMapping("/init-types")
+    public ResponseEntity<String> initializeProjectTypes() {
+        schoolProjectService.initializeProjectTypes();
+        return new ResponseEntity<>("Project types initialized", HttpStatus.OK);
+    }
+    
+    // Get project completion rate
+    @GetMapping("/{projectId}/completion-rate")
+    public ResponseEntity<Integer> getProjectCompletionRate(@PathVariable Integer projectId) {
+        Integer completionRate = schoolProjectService.getProjectCompletionRate(projectId);
+        return new ResponseEntity<>(completionRate, HttpStatus.OK);
+    }
+
 }

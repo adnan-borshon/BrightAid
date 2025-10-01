@@ -9,6 +9,10 @@ import SchoolProfilePage from './components/Authentication/Signup/SchoolProfileP
 import DocumentVerificationPage from './components/Authentication/Signup/DocumentVerificationPage.jsx'
 import ApprovalPage from './components/Authentication/Signup/ApprovalPage.jsx'
 import SchoolDashboard from './components/SchoolDashboard'
+import SchoolStudents from './components/SchoolStudents'
+import SchoolProjects from './components/SchoolProjects'
+import DonorDashboard from './components/DonorDashboard'
+import NgoDashboard from './components/NgoDashboard'
 import Login from './components/Authentication/Login'
 
 
@@ -47,12 +51,36 @@ const router = createBrowserRouter([
     element: <SchoolDashboard /> 
   },
   { 
+    path: "/students/:schoolId", 
+    element: <SchoolStudents /> 
+  },
+  { 
+    path: "/projects/:schoolId", 
+    element: <SchoolProjects /> 
+  },
+  { 
+    path: "/reporting/:schoolId", 
+    element: <div className="p-8 text-center"><h1 className="text-2xl font-bold">Reporting</h1><p className="text-gray-600 mt-2">Coming Soon...</p></div> 
+  },
+  { 
+    path: "/account/:schoolId", 
+    element: <div className="p-8 text-center"><h1 className="text-2xl font-bold">Account</h1><p className="text-gray-600 mt-2">Coming Soon...</p></div> 
+  },
+  { 
+    path: "/support/:schoolId", 
+    element: <div className="p-8 text-center"><h1 className="text-2xl font-bold">Support</h1><p className="text-gray-600 mt-2">Coming Soon...</p></div> 
+  },
+  { 
+    path: "/settings/:schoolId", 
+    element: <div className="p-8 text-center"><h1 className="text-2xl font-bold">Settings</h1><p className="text-gray-600 mt-2">Coming Soon...</p></div> 
+  },
+  { 
     path: "/donor-dashboard/:donorId", 
-    element: <div className="p-8 text-center"><h1 className="text-2xl font-bold">Donor Dashboard</h1><p className="text-gray-600 mt-2">Coming Soon...</p></div> 
+    element: <DonorDashboard /> 
   },
   { 
     path: "/ngo-dashboard/:ngoId", 
-    element: <div className="p-8 text-center"><h1 className="text-2xl font-bold">NGO Dashboard</h1><p className="text-gray-600 mt-2">Coming Soon...</p></div> 
+    element: <NgoDashboard /> 
   },
   { 
     path: "/admin-dashboard/:adminId", 

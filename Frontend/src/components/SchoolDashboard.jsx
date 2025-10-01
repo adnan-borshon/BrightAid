@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronRight, MoreVertical, Users, Briefcase, Plus, Download, Camera } from 'lucide-react';
 import Sidebar from './DashSidebar';
 import SchoolStudents from './SchoolStudents';
 import ImageUpload from './ImageUpload';
 import { API_BASE_URL } from '../config/api';
+import StudentEnrollmentModal from './Modal/StudentEnrollmentModal';
+import ProjectCreateModal from './Modal/ProjectCreateModal';
+import SchoolProjectCard from './SchoolProjectCard';
 
 // Empty data structure
 const emptyData = {
@@ -17,13 +20,15 @@ const emptyData = {
 
 export default function SchoolDashboard() {
   const { schoolId } = useParams();
+  const navigate = useNavigate();
   const [activeNav, setActiveNav] = useState('Dashboard');
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(emptyData);
   const [apiError, setApiError] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [selectedProject, setSelectedProject] = useState(null);
-
+const [isModalOpen, setIsModalOpen] = useState(false);
+const [ProjectModalOpen, setProjectModalOpen] = useState(false);
   useEffect(() => {
     if (schoolId) {
       fetchDashboardData();
@@ -53,12 +58,21 @@ export default function SchoolDashboard() {
         actualStudentCount = countData.count || 0;
       }
       
+      // Process projects data once
+      let projectsData = null;
+      let actualProjectCount = 0;
+      if (projectsRes && projectsRes.ok) {
+        projectsData = await projectsRes.json();
+        const projects = Array.isArray(projectsData) ? projectsData : projectsData.data || [];
+        actualProjectCount = projects.filter(project => (project.schoolId || project.school_id) == schoolId).length;
+      }
+      
       if (schoolRes && schoolRes.ok) {
         const schoolData = await schoolRes.json();
         newData.school = {
           ...schoolData,
-          total_students: actualStudentCount, // Use actual count from backend
-          active_projects: schoolData.activeProjects || schoolData.active_projects || 0,
+          total_students: actualStudentCount,
+          active_projects: actualProjectCount,
           total_received: schoolData.totalReceived || schoolData.total_received || 0
         };
       }
@@ -97,8 +111,7 @@ export default function SchoolDashboard() {
         }));
       }
       
-      if (projectsRes && projectsRes.ok) {
-        const projectsData = await projectsRes.json();
+      if (projectsData) {
         const projects = Array.isArray(projectsData) ? projectsData : projectsData.data || [];
         
         // Filter projects by school ID
@@ -108,11 +121,16 @@ export default function SchoolDashboard() {
         
         newData.projects = schoolProjects.slice(0, 3).map(project => ({
           project_id: project.projectId || project.project_id,
-          project_title: project.projectTitle || project.project_title,
-          raised_amount: project.raisedAmount || project.raised_amount || 0,
-          required_amount: project.requiredAmount || project.required_amount || 0,
+          project_name: project.projectTitle || project.project_title || 'Untitled Project',
+          project_type: project.projectTypeName || project.projectType?.typeName || project.project_type || 'General',
+          scholarship_amount: project.scholarshipAmount || project.scholarship_amount || 0,
+          total_amount: project.totalAmount || project.total_amount || 0,
+          risk_status: project.riskStatus || project.risk_status || 'Low Risk',
+          completion_rate: project.completionRate || project.completion_rate || 0,
+          performance_score: project.performanceScore || project.performance_score || 0,
+          category: project.category || 'General',
           status: project.status || 'active',
-          progress: project.progress || Math.round(((project.raisedAmount || project.raised_amount || 0) / (project.requiredAmount || project.required_amount || 1)) * 100)
+          donor_username: project.donorUsername || project.donor_username || '@anisha3208'
         }));
       }
       
@@ -136,10 +154,7 @@ export default function SchoolDashboard() {
         }));
       }
 
-      // Update school data with calculated project count only
-      if (newData.school) {
-        newData.school.active_projects = newData.projects.length;
-      }
+      // School data already has the correct project count
       
       setData(newData);
       setApiError(false);
@@ -152,12 +167,83 @@ export default function SchoolDashboard() {
     }
   };
 
+  const handleEnrollStudent = async (formData) => {
+    try {
+      // Create student with JSON data first
+      const jsonData = {
+        schoolId: parseInt(schoolId),
+        studentName: formData.get('student_name'),
+        studentIdNumber: formData.get('student_id_number'),
+        gender: formData.get('gender').toUpperCase(),
+        dateOfBirth: formData.get('date_of_birth'),
+        classLevel: mapClassLevel(formData.get('class_level')),
+        fatherName: formData.get('father_name') || null,
+        fatherAlive: formData.get('father_alive') === 'true',
+        fatherOccupation: formData.get('father_occupation') || null,
+        motherName: formData.get('mother_name') || null,
+        motherAlive: formData.get('mother_alive') === 'true',
+        motherOccupation: formData.get('mother_occupation') || null,
+        guardianPhone: formData.get('guardian_phone'),
+        address: formData.get('address') || null,
+        familyMonthlyIncome: formData.get('family_monthly_income') ? parseFloat(formData.get('family_monthly_income')) : null,
+        hasScholarship: false
+      };
+      
+      const response = await fetch(`${API_BASE_URL}/students`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(jsonData)
+      });
+      
+      if (response.ok) {
+        const studentData = await response.json();
+        console.log('Student created successfully:', studentData);
+        
+        // Upload image separately if provided
+        const profileImage = formData.get('profile_image');
+        if (profileImage && profileImage.size > 0) {
+          const imageFormData = new FormData();
+          imageFormData.append('image', profileImage);
+          
+          const imageResponse = await fetch(`${API_BASE_URL}/students/${studentData.studentId}/image`, {
+            method: 'POST',
+            body: imageFormData,
+          });
+          
+          if (!imageResponse.ok) {
+            console.error('Image upload failed:', await imageResponse.text());
+          }
+        }
+
+        setIsModalOpen(false);
+        fetchDashboardData();
+      } else {
+        const errorData = await response.text();
+        console.error('Student creation failed:', errorData);
+        alert('Failed to create student: ' + errorData);
+      }
+    } catch (error) {
+      console.error('Error enrolling student:', error);
+    }
+  };
+
   const formatCurrency = (amount) => {
     return `$${Math.abs(amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   const formatClassLevel = (classLevel) => {
     return classLevel ? classLevel.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'N/A';
+  };
+  
+  const mapClassLevel = (classLevel) => {
+    const classMap = {
+      '1': 'ONE', '2': 'TWO', '3': 'THREE', '4': 'FOUR', '5': 'FIVE',
+      '6': 'SIX', '7': 'SEVEN', '8': 'EIGHT', '9': 'NINE', '10': 'TEN',
+      '11': 'ELEVEN', '12': 'TWELVE'
+    };
+    return classMap[classLevel] || classLevel;
   };
 
   const getStatusColor = (status) => {
@@ -193,6 +279,54 @@ export default function SchoolDashboard() {
     // navigate(`/project/${projectId}`);
   };
 
+  const handleProjectCreation = async (formData) => {
+    try {
+      // Only send fields that exist in SchoolProjectDto
+      const jsonData = {
+        schoolId: parseInt(schoolId),
+        projectTitle: formData.get('project_title'),
+        projectDescription: formData.get('project_description'),
+        projectTypeId: parseInt(formData.get('project_type_id'))
+      };
+      
+      console.log('Sending project data:', jsonData);
+      
+      const response = await fetch(`${API_BASE_URL}/school-projects`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(jsonData)
+      });
+      
+      if (response.ok) {
+        const projectData = await response.json();
+        console.log('Project created successfully:', projectData);
+        
+        const projectImage = formData.get('project_image');
+        if (projectImage && projectImage.size > 0) {
+          const imageFormData = new FormData();
+          imageFormData.append('image', projectImage);
+          
+          await fetch(`${API_BASE_URL}/school-projects/${projectData.projectId}/image`, {
+            method: 'POST',
+            body: imageFormData,
+          }).catch(error => console.error('Image upload failed:', error));
+        }
+        
+        setProjectModalOpen(false);
+        fetchDashboardData();
+      } else {
+        const errorData = await response.text();
+        console.error('Project creation failed:', errorData);
+        alert('Failed to create project: ' + errorData);
+      }
+    } catch (error) {
+      console.error('Error creating project:', error);
+      alert('Error creating project: ' + error.message);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen bg-gray-50">
@@ -206,14 +340,21 @@ export default function SchoolDashboard() {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      <Sidebar activeNav={activeNav} setActiveNav={setActiveNav} schoolData={data.school} />
+            <StudentEnrollmentModal
+              isOpen={isModalOpen}
+              onClose={() => setIsModalOpen(false)}
+              onSubmit={handleEnrollStudent}
+            />
+
+                 <ProjectCreateModal
+              isOpen={ProjectModalOpen}
+              onClose={() => setProjectModalOpen(false)}
+              onSubmit={handleProjectCreation}
+            />
+      <Sidebar schoolData={data.school} />
 
       {/* Main Content */}
       <div className="flex-1 overflow-auto">
-        {activeNav === 'Students' ? (
-          <SchoolStudents schoolId={schoolId} />
-        ) : (
-          <>
             {apiError && (
               <div className="m-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
                 ⚠ Using demo data. Connect to backend at <code className="bg-yellow-100 px-2 py-1 rounded">{API_BASE_URL}</code>
@@ -341,13 +482,18 @@ export default function SchoolDashboard() {
               <span className="text-green-600">👨‍🎓</span>
               <h2 className="text-xl font-bold text-gray-800">Active Students</h2>
             </div>
-            <button className="secondary !border-0 hover:!bg-gray-50 hover:!text-[#0E792E] text-sm font-medium flex items-center gap-1">
+            <button 
+              onClick={() => navigate(`/students/${schoolId}`)}
+              className="secondary !border-0 hover:!bg-gray-50 hover:!text-[#0E792E] text-sm font-medium flex items-center gap-1"
+            >
               View All <ChevronRight className="w-4 h-4" />
             </button>
           </div>
 
           <div className="grid grid-cols-4 gap-4">
-            <div className="bg-white rounded-xl p-6 border-2 border-dashed border-gray-300 flex flex-col items-center justify-center min-h-[280px] hover:border-green-400 transition-colors cursor-pointer">
+            <div 
+           onClick={() => setIsModalOpen(true)}
+            className="bg-white rounded-xl p-6 border-2 border-dashed border-gray-300 flex flex-col items-center justify-center min-h-[280px] hover:border-green-400 transition-colors cursor-pointer">
               <Plus className="w-12 h-12 text-gray-400 mb-4" />
               <div className="text-sm font-semibold text-gray-800 mb-1">Add New Student</div>
               <div className="text-xs text-gray-500 text-center">Add student details to ensure accurate records and streamline every learner</div>
@@ -359,9 +505,7 @@ export default function SchoolDashboard() {
                   <span className="absolute top-3 right-3 bg-white px-2 py-1 rounded-full text-xs font-medium text-orange-600">
                     {student.risk_status || 'At Risk'}
                   </span>
-                  <span className="absolute top-3 left-3 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">
-                    ID: {student.student_id}
-                  </span>
+                
                 </div>
                 <div className="p-4">
                   <div className="text-xs text-green-600 mb-1">Scholarship from @anisha3228</div>
@@ -395,51 +539,32 @@ export default function SchoolDashboard() {
               <span className="text-blue-600">📚</span>
               <h2 className="text-xl font-bold text-gray-800">Active Projects</h2>
             </div>
-            <button className="secondary !border-0 hover:!bg-gray-50 hover:!text-[#0E792E] text-sm font-medium flex items-center gap-1">
+            <button 
+              onClick={() => navigate(`/projects/${schoolId}`)}
+              className="secondary !border-0 hover:!bg-gray-50 hover:!text-[#0E792E] text-sm font-medium flex items-center gap-1"
+            >
               View All <ChevronRight className="w-4 h-4" />
             </button>
           </div>
 
-          <div className="grid grid-cols-4 gap-4">
-            <div className="bg-white rounded-xl p-6 border-2 border-dashed border-gray-300 flex flex-col items-center justify-center min-h-[280px] hover:border-green-400 transition-colors cursor-pointer">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div
+            onClick={() => setProjectModalOpen(true)}
+            className="bg-white rounded-xl p-6 border-2 border-dashed border-gray-300 flex flex-col items-center justify-center min-h-[280px] hover:border-green-400 transition-colors cursor-pointer">
               <Plus className="w-12 h-12 text-gray-400 mb-4" />
               <div className="text-sm font-semibold text-gray-800 mb-1">Create New Project</div>
               <div className="text-xs text-gray-500 text-center">Add request details to ensure accurate records and support for every learner</div>
             </div>
 
-            {data.projects.length > 0 ? data.projects.slice(0, 3).map((project) => {
-              const progress = Math.round((project.raised_amount / project.required_amount) * 100) || project.progress || 0;
-              return (
-                <div key={project.project_id} className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleProjectClick(project.project_id)}>
-                  <div className="relative h-40 bg-gradient-to-br from-green-700 to-green-900">
-                    <span className={`absolute top-3 right-3 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(project.status)}`}>
-                      • {project.status?.replace('_', ' ').toUpperCase() || 'ACTIVE'}
-                    </span>
-                    <span className="absolute top-3 left-3 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">
-                      ID: {project.project_id}
-                    </span>
-                  </div>
-                  <div className="p-4">
-                    <div className="text-xs text-gray-600 mb-1">Sponsored by @anisha3228</div>
-                    <div className="text-sm font-semibold text-gray-800 mb-2">{project.project_title}</div>
-                    <div className="text-xs text-gray-500 mb-3">
-                      Fund Received: {formatCurrency(project.raised_amount)} / {formatCurrency(project.required_amount)}
-                    </div>
-                    <div className="mb-4">
-                      <div className="flex justify-between text-xs text-gray-500 mb-1">
-                        <span>{progress}%</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div className="bg-green-600 h-2 rounded-full" style={{ width: `${progress}%` }}></div>
-                      </div>
-                    </div>
-                    <button className="secondary !border-0 hover:!bg-gray-50 hover:!text-[#0E792E] w-full py-2 text-sm rounded-lg hover:bg-green-50 transition-colors" onClick={(e) => { e.stopPropagation(); console.log('Update report for project:', project.project_id); }}>
-                      Update Report
-                    </button>
-                  </div>
-                </div>
-              );
-            }) : (
+            {data.projects.length > 0 ? data.projects.slice(0, 3).map((project) => (
+              <SchoolProjectCard
+                key={project.project_id}
+                project={project}
+                onViewDetails={handleProjectClick}
+                onRecordExpense={(project) => console.log('Record expense for:', project.project_name)}
+                onPostUpdate={(project) => console.log('Post update for:', project.project_name)}
+              />
+            )) : (
               <div className="col-span-3 text-center py-12 text-gray-500">
                 <div className="flex flex-col items-center gap-3">
                   <span className="text-4xl">📚</span>
@@ -540,7 +665,7 @@ export default function SchoolDashboard() {
                 <div key={student.student_id} className="border border-red-200 rounded-lg p-4 bg-red-50 hover:bg-red-100 transition-colors cursor-pointer" onClick={() => handleStudentClick(student.student_id)}>
                   <div className="text-sm font-semibold text-gray-800 mb-3 flex justify-between items-center">
                     <span>{student.student_name}, {formatClassLevel(student.class_level)}</span>
-                    <span className="text-xs bg-red-200 px-2 py-1 rounded">ID: {student.student_id}</span>
+              
                   </div>
                   <div className="space-y-2 mb-3">
                     <div className="grid grid-cols-1 gap-1 text-xs">
@@ -571,8 +696,6 @@ export default function SchoolDashboard() {
             </button>
           </div>
         </div>
-          </>
-        )}
       </div>
     </div>
   );

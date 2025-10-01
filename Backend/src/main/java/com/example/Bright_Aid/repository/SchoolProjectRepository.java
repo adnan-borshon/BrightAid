@@ -14,5 +14,13 @@ import java.util.List;
 @Repository
 public interface SchoolProjectRepository extends JpaRepository<SchoolProject, Integer> {
 
+    @Query("SELECT sp FROM SchoolProject sp JOIN FETCH sp.projectType WHERE sp.projectId = :projectId")
+    SchoolProject findByIdWithProjectType(@Param("projectId") Integer projectId);
+    
+    @Query("SELECT sp FROM SchoolProject sp JOIN FETCH sp.projectType")
+    List<SchoolProject> findAllWithProjectType();
+    
+    @Query(value = "SELECT COALESCE(pu.progress_percentage, 0.0) FROM project_updates pu WHERE pu.project_id = :projectId AND pu.progress_percentage IS NOT NULL ORDER BY pu.created_at DESC LIMIT 1", nativeQuery = true)
+    Double getLatestCompletionRate(@Param("projectId") Integer projectId);
 
 }
