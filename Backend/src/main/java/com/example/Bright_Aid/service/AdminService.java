@@ -76,16 +76,11 @@ public class AdminService {
     public List<Integer> getVerifiedNgoIds(Integer adminId) {
         Admin admin = adminRepository.findById(adminId)
                 .orElseThrow(() -> new RuntimeException("Admin not found"));
-        List<Ngo> verifiedNgos = admin.getVerifiedNgos();
-        if (verifiedNgos == null) return List.of();
-        return verifiedNgos.stream().map(Ngo::getNgoId).collect(Collectors.toList());
+        
+        return List.of(); // Return empty list since verifiedBy relationship was removed
     }
 
     private AdminDto mapToDto(Admin admin) {
-        List<Integer> ngoIds = admin.getVerifiedNgos() != null ?
-                admin.getVerifiedNgos().stream().map(Ngo::getNgoId).toList() :
-                List.of();
-
         return AdminDto.builder()
                 .adminId(admin.getAdminId())
                 .userId(admin.getUser().getUserId())
@@ -93,7 +88,7 @@ public class AdminService {
                 .isActive(admin.getIsActive())
                 .assignedAt(admin.getAssignedAt())
                 .adminNotes(admin.getAdminNotes())
-                .verifiedNgoIds(ngoIds)
+                .verifiedNgoIds(List.of()) // Return empty list since verifiedBy relationship was removed
                 .build();
     }
 }

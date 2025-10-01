@@ -48,7 +48,7 @@ public class DonationDto {
 
     private LocalDateTime paymentCompletedAt;
 
-    private Integer fundUtilizationId;
+
 
     private LocalDateTime createdAt;
 

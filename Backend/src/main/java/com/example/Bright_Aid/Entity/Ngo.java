@@ -55,10 +55,7 @@ public class Ngo extends BaseEntity {
     @Column(name = "verified_at")
     private LocalDateTime verifiedAt;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "verified_by")
-    @ToString.Exclude
-    private Admin verifiedBy;
+
 
     @OneToMany(mappedBy = "ngo", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @ToString.Exclude
