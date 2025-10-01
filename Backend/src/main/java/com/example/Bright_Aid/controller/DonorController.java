@@ -40,4 +40,14 @@ public class DonorController {
     public List<DonorDto> getTopDonors(@PathVariable int limit) {
         return donorService.getTopDonors(limit);
     }
+
+    @GetMapping
+    public List<DonorDto> getAllDonors() {
+        return donorService.getAllDonors();
+    }
+
+    @GetMapping("/{donorId}")
+    public Optional<DonorDto> getDonorById(@PathVariable Integer donorId) {
+        return donorService.getDonorById(donorId);
+    }
 }

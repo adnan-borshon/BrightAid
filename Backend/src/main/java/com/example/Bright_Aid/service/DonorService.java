@@ -76,4 +76,13 @@ public class DonorService {
         return donorRepository.findTopDonors(PageRequest.of(0, limit))
                 .stream().map(this::toDTO).collect(Collectors.toList());
     }
+
+    public List<DonorDto> getAllDonors() {
+        return donorRepository.findAll()
+                .stream().map(this::toDTO).collect(Collectors.toList());
+    }
+
+    public Optional<DonorDto> getDonorById(Integer donorId) {
+        return donorRepository.findById(donorId).map(this::toDTO);
+    }
 }

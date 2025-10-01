@@ -2,23 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Search, Plus, AlertTriangle, Users as UsersIcon, Layers, Camera } from 'lucide-react';
 import Sidebar from './DashSidebar';
+import { useApp } from '../context/AppContext';
 import StudentEnrollmentModal from './Modal/StudentEnrollmentModal';
 
 
-const emptyData = {
-  school: null,
-  students: [],
-  totalCount: 0,
-  highRiskCount: 0,
-  scholarshipPendingCount: 0
-};
-
 export default function SchoolStudents() {
   const { schoolId } = useParams();
-  const [activeNav, setActiveNav] = useState('Students');
-  const [loading, setLoading] = useState(true);
-  const [data, setData] = useState(emptyData);
-  const [apiError, setApiError] = useState(false);
+  const { schoolData, studentsData, loading, refreshData, API_BASE_URL } = useApp();
   const [isModalOpen, setIsModalOpen] = useState(false);
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -30,94 +20,39 @@ export default function SchoolStudents() {
   const [currentPage, setCurrentPage] = useState(1);
   const studentsPerPage = 12;
   
-  const API_BASE_URL = 'http://localhost:8081/api';
+
 
   useEffect(() => {
     if (schoolId) {
-      fetchStudentsData();
+      refreshData(schoolId);
     }
   }, [schoolId]);
 
-  const fetchStudentsData = async () => {
-    setLoading(true);
-    try {
-      console.log('Fetching students for school ID:', schoolId);
-      
-      const [schoolRes, studentsRes, studentCountRes, projectsRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/schools/${schoolId}`).catch(() => null),
-        fetch(`${API_BASE_URL}/students`).catch(() => null),
-        fetch(`${API_BASE_URL}/students/count/school/${schoolId}`).catch(() => null),
-        fetch(`${API_BASE_URL}/school-projects`).catch(() => null),
-      ]);
+  // Process students data for display
+  const processedStudents = studentsData
+    .filter(student => (student.schoolId || student.school_id) == schoolId)
+    .map(student => ({
+      student_id: student.studentId || student.student_id,
+      student_name: student.studentName || student.student_name,
+      class_level: student.classLevel || student.class_level,
+      scholarship_amount: student.scholarshipAmount || student.scholarship_amount || 0,
+      total_amount: student.totalAmount || student.total_amount || 0,
+      risk_status: student.riskStatus || student.risk_status || 'Low Risk',
+      attendance_rate: student.attendanceRate || student.attendance_rate || 0,
+      performance_score: student.performanceScore || student.performance_score || 0,
+      gender: student.gender || 'Not specified',
+      status: student.status || 'active',
+      donor_username: student.donorUsername || student.donor_username || '',
+      profile_image: student.profileImage || student.profile_image
+    }));
 
-      const newData = { ...emptyData };
-      
-      // Get actual student count from backend
-      let actualStudentCount = 0;
-      if (studentCountRes && studentCountRes.ok) {
-        const countData = await studentCountRes.json();
-        actualStudentCount = countData.count || 0;
-      }
-      
-      // Get actual project count
-      let actualProjectCount = 0;
-      if (projectsRes && projectsRes.ok) {
-        const projectsData = await projectsRes.json();
-        const projects = Array.isArray(projectsData) ? projectsData : projectsData.data || [];
-        actualProjectCount = projects.filter(project => (project.schoolId || project.school_id) == schoolId).length;
-      }
-      
-      if (schoolRes && schoolRes.ok) {
-        const schoolData = await schoolRes.json();
-        newData.school = {
-          ...schoolData,
-          total_students: actualStudentCount,
-          active_projects: actualProjectCount,
-          total_received: schoolData.totalReceived || schoolData.total_received || 0
-        };
-      }
-      
-      if (studentsRes && studentsRes.ok) {
-        const studentsData = await studentsRes.json();
-        const students = Array.isArray(studentsData) ? studentsData : studentsData.data || [];
-        
-        const schoolStudents = students
-          .filter(student => (student.schoolId || student.school_id) == schoolId)
-          .map(student => ({
-            student_id: student.studentId || student.student_id,
-            student_name: student.studentName || student.student_name,
-            class_level: student.classLevel || student.class_level,
-            scholarship_amount: student.scholarshipAmount || student.scholarship_amount || 0,
-            total_amount: student.totalAmount || student.total_amount || 0,
-            risk_status: student.riskStatus || student.risk_status || 'Low Risk',
-            attendance_rate: student.attendanceRate || student.attendance_rate || 0,
-            performance_score: student.performanceScore || student.performance_score || 0,
-            gender: student.gender || 'Not specified',
-            status: student.status || 'active',
-            donor_username: student.donorUsername || student.donor_username || '',
-            profile_image: student.profileImage || student.profile_image
-          }));
-        
-        newData.students = schoolStudents;
-        newData.totalCount = actualStudentCount; // Use actual count from backend
-        newData.highRiskCount = schoolStudents.filter(s => 
-          s.risk_status && (s.risk_status.toLowerCase().includes('high') || s.risk_status.toLowerCase().includes('at risk'))
-        ).length;
-        newData.scholarshipPendingCount = schoolStudents.filter(s => 
-          s.status && s.status.toLowerCase() === 'unpaid'
-        ).length;
-      }
-      
-      setData(newData);
-      setApiError(false);
-    } catch (error) {
-      console.error('Error fetching students data:', error);
-      setApiError(true);
-      setData(emptyData);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const totalCount = processedStudents.length;
+  const highRiskCount = processedStudents.filter(s => 
+    s.risk_status && (s.risk_status.toLowerCase().includes('high') || s.risk_status.toLowerCase().includes('at risk'))
+  ).length;
+  const scholarshipPendingCount = processedStudents.filter(s => 
+    s.status && s.status.toLowerCase() === 'unpaid'
+  ).length;
 
   const handleEnrollStudent = async (formData) => {
     try {
@@ -170,7 +105,7 @@ export default function SchoolStudents() {
         }
 
         setIsModalOpen(false);
-        fetchStudentsData();
+        refreshData(schoolId);
       } else {
         const errorData = await response.text();
         console.error('Student creation failed:', errorData);
@@ -210,7 +145,7 @@ export default function SchoolStudents() {
   };
 
   // Filter students
-  const filteredStudents = data.students.filter(student => {
+  const filteredStudents = processedStudents.filter(student => {
     const matchesSearch = student.student_name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'All' || student.status?.toLowerCase() === statusFilter.toLowerCase();
     const matchesGender = genderFilter === 'All' || student.gender?.toLowerCase() === genderFilter.toLowerCase();
@@ -233,14 +168,8 @@ export default function SchoolStudents() {
   };
 
   const handleImageUpdate = (studentId, imagePath) => {
-    setData(prevData => ({
-      ...prevData,
-      students: prevData.students.map(student => 
-        student.student_id === studentId 
-          ? { ...student, profile_image: imagePath }
-          : student
-      )
-    }));
+    // Refresh data to get updated image
+    refreshData(schoolId);
   };
 
   if (loading) {
@@ -256,14 +185,9 @@ export default function SchoolStudents() {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      <Sidebar schoolData={data.school} />
+      <Sidebar />
 
       <div className="flex-1 overflow-auto">
-        {apiError && (
-          <div className="m-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
-            ⚠ Using demo data. Connect to backend at <code className="bg-yellow-100 px-2 py-1 rounded">{API_BASE_URL}</code>
-          </div>
-        )}
 
         <div className="p-6">
           {/* Header */}
@@ -281,7 +205,7 @@ export default function SchoolStudents() {
                 </div>
                 <div>
                   <div className="text-sm text-gray-500">Total Students</div>
-                  <div className="text-3xl font-bold text-gray-800">{data.totalCount}</div>
+                  <div className="text-3xl font-bold text-gray-800">{totalCount}</div>
                 </div>
               </div>
             </div>
@@ -293,7 +217,7 @@ export default function SchoolStudents() {
                 </div>
                 <div>
                   <div className="text-sm text-gray-500">High Risk Students</div>
-                  <div className="text-3xl font-bold text-gray-800">{data.highRiskCount}</div>
+                  <div className="text-3xl font-bold text-gray-800">{highRiskCount}</div>
                 </div>
               </div>
             </div>
@@ -305,7 +229,7 @@ export default function SchoolStudents() {
                 </div>
                 <div>
                   <div className="text-sm text-gray-500">Scholarship Pending</div>
-                  <div className="text-3xl font-bold text-gray-800">{data.scholarshipPendingCount}</div>
+                  <div className="text-3xl font-bold text-gray-800">{scholarshipPendingCount}</div>
                 </div>
               </div>
             </div>

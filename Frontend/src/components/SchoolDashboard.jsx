@@ -2,170 +2,70 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronRight, MoreVertical, Users, Briefcase, Plus, Download, Camera } from 'lucide-react';
 import Sidebar from './DashSidebar';
-import SchoolStudents from './SchoolStudents';
-import ImageUpload from './ImageUpload';
-import { API_BASE_URL } from '../config/api';
+import { useApp } from '../context/AppContext';
 import StudentEnrollmentModal from './Modal/StudentEnrollmentModal';
 import ProjectCreateModal from './Modal/ProjectCreateModal';
 import SchoolProjectCard from './SchoolProjectCard';
 
-// Empty data structure
-const emptyData = {
-  school: null,
-  students: [],
-  projects: [],
-  donations: [],
-  highRiskStudents: []
-};
-
 export default function SchoolDashboard() {
   const { schoolId } = useParams();
   const navigate = useNavigate();
-  const [activeNav, setActiveNav] = useState('Dashboard');
-  const [loading, setLoading] = useState(true);
-  const [data, setData] = useState(emptyData);
-  const [apiError, setApiError] = useState(false);
-  const [selectedStudent, setSelectedStudent] = useState(null);
-  const [selectedProject, setSelectedProject] = useState(null);
-const [isModalOpen, setIsModalOpen] = useState(false);
-const [ProjectModalOpen, setProjectModalOpen] = useState(false);
+  const { schoolData, studentsData, projectsData, loading, refreshData, API_BASE_URL } = useApp();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [ProjectModalOpen, setProjectModalOpen] = useState(false);
   useEffect(() => {
     if (schoolId) {
-      fetchDashboardData();
+      refreshData(schoolId);
     }
   }, [schoolId]);
 
-  const fetchDashboardData = async () => {
-    setLoading(true);
-    try {
-      console.log('Fetching data for school ID:', schoolId);
-      
-      // Fetch all data in parallel - using available endpoints
-      const [schoolRes, studentsRes, studentCountRes, projectsRes, donationsRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/schools/${schoolId}`).catch(() => null),
-        fetch(`${API_BASE_URL}/students`).catch(() => null),
-        fetch(`${API_BASE_URL}/students/count/school/${schoolId}`).catch(() => null),
-        fetch(`${API_BASE_URL}/school-projects`).catch(() => null),
-        fetch(`${API_BASE_URL}/donations`).catch(() => null),
-      ]);
+  // Process data from context
+  const processedStudents = studentsData
+    .filter(student => (student.schoolId || student.school_id) == schoolId)
+    .slice(0, 3)
+    .map(student => ({
+      student_id: student.studentId || student.student_id,
+      student_name: student.studentName || student.student_name,
+      class_level: student.classLevel || student.class_level,
+      scholarship_amount: student.scholarshipAmount || student.scholarship_amount || 0,
+      total_amount: student.totalAmount || student.total_amount || 0,
+      risk_status: student.riskStatus || student.risk_status || 'Low Risk',
+      attendance_rate: student.attendanceRate || student.attendance_rate || 0,
+      performance_score: student.performanceScore || student.performance_score || 0
+    }));
 
-      const newData = { ...emptyData };
-      
-      // Get actual student count from backend
-      let actualStudentCount = 0;
-      if (studentCountRes && studentCountRes.ok) {
-        const countData = await studentCountRes.json();
-        actualStudentCount = countData.count || 0;
-      }
-      
-      // Process projects data once
-      let projectsData = null;
-      let actualProjectCount = 0;
-      if (projectsRes && projectsRes.ok) {
-        projectsData = await projectsRes.json();
-        const projects = Array.isArray(projectsData) ? projectsData : projectsData.data || [];
-        actualProjectCount = projects.filter(project => (project.schoolId || project.school_id) == schoolId).length;
-      }
-      
-      if (schoolRes && schoolRes.ok) {
-        const schoolData = await schoolRes.json();
-        newData.school = {
-          ...schoolData,
-          total_students: actualStudentCount,
-          active_projects: actualProjectCount,
-          total_received: schoolData.totalReceived || schoolData.total_received || 0
-        };
-      }
-      
-      if (studentsRes && studentsRes.ok) {
-        const studentsData = await studentsRes.json();
-        const students = Array.isArray(studentsData) ? studentsData : studentsData.data || [];
-        
-        // Filter students by school ID and map data
-        const schoolStudents = students.filter(student => 
-          (student.schoolId || student.school_id) == schoolId
-        );
-        
-        newData.students = schoolStudents.slice(0, 3).map(student => ({
-          student_id: student.studentId || student.student_id,
-          student_name: student.studentName || student.student_name,
-          class_level: student.classLevel || student.class_level,
-          scholarship_amount: student.scholarshipAmount || student.scholarship_amount || 0,
-          total_amount: student.totalAmount || student.total_amount || 0,
-          risk_status: student.riskStatus || student.risk_status || 'Low Risk',
-          attendance_rate: student.attendanceRate || student.attendance_rate || 0,
-          performance_score: student.performanceScore || student.performance_score || 0
-        }));
-        
-        // Filter high risk students for this school
-        newData.highRiskStudents = schoolStudents.filter(student => {
-          const riskStatus = student.riskStatus || student.risk_status;
-          return riskStatus && (riskStatus.toLowerCase().includes('high') || riskStatus.toLowerCase().includes('at risk'));
-        }).slice(0, 4).map(student => ({
-          student_id: student.studentId || student.student_id,
-          student_name: student.studentName || student.student_name,
-          class_level: student.classLevel || student.class_level,
-          attendance_rate: student.attendanceRate || student.attendance_rate || 0,
-          performance_score: student.performanceScore || student.performance_score || 0,
-          risk_score: student.riskScore || student.risk_score || 0
-        }));
-      }
-      
-      if (projectsData) {
-        const projects = Array.isArray(projectsData) ? projectsData : projectsData.data || [];
-        
-        // Filter projects by school ID
-        const schoolProjects = projects.filter(project => 
-          (project.schoolId || project.school_id) == schoolId
-        );
-        
-        newData.projects = schoolProjects.slice(0, 3).map(project => ({
-          project_id: project.projectId || project.project_id,
-          project_name: project.projectTitle || project.project_title || 'Untitled Project',
-          project_type: project.projectTypeName || project.projectType?.typeName || project.project_type || 'General',
-          scholarship_amount: project.scholarshipAmount || project.scholarship_amount || 0,
-          total_amount: project.totalAmount || project.total_amount || 0,
-          risk_status: project.riskStatus || project.risk_status || 'Low Risk',
-          completion_rate: project.completionRate || project.completion_rate || 0,
-          performance_score: project.performanceScore || project.performance_score || 0,
-          category: project.category || 'General',
-          status: project.status || 'active',
-          donor_username: project.donorUsername || project.donor_username || '@anisha3208'
-        }));
-      }
-      
-      if (donationsRes && donationsRes.ok) {
-        const donationsData = await donationsRes.json();
-        const donations = Array.isArray(donationsData) ? donationsData : donationsData.data || [];
-        
-        // Filter donations by school ID (assuming donations have school reference)
-        const schoolDonations = donations.filter(donation => 
-          (donation.schoolId || donation.school_id) == schoolId ||
-          (donation.recipientId || donation.recipient_id) == schoolId
-        );
-        
-        newData.donations = schoolDonations.slice(0, 7).map(donation => ({
-          donation_id: donation.donationId || donation.donation_id,
-          donor_name: donation.donorName || donation.donor_name || 'Anonymous',
-          amount: donation.amount || 0,
-          donated_at: donation.donatedAt || donation.donated_at || new Date().toLocaleDateString(),
-          payment_status: donation.paymentStatus || donation.payment_status || 'pending',
-          transaction_reference: donation.transactionReference || donation.transaction_reference || 'N/A'
-        }));
-      }
+  const processedProjects = projectsData
+    .filter(project => (project.schoolId || project.school_id) == schoolId)
+    .slice(0, 3)
+    .map(project => ({
+      project_id: project.projectId || project.project_id,
+      project_name: project.projectTitle || project.project_title || 'Untitled Project',
+      project_type: project.projectTypeName || project.projectType?.typeName || project.project_type || 'General',
+      scholarship_amount: project.scholarshipAmount || project.scholarship_amount || 0,
+      total_amount: project.totalAmount || project.total_amount || 0,
+      risk_status: project.riskStatus || project.risk_status || 'Low Risk',
+      completion_rate: project.completionRate || project.completion_rate || 0,
+      performance_score: project.performanceScore || project.performance_score || 0,
+      category: project.category || 'General',
+      status: project.status || 'active',
+      donor_username: project.donorUsername || project.donor_username || '@anisha3208'
+    }));
 
-      // School data already has the correct project count
-      
-      setData(newData);
-      setApiError(false);
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-      setApiError(true);
-      setData(emptyData);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const highRiskStudents = studentsData
+    .filter(student => {
+      const riskStatus = student.riskStatus || student.risk_status;
+      return (student.schoolId || student.school_id) == schoolId && 
+             riskStatus && (riskStatus.toLowerCase().includes('high') || riskStatus.toLowerCase().includes('at risk'));
+    })
+    .slice(0, 4)
+    .map(student => ({
+      student_id: student.studentId || student.student_id,
+      student_name: student.studentName || student.student_name,
+      class_level: student.classLevel || student.class_level,
+      attendance_rate: student.attendanceRate || student.attendance_rate || 0,
+      performance_score: student.performanceScore || student.performance_score || 0,
+      risk_score: student.riskScore || student.risk_score || 0
+    }));
 
   const handleEnrollStudent = async (formData) => {
     try {
@@ -218,7 +118,7 @@ const [ProjectModalOpen, setProjectModalOpen] = useState(false);
         }
 
         setIsModalOpen(false);
-        fetchDashboardData();
+        refreshData(schoolId);
       } else {
         const errorData = await response.text();
         console.error('Student creation failed:', errorData);
@@ -267,16 +167,11 @@ const [ProjectModalOpen, setProjectModalOpen] = useState(false);
 
   const handleStudentClick = (studentId) => {
     console.log('Viewing student details for ID:', studentId);
-    setSelectedStudent(studentId);
-    // You can navigate to student detail page or show modal
-    // navigate(`/student/${studentId}`);
   };
 
   const handleProjectClick = (projectId) => {
     console.log('Viewing project details for ID:', projectId);
-    setSelectedProject(projectId);
-    // You can navigate to project detail page or show modal
-    // navigate(`/project/${projectId}`);
+    navigate(`/project-details/${projectId}`);
   };
 
   const handleProjectCreation = async (formData) => {
@@ -315,7 +210,7 @@ const [ProjectModalOpen, setProjectModalOpen] = useState(false);
         }
         
         setProjectModalOpen(false);
-        fetchDashboardData();
+        refreshData(schoolId);
       } else {
         const errorData = await response.text();
         console.error('Project creation failed:', errorData);
@@ -351,31 +246,25 @@ const [ProjectModalOpen, setProjectModalOpen] = useState(false);
               onClose={() => setProjectModalOpen(false)}
               onSubmit={handleProjectCreation}
             />
-      <Sidebar schoolData={data.school} />
+      <Sidebar schoolData={schoolData} />
 
       {/* Main Content */}
       <div className="flex-1 overflow-auto">
-            {apiError && (
-              <div className="m-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
-                ⚠ Using demo data. Connect to backend at <code className="bg-yellow-100 px-2 py-1 rounded">{API_BASE_URL}</code>
-              </div>
-            )}
 
         {/* Hero Banner */}
         <div className="bg-gradient-to-r from-green-50 to-green-100 m-6 rounded-2xl p-8 flex items-center justify-between relative overflow-hidden">
           <div className="flex-1 z-10">
             <div className="text-lg text-gray-600 mb-1">Welcome back,</div>
             <div className="text-3xl font-bold text-gray-800 mb-2 flex items-center gap-2">
-              {data.school?.schoolName || data.school?.school_name || `School ${schoolId}`}
-              {data.school && <span className="text-blue-500">✓</span>}
-          
+              {schoolData?.schoolName || schoolData?.school_name || `School ${schoolId}`}
+              {schoolData && <span className="text-blue-500">✓</span>}
             </div>
             <div className="text-sm text-gray-600 mb-2">
-              {data.school ? 'Your dedication is transforming education and reducing dropouts in your community' : 'Welcome to your school dashboard'}
+              {schoolData ? 'Your dedication is transforming education and reducing dropouts in your community' : 'Welcome to your school dashboard'}
             </div>
             <div className="text-xs text-gray-500 flex items-center gap-1">
               <span>📍</span>
-              {data.school?.address || 'Address not available'}
+              {schoolData?.address || 'Address not available'}
             </div>
           </div>
           <div className="w-96 h-48 rounded-xl overflow-hidden shadow-lg relative group">
@@ -402,7 +291,7 @@ const [ProjectModalOpen, setProjectModalOpen] = useState(false);
                         .then(response => response.json())
                         .then(data => {
                           console.log('User image updated:', data.imagePath);
-                          fetchDashboardData();
+                          refreshData(schoolId);
                         })
                         .catch(error => console.error('Error uploading image:', error));
                       }
@@ -435,9 +324,9 @@ const [ProjectModalOpen, setProjectModalOpen] = useState(false);
               </div>
               <div className="text-sm text-gray-500 mb-1">Funds Received</div>
               <div className="text-3xl font-bold text-gray-800 mb-2">
-                {data.school?.total_received ? formatCurrency(data.school.total_received) : '$0.00'}
+                {schoolData?.total_received ? formatCurrency(schoolData.total_received) : '$0.00'}
               </div>
-              <div className="text-xs text-green-600">+ {data.school?.active_projects || 0} active projects</div>
+              <div className="text-xs text-green-600">+ {processedProjects.length} active projects</div>
               <button className="secondary !border-0 hover:!bg-gray-50 hover:!text-[#0E792E] mt-4 text-sm text-green-600 hover:text-green-700 font-medium flex items-center gap-1">
                 View Account <ChevronRight className="w-4 h-4" />
               </button>
@@ -451,8 +340,8 @@ const [ProjectModalOpen, setProjectModalOpen] = useState(false);
                 <MoreVertical className="w-4 h-4 text-gray-400" />
               </div>
               <div className="text-sm text-gray-500 mb-1">Total Students</div>
-              <div className="text-3xl font-bold text-gray-800 mb-2">{data.school?.total_students || 0}</div>
-              <div className="text-xs text-red-600">+ {data.highRiskStudents?.length || 0} High Risk Students</div>
+              <div className="text-3xl font-bold text-gray-800 mb-2">{studentsData.filter(s => (s.schoolId || s.school_id) == schoolId).length}</div>
+              <div className="text-xs text-red-600">+ {highRiskStudents.length} High Risk Students</div>
               <button className="secondary !border-0 hover:!bg-gray-50 hover:!text-[#0E792E] mt-4 font-medium flex items-center gap-1">
                 View students <ChevronRight className="w-4 h-4" />
               </button>
@@ -466,7 +355,7 @@ const [ProjectModalOpen, setProjectModalOpen] = useState(false);
                 <MoreVertical className="w-4 h-4 text-gray-400" />
               </div>
               <div className="text-sm text-gray-500 mb-1">Active Projects</div>
-              <div className="text-3xl font-bold text-gray-800 mb-2">{data.school?.active_projects || 0}</div>
+              <div className="text-3xl font-bold text-gray-800 mb-2">{processedProjects.length}</div>
               <div className="text-xs text-red-600">+ 2 Report Pending</div>
               <button className="secondary !border-0 hover:!bg-gray-50 hover:!text-[#0E792E] mt-4 text-sm  font-medium flex items-center gap-1">
                 View projects <ChevronRight className="w-4 h-4" />
@@ -499,7 +388,7 @@ const [ProjectModalOpen, setProjectModalOpen] = useState(false);
               <div className="text-xs text-gray-500 text-center">Add student details to ensure accurate records and streamline every learner</div>
             </div>
 
-            {data.students.length > 0 ? data.students.slice(0, 3).map((student) => (
+            {processedStudents.length > 0 ? processedStudents.map((student) => (
               <div key={student.student_id} className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleStudentClick(student.student_id)}>
                 <div className="relative h-40  ">
                   <span className="absolute top-3 right-3 bg-white px-2 py-1 rounded-full text-xs font-medium text-orange-600">
@@ -556,13 +445,12 @@ const [ProjectModalOpen, setProjectModalOpen] = useState(false);
               <div className="text-xs text-gray-500 text-center">Add request details to ensure accurate records and support for every learner</div>
             </div>
 
-            {data.projects.length > 0 ? data.projects.slice(0, 3).map((project) => (
+            {processedProjects.length > 0 ? processedProjects.map((project) => (
               <SchoolProjectCard
                 key={project.project_id}
                 project={project}
                 onViewDetails={handleProjectClick}
-                onRecordExpense={(project) => console.log('Record expense for:', project.project_name)}
-                onPostUpdate={(project) => console.log('Post update for:', project.project_name)}
+                showAllButtons={false}
               />
             )) : (
               <div className="col-span-3 text-center py-12 text-gray-500">
@@ -605,44 +493,14 @@ const [ProjectModalOpen, setProjectModalOpen] = useState(false);
                   </tr>
                 </thead>
                 <tbody>
-                  {data.donations.length > 0 ? data.donations.map((donation) => (
-                    <tr key={donation.donation_id} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="py-3">
-                        <div className="flex items-center gap-2">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
-                            donation.donor_name?.toLowerCase().includes('spotify') ? 'bg-green-100 text-green-700' :
-                            donation.donor_name?.toLowerCase().includes('stripe') ? 'bg-purple-100 text-purple-700' :
-                            donation.donor_name?.toLowerCase().includes('figma') ? 'bg-gray-800 text-white' :
-                            'bg-gray-100 text-gray-700'
-                          }`}>
-                            {getDonorLogo(donation.donor_name)}
-                          </div>
-                          <span className="text-sm text-gray-800 truncate">{donation.donor_name || 'Anonymous'}</span>
-                        </div>
-                      </td>
-                      <td className="text-sm text-gray-600 truncate">{donation.transaction_reference || 'N/A'}</td>
-                      <td className={`text-sm font-medium ${donation.amount >= 0 ? 'text-green-600' : 'text-gray-800'}`}>
-                        {donation.amount >= 0 ? '+' : ''}{formatCurrency(donation.amount)}
-                      </td>
-                      <td className="text-sm text-gray-600">
-                        {new Date(donation.donated_at).toLocaleDateString() || donation.donated_at}
-                      </td>
-                      <td>
-                        <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(donation.payment_status)}`}>
-                          {donation.payment_status?.toUpperCase() || 'PENDING'}
-                        </span>
-                      </td>
-                    </tr>
-                  )) : (
-                    <tr>
-                      <td colSpan="5" className="py-8 text-center text-gray-500">
-                        <div className="flex flex-col items-center gap-2">
-                          <span className="text-2xl">💰</span>
-                          <span className="text-sm">No donations yet</span>
-                        </div>
-                      </td>
-                    </tr>
-                  )}
+                  <tr>
+                    <td colSpan="5" className="py-8 text-center text-gray-500">
+                      <div className="flex flex-col items-center gap-2">
+                        <span className="text-2xl">💰</span>
+                        <span className="text-sm">No donations yet</span>
+                      </div>
+                    </td>
+                  </tr>
                 </tbody>
               </table>
             </div>
@@ -661,7 +519,7 @@ const [ProjectModalOpen, setProjectModalOpen] = useState(false);
             <h2 className="text-lg font-bold text-gray-800 mb-4">High Risk Students</h2>
             
             <div className="space-y-3">
-              {data.highRiskStudents.length > 0 ? data.highRiskStudents.map((student) => (
+              {highRiskStudents.length > 0 ? highRiskStudents.map((student) => (
                 <div key={student.student_id} className="border border-red-200 rounded-lg p-4 bg-red-50 hover:bg-red-100 transition-colors cursor-pointer" onClick={() => handleStudentClick(student.student_id)}>
                   <div className="text-sm font-semibold text-gray-800 mb-3 flex justify-between items-center">
                     <span>{student.student_name}, {formatClassLevel(student.class_level)}</span>

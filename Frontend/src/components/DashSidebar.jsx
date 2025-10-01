@@ -1,15 +1,17 @@
 import React from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { Home, Users, Briefcase, FileText, CreditCard, HelpCircle, Settings, ChevronRight, Search } from 'lucide-react';
+import { useApp } from '../context/AppContext';
 
-export default function DashSidebar({ schoolData }) {
+export default function DashSidebar() {
+  const { schoolData, studentsData, projectsData } = useApp();
   const navigate = useNavigate();
   const { schoolId } = useParams();
   const location = useLocation();
   const navItems = [
     { name: 'Dashboard', icon: Home, badge: null, path: `/dashboard/${schoolId}` },
-    { name: 'Students', icon: Users, badge: schoolData?.total_students?.toString() || '0', path: `/students/${schoolId}` },
-    { name: 'Projects', icon: Briefcase, badge: schoolData?.active_projects?.toString() || '0', path: `/projects/${schoolId}` },
+    { name: 'Students', icon: Users, badge: studentsData?.length?.toString() || '0', path: `/students/${schoolId}` },
+    { name: 'Projects', icon: Briefcase, badge: projectsData?.length?.toString() || '0', path: `/projects/${schoolId}` },
     { name: 'Reporting', icon: FileText, badge: 'Pending', badgeColor: 'text-red-600', path: `/reporting/${schoolId}` },
     { name: 'Account', icon: CreditCard, badge: null, path: `/account/${schoolId}` },
     { name: 'Support', icon: HelpCircle, badge: null, path: `/support/${schoolId}` }, 

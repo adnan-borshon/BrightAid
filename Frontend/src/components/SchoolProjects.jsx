@@ -1,127 +1,54 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { Search, Plus, AlertTriangle, Users as UsersIcon, Layers } from 'lucide-react';
-
+import { useParams, useNavigate } from 'react-router-dom';
+import { Search, AlertTriangle, Users as UsersIcon, Layers } from 'lucide-react';
 import Sidebar from './DashSidebar';
+import { useApp } from '../context/AppContext';
 import SchoolProjectCard from './SchoolProjectCard';
-const emptyData = {
-  school: null,
-  projects: [],
-  totalCount: 0,
-  highRiskCount: 0,
-  scholarshipPendingCount: 0
-};
 
 export default function SchoolProjects() {
   const { schoolId } = useParams();
-  const [activeNav, setActiveNav] = useState('Projects');
-  const [loading, setLoading] = useState(true);
-  const [data, setData] = useState(emptyData);
-  const [apiError, setApiError] = useState(false);
+  const navigate = useNavigate();
+  const { schoolData, projectsData, loading, refreshData } = useApp();
   
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
-  const [genderFilter, setGenderFilter] = useState('All');
   const [riskFilter, setRiskFilter] = useState('All');
   
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const projectsPerPage = 12;
-  
-  const API_BASE_URL = 'http://localhost:8081/api';
-
-  // Enhanced backend fetching with better error handling
-  const fetchWithFallback = async (url) => {
-    try {
-      const response = await fetch(url);
-      if (response.ok) {
-        return await response.json();
-      }
-      return null;
-    } catch (error) {
-      console.error(`Failed to fetch from ${url}:`, error);
-      return null;
-    }
-  };
 
   useEffect(() => {
     if (schoolId) {
-      fetchProjectsData();
+      refreshData(schoolId);
     }
   }, [schoolId]);
 
-  const fetchProjectsData = async () => {
-    setLoading(true);
-    try {
-      console.log('Fetching projects for school ID:', schoolId);
-      
-      // Use enhanced fetching with better error handling
-      const [schoolData, projectsData, studentsData, studentCountData] = await Promise.all([
-        fetchWithFallback(`${API_BASE_URL}/schools/${schoolId}`),
-        fetchWithFallback(`${API_BASE_URL}/school-projects`),
-        fetchWithFallback(`${API_BASE_URL}/students`),
-        fetchWithFallback(`${API_BASE_URL}/students/count/school/${schoolId}`),
-      ]);
+  // Process projects data for display
+  const processedProjects = projectsData
+    .filter(project => (project.schoolId || project.school_id) == schoolId)
+    .map(project => ({
+      project_id: project.projectId || project.project_id,
+      project_name: project.projectTitle || project.project_name || 'Untitled Project',
+      project_type: project.projectTypeName || project.projectType?.typeName || project.project_type || 'General',
+      scholarship_amount: project.scholarshipAmount || project.scholarship_amount || 0,
+      total_amount: project.totalAmount || project.total_amount || 0,
+      risk_status: project.riskStatus || project.risk_status || 'Low Risk',
+      completion_rate: project.completionRate || project.completion_rate || 0,
+      performance_score: project.performanceScore || project.performance_score || 0,
+      category: project.category || 'General',
+      status: project.status || 'active',
+      donor_username: project.donorUsername || project.donor_username || '@anisha3208'
+    }));
 
-      const newData = { ...emptyData };
-      
-      // Get actual student count from backend
-      const actualStudentCount = studentCountData?.count || 0;
-      
-      if (schoolData) {
-        newData.school = {
-          ...schoolData,
-          total_students: actualStudentCount,
-          active_projects: 0, // Will be updated below
-          total_received: schoolData.totalReceived || schoolData.total_received || 0
-        };
-      }
-      
-      if (projectsData) {
-        const projects = Array.isArray(projectsData) ? projectsData : projectsData.data || [];
-        
-        const schoolProjects = projects
-          .filter(project => (project.schoolId || project.school_id) == schoolId)
-          .map(project => ({
-            project_id: project.projectId || project.project_id,
-            project_name: project.projectTitle || project.project_name || 'Untitled Project',
-            project_type: project.projectTypeName || project.projectType?.typeName || project.project_type || 'General',
-            scholarship_amount: project.scholarshipAmount || project.scholarship_amount || 0,
-            total_amount: project.totalAmount || project.total_amount || 0,
-            risk_status: project.riskStatus || project.risk_status || 'Low Risk',
-            completion_rate: project.completionRate || project.completion_rate || Math.floor(Math.random() * 100),
-            performance_score: project.performanceScore || project.performance_score || Math.floor(Math.random() * 100),
-            category: project.category || 'General',
-            status: project.status || 'active',
-            donor_username: project.donorUsername || project.donor_username || '@anisha3208'
-          }));
-        
-        newData.projects = schoolProjects;
-        newData.totalCount = schoolProjects.length;
-        newData.highRiskCount = schoolProjects.filter(p => 
-          p.risk_status && (p.risk_status.toLowerCase().includes('high') || p.risk_status.toLowerCase().includes('at risk'))
-        ).length;
-        newData.scholarshipPendingCount = schoolProjects.filter(p => 
-          p.status && p.status.toLowerCase() === 'unpaid'
-        ).length;
-        
-        // Update school data with actual project count
-        if (newData.school) {
-          newData.school.active_projects = schoolProjects.length;
-        }
-      }
-      
-      setData(newData);
-      setApiError(projectsData === null || schoolData === null);
-    } catch (error) {
-      console.error('Error fetching projects data:', error);
-      setApiError(true);
-      setData(emptyData);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const totalCount = processedProjects.length;
+  const highRiskCount = processedProjects.filter(p => 
+    p.risk_status && (p.risk_status.toLowerCase().includes('high') || p.risk_status.toLowerCase().includes('at risk'))
+  ).length;
+  const scholarshipPendingCount = processedProjects.filter(p => 
+    p.status && p.status.toLowerCase() === 'unpaid'
+  ).length;
 
   const formatCurrency = (amount) => {
     return `$${Math.abs(amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -145,15 +72,14 @@ export default function SchoolProjects() {
   };
 
   // Filter projects
-  const filteredProjects = data.projects.filter(project => {
+  const filteredProjects = processedProjects.filter(project => {
     const matchesSearch = project.project_name?.toLowerCase().includes(searchQuery.toLowerCase()) || false;
     const matchesStatus = statusFilter === 'All' || project.status?.toLowerCase() === statusFilter.toLowerCase();
-    const matchesCategory = genderFilter === 'All' || project.category?.toLowerCase() === genderFilter.toLowerCase();
     const matchesRisk = riskFilter === 'All' || 
       (riskFilter === 'High Risk' && (project.risk_status?.toLowerCase().includes('high') || project.risk_status?.toLowerCase().includes('at risk'))) ||
       (riskFilter === 'Low Risk' && project.risk_status?.toLowerCase().includes('low'));
     
-    return matchesSearch && matchesStatus && matchesCategory && matchesRisk;
+    return matchesSearch && matchesStatus && matchesRisk;
   });
 
   // Pagination
@@ -164,7 +90,7 @@ export default function SchoolProjects() {
 
   const handleProjectClick = (projectId) => {
     console.log('Viewing project details for ID:', projectId);
-    // Navigate to project detail page
+    navigate(`/project-details/${projectId}`);
   };
 
   if (loading) {
@@ -181,13 +107,8 @@ export default function SchoolProjects() {
   return (
     <div className="flex h-screen bg-gray-50">
       {/* <Sidebar activeNav={activeNav} setActiveNav={setActiveNav} schoolData={data.school} /> */}
- <Sidebar schoolData={data.school} />
+ <Sidebar />
       <div className="flex-1 overflow-auto">
-        {apiError && (
-          <div className="m-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
-            ⚠ Using demo data. Connect to backend at <code className="bg-yellow-100 px-2 py-1 rounded">{API_BASE_URL}</code>
-          </div>
-        )}
 
         <div className="p-6">
           {/* Header */}
@@ -205,7 +126,7 @@ export default function SchoolProjects() {
                 </div>
                 <div>
                   <div className="text-sm text-gray-500">Total Projects</div>
-                  <div className="text-3xl font-bold text-gray-800">{data.totalCount}</div>
+                  <div className="text-3xl font-bold text-gray-800">{totalCount}</div>
                 </div>
               </div>
             </div>
@@ -217,7 +138,7 @@ export default function SchoolProjects() {
                 </div>
                 <div>
                   <div className="text-sm text-gray-500">High Risk Projects</div>
-                  <div className="text-3xl font-bold text-gray-800">{data.highRiskCount}</div>
+                  <div className="text-3xl font-bold text-gray-800">{highRiskCount}</div>
                 </div>
               </div>
             </div>
@@ -229,7 +150,7 @@ export default function SchoolProjects() {
                 </div>
                 <div>
                   <div className="text-sm text-gray-500">Pending Scholarships</div>
-                  <div className="text-3xl font-bold text-gray-800">{data.scholarshipPendingCount}</div>
+                  <div className="text-3xl font-bold text-gray-800">{scholarshipPendingCount}</div>
                 </div>
               </div>
             </div>

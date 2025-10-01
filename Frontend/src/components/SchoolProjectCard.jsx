@@ -25,7 +25,7 @@ const getRiskColor = (risk) => {
   return "text-green-600";
 };
 
-export default function SchoolProjectCard({ project, onViewDetails, onRecordExpense, onPostUpdate }) {
+export default function SchoolProjectCard({ project, onViewDetails, onRecordExpense, onPostUpdate, showAllButtons = true }) {
   const [openUpdate, setOpenUpdate] = useState(false);
   const [openExpense, setOpenExpense] = useState(false);
   const [projectData, setProjectData] = useState(project);
@@ -173,30 +173,41 @@ export default function SchoolProjectCard({ project, onViewDetails, onRecordExpe
         </div>
 
         {/* Action Buttons */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+        {showAllButtons ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+            <Button
+              onClick={() => onViewDetails(projectData.project_id)}
+              variant="secondary"
+              className="flex items-center justify-center gap-2"
+            >
+              <Eye className="w-4 h-4" />
+              View Details
+            </Button>
+            <Button
+              onClick={() => setOpenExpense(true)}
+              className="flex items-center justify-center gap-2"
+            >
+              <Receipt className="w-4 h-4" />
+              Record Expense
+            </Button>
+            <Button
+              onClick={() => setOpenUpdate(true)}
+              className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700"
+            >
+              <Send className="w-4 h-4" />
+              Post Update
+            </Button>
+          </div>
+        ) : (
           <Button
             onClick={() => onViewDetails(projectData.project_id)}
             variant="secondary"
-            className="flex items-center justify-center gap-2"
+            className="w-full flex items-center justify-center gap-2"
           >
             <Eye className="w-4 h-4" />
             View Details
           </Button>
-          <Button
-            onClick={() => setOpenExpense(true)}
-            className="flex items-center justify-center gap-2"
-          >
-            <Receipt className="w-4 h-4" />
-            Record Expense
-          </Button>
-          <Button
-            onClick={() => setOpenUpdate(true)}
-            className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700"
-          >
-            <Send className="w-4 h-4" />
-            Post Update
-          </Button>
-        </div>
+        )}
       </div>
     </div>
   );

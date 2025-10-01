@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import './index.css'
 import App from './App.jsx'
+import { AppProvider } from './context/AppContext.jsx'
 import SignUp from './components/Authentication/Signup/SignUp.jsx'
 import SignUp1 from './components/Authentication/SignUp1.jsx'
 import SchoolProfilePage from './components/Authentication/Signup/SchoolProfilePage.jsx'
@@ -11,8 +12,11 @@ import ApprovalPage from './components/Authentication/Signup/ApprovalPage.jsx'
 import SchoolDashboard from './components/SchoolDashboard'
 import SchoolStudents from './components/SchoolStudents'
 import SchoolProjects from './components/SchoolProjects'
+import ProjectDetails from './components/ProjectDetails'
 import DonorDashboard from './components/DonorDashboard'
 import NgoDashboard from './components/NgoDashboard'
+import DonorProfile from './components/DonorProfile'
+import NgoProfile from './components/NgoProfile'
 import Login from './components/Authentication/Login'
 
 
@@ -59,6 +63,10 @@ const router = createBrowserRouter([
     element: <SchoolProjects /> 
   },
   { 
+    path: "/project-details/:projectId", 
+    element: <ProjectDetails /> 
+  },
+  { 
     path: "/reporting/:schoolId", 
     element: <div className="p-8 text-center"><h1 className="text-2xl font-bold">Reporting</h1><p className="text-gray-600 mt-2">Coming Soon...</p></div> 
   },
@@ -88,15 +96,17 @@ const router = createBrowserRouter([
   },
   { 
     path: "/donor-profile", 
-    element: <div className="p-8 text-center"><h1 className="text-2xl font-bold">Complete Donor Profile</h1><p className="text-gray-600 mt-2">Coming Soon...</p></div> 
+    element: <DonorProfile /> 
   },
   { 
     path: "/ngo-profile", 
-    element: <div className="p-8 text-center"><h1 className="text-2xl font-bold">Complete NGO Profile</h1><p className="text-gray-600 mt-2">Coming Soon...</p></div> 
+    element: <NgoProfile /> 
   },
 ])
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <RouterProvider router={router} />
+    <AppProvider>
+      <RouterProvider router={router} />
+    </AppProvider>
   </StrictMode>,
 );
