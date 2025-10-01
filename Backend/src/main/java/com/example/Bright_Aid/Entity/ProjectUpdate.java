@@ -31,12 +31,6 @@ public class ProjectUpdate extends BaseEntity {
     @ToString.Exclude
     private SchoolProject project;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "updated_by", nullable = false)
-    @NotNull
-    @ToString.Exclude
-    private User updatedBy;
-
     @Column(name = "update_title")
     private String updateTitle;
 
@@ -53,6 +47,4 @@ public class ProjectUpdate extends BaseEntity {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "images_urls", columnDefinition = "JSON")
     private List<String> imagesUrls;
-
-
 }
