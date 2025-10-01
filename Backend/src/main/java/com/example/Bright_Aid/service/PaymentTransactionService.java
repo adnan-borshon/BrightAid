@@ -2,9 +2,11 @@ package com.example.Bright_Aid.service;
 
 import com.example.Bright_Aid.Entity.Donation;
 import com.example.Bright_Aid.Entity.Donor;
+import com.example.Bright_Aid.Entity.DonorGamification;
 import com.example.Bright_Aid.Entity.PaymentTransaction;
 import com.example.Bright_Aid.Dto.PaymentTransactionDto;
 import com.example.Bright_Aid.repository.DonationRepository;
+import com.example.Bright_Aid.repository.DonorGamificationRepository;
 import com.example.Bright_Aid.repository.DonorRepository;
 import com.example.Bright_Aid.repository.PaymentTransactionRepository;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +31,7 @@ public class PaymentTransactionService {
     private final PaymentTransactionRepository paymentTransactionRepository;
     private final DonorRepository donorRepository;
     private final DonationRepository donationRepository;
+    private final DonorGamificationRepository gamificationRepository;
     
     @Value("${sslcommerz.store.id}")
     private String storeId;
@@ -259,6 +262,8 @@ public class PaymentTransactionService {
                 case "VALIDATED":
                     transaction.setStatus(PaymentTransaction.TransactionStatus.SUCCESS);
                     transaction.setCompletedAt(LocalDateTime.now());
+                    // Award points for successful payment
+                    awardPointsForDonation(transaction.getDonor(), transaction.getAmount());
                     break;
                 case "FAILED":
                     transaction.setStatus(PaymentTransaction.TransactionStatus.FAILED);
@@ -278,5 +283,60 @@ public class PaymentTransactionService {
             
             paymentTransactionRepository.save(transaction);
         }
+    }
+    
+    // Automatic Point System: 1 BDT = 5 Points (৳100 = 500 points)
+    private void awardPointsForDonation(Donor donor, BigDecimal amount) {
+        try {
+            // Convert to int first, then multiply by 5 for exact calculation
+            int pointsToAward = amount.intValue() * 5;
+            
+            DonorGamification gamification = gamificationRepository.findByDonor(donor)
+                    .orElse(DonorGamification.builder()
+                            .donor(donor)
+                            .totalPoints(0)
+                            .currentLevel("Bronze")
+                            .rankingPosition(999)
+                            .lastUpdated(LocalDateTime.now())
+                            .build());
+            
+            // Add new points
+            gamification.setTotalPoints(gamification.getTotalPoints() + pointsToAward);
+            
+            // Update level based on total points
+            gamification.setCurrentLevel(calculateLevel(gamification.getTotalPoints()));
+            
+            // Update badges
+            gamification.setBadgesEarned(calculateBadges(gamification.getTotalPoints()));
+            
+            gamification.setLastUpdated(LocalDateTime.now());
+            
+            gamificationRepository.save(gamification);
+            
+        } catch (Exception e) {
+            // Log error but don't fail payment
+            System.err.println("Error awarding points: " + e.getMessage());
+        }
+    }
+    
+    private String calculateLevel(int totalPoints) {
+        if (totalPoints >= 50000) return "Diamond";      // ৳10,000+
+        if (totalPoints >= 25000) return "Platinum";     // ৳5,000+
+        if (totalPoints >= 10000) return "Gold";         // ৳2,000+
+        if (totalPoints >= 2500) return "Silver";        // ৳500+
+        return "Bronze";                                  // < ৳500
+    }
+    
+    private List<String> calculateBadges(int totalPoints) {
+        List<String> badges = new java.util.ArrayList<>();
+        
+        if (totalPoints >= 500) badges.add("First Donor");        // ৳100
+        if (totalPoints >= 2500) badges.add("Generous Heart");    // ৳500
+        if (totalPoints >= 5000) badges.add("Education Champion"); // ৳1,000
+        if (totalPoints >= 10000) badges.add("School Builder");   // ৳2,000
+        if (totalPoints >= 25000) badges.add("Community Hero");   // ৳5,000
+        if (totalPoints >= 50000) badges.add("BrightAid Legend"); // ৳10,000
+        
+        return badges;
     }
 }

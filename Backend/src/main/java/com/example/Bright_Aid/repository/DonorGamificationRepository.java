@@ -30,4 +30,8 @@ public interface DonorGamificationRepository extends JpaRepository<DonorGamifica
     // Find gamifications updated after a certain date
     @Query(value = "SELECT * FROM donor_gamification WHERE last_updated > :date", nativeQuery = true)
     List<DonorGamification> findUpdatedAfter(@Param("date") String date);
+    
+    // Find gamification by donor entity
+    @Query(value = "SELECT * FROM donor_gamification WHERE donor_id = :#{#donor.donorId}", nativeQuery = true)
+    java.util.Optional<DonorGamification> findByDonor(@Param("donor") com.example.Bright_Aid.Entity.Donor donor);
 }
