@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { Search, Plus, AlertTriangle, Users as UsersIcon, Layers, Camera } from 'lucide-react';
 import Sidebar from './DashSidebar';
 import StudentEnrollmentModal from './Modal/StudentEnrollmentModal';
-import ImageUpload from './ImageUpload';
+
 
 const emptyData = {
   school: null,
@@ -28,7 +28,7 @@ export default function SchoolStudents() {
   
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const studentsPerPage = 10;
+  const studentsPerPage = 12;
   
   const API_BASE_URL = 'http://localhost:8081/api';
 
@@ -43,10 +43,11 @@ export default function SchoolStudents() {
     try {
       console.log('Fetching students for school ID:', schoolId);
       
-      const [schoolRes, studentsRes, studentCountRes] = await Promise.all([
+      const [schoolRes, studentsRes, studentCountRes, projectsRes] = await Promise.all([
         fetch(`${API_BASE_URL}/schools/${schoolId}`).catch(() => null),
         fetch(`${API_BASE_URL}/students`).catch(() => null),
         fetch(`${API_BASE_URL}/students/count/school/${schoolId}`).catch(() => null),
+        fetch(`${API_BASE_URL}/school-projects`).catch(() => null),
       ]);
 
       const newData = { ...emptyData };
@@ -58,12 +59,20 @@ export default function SchoolStudents() {
         actualStudentCount = countData.count || 0;
       }
       
+      // Get actual project count
+      let actualProjectCount = 0;
+      if (projectsRes && projectsRes.ok) {
+        const projectsData = await projectsRes.json();
+        const projects = Array.isArray(projectsData) ? projectsData : projectsData.data || [];
+        actualProjectCount = projects.filter(project => (project.schoolId || project.school_id) == schoolId).length;
+      }
+      
       if (schoolRes && schoolRes.ok) {
         const schoolData = await schoolRes.json();
         newData.school = {
           ...schoolData,
-          total_students: actualStudentCount, // Use actual count from backend
-          active_projects: schoolData.activeProjects || schoolData.active_projects || 0,
+          total_students: actualStudentCount,
+          active_projects: actualProjectCount,
           total_received: schoolData.totalReceived || schoolData.total_received || 0
         };
       }
@@ -246,9 +255,8 @@ export default function SchoolStudents() {
   }
 
   return (
-    <>
     <div className="flex h-screen bg-gray-50">
-      {/* <Sidebar activeNav={activeNav} setActiveNav={setActiveNav} schoolData={data.school} /> */}
+      <Sidebar schoolData={data.school} />
 
       <div className="flex-1 overflow-auto">
         {apiError && (
@@ -508,13 +516,11 @@ export default function SchoolStudents() {
           )}
         </div>
       </div>
+      <StudentEnrollmentModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleEnrollStudent}
+      />
     </div>
-    
-    <StudentEnrollmentModal
-      isOpen={isModalOpen}
-      onClose={() => setIsModalOpen(false)}
-      onSubmit={handleEnrollStudent}
-    />
-    </>
   );
 }

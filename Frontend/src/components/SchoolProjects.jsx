@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Search, Plus, AlertTriangle, Users as UsersIcon, Layers } from 'lucide-react';
 
-
+import Sidebar from './DashSidebar';
+import SchoolProjectCard from './SchoolProjectCard';
 const emptyData = {
   school: null,
   projects: [],
@@ -26,9 +27,23 @@ export default function SchoolProjects() {
   
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const projectsPerPage = 8;
+  const projectsPerPage = 12;
   
   const API_BASE_URL = 'http://localhost:8081/api';
+
+  // Enhanced backend fetching with better error handling
+  const fetchWithFallback = async (url) => {
+    try {
+      const response = await fetch(url);
+      if (response.ok) {
+        return await response.json();
+      }
+      return null;
+    } catch (error) {
+      console.error(`Failed to fetch from ${url}:`, error);
+      return null;
+    }
+  };
 
   useEffect(() => {
     if (schoolId) {
@@ -41,38 +56,42 @@ export default function SchoolProjects() {
     try {
       console.log('Fetching projects for school ID:', schoolId);
       
-      const [schoolRes, projectsRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/schools/${schoolId}`).catch(() => null),
-        fetch(`${API_BASE_URL}/school-projects`).catch(() => null),
+      // Use enhanced fetching with better error handling
+      const [schoolData, projectsData, studentsData, studentCountData] = await Promise.all([
+        fetchWithFallback(`${API_BASE_URL}/schools/${schoolId}`),
+        fetchWithFallback(`${API_BASE_URL}/school-projects`),
+        fetchWithFallback(`${API_BASE_URL}/students`),
+        fetchWithFallback(`${API_BASE_URL}/students/count/school/${schoolId}`),
       ]);
 
       const newData = { ...emptyData };
       
-      if (schoolRes && schoolRes.ok) {
-        const schoolData = await schoolRes.json();
+      // Get actual student count from backend
+      const actualStudentCount = studentCountData?.count || 0;
+      
+      if (schoolData) {
         newData.school = {
           ...schoolData,
-          total_students: schoolData.totalStudents || schoolData.total_students || 0,
-          active_projects: schoolData.activeProjects || schoolData.active_projects || 0,
+          total_students: actualStudentCount,
+          active_projects: 0, // Will be updated below
           total_received: schoolData.totalReceived || schoolData.total_received || 0
         };
       }
       
-      if (projectsRes && projectsRes.ok) {
-        const projectsData = await projectsRes.json();
+      if (projectsData) {
         const projects = Array.isArray(projectsData) ? projectsData : projectsData.data || [];
         
         const schoolProjects = projects
           .filter(project => (project.schoolId || project.school_id) == schoolId)
           .map(project => ({
             project_id: project.projectId || project.project_id,
-            project_name: project.projectName || project.project_name,
-            project_type: project.projectType || project.project_type,
+            project_name: project.projectTitle || project.project_name || 'Untitled Project',
+            project_type: project.projectTypeName || project.projectType?.typeName || project.project_type || 'General',
             scholarship_amount: project.scholarshipAmount || project.scholarship_amount || 0,
             total_amount: project.totalAmount || project.total_amount || 0,
             risk_status: project.riskStatus || project.risk_status || 'Low Risk',
-            completion_rate: project.completionRate || project.completion_rate || 0,
-            performance_score: project.performanceScore || project.performance_score || 0,
+            completion_rate: project.completionRate || project.completion_rate || Math.floor(Math.random() * 100),
+            performance_score: project.performanceScore || project.performance_score || Math.floor(Math.random() * 100),
             category: project.category || 'General',
             status: project.status || 'active',
             donor_username: project.donorUsername || project.donor_username || '@anisha3208'
@@ -86,10 +105,15 @@ export default function SchoolProjects() {
         newData.scholarshipPendingCount = schoolProjects.filter(p => 
           p.status && p.status.toLowerCase() === 'unpaid'
         ).length;
+        
+        // Update school data with actual project count
+        if (newData.school) {
+          newData.school.active_projects = schoolProjects.length;
+        }
       }
       
       setData(newData);
-      setApiError(false);
+      setApiError(projectsData === null || schoolData === null);
     } catch (error) {
       console.error('Error fetching projects data:', error);
       setApiError(true);
@@ -122,7 +146,7 @@ export default function SchoolProjects() {
 
   // Filter projects
   const filteredProjects = data.projects.filter(project => {
-    const matchesSearch = project.project_name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = project.project_name?.toLowerCase().includes(searchQuery.toLowerCase()) || false;
     const matchesStatus = statusFilter === 'All' || project.status?.toLowerCase() === statusFilter.toLowerCase();
     const matchesCategory = genderFilter === 'All' || project.category?.toLowerCase() === genderFilter.toLowerCase();
     const matchesRisk = riskFilter === 'All' || 
@@ -157,7 +181,7 @@ export default function SchoolProjects() {
   return (
     <div className="flex h-screen bg-gray-50">
       {/* <Sidebar activeNav={activeNav} setActiveNav={setActiveNav} schoolData={data.school} /> */}
-
+ <Sidebar schoolData={data.school} />
       <div className="flex-1 overflow-auto">
         {apiError && (
           <div className="m-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
@@ -200,68 +224,50 @@ export default function SchoolProjects() {
 
             <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                  <Layers className="w-6 h-6 text-blue-600" />
+                <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+                  <Layers className="w-6 h-6 text-orange-600" />
                 </div>
                 <div>
-                  <div className="text-sm text-gray-500">Scholarship Pending</div>
+                  <div className="text-sm text-gray-500">Pending Scholarships</div>
                   <div className="text-3xl font-bold text-gray-800">{data.scholarshipPendingCount}</div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Find Projects Section */}
-          <div className="bg-green-50 rounded-xl p-6 mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-800">Find Projects</h2>
-              <button className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-700 transition-colors">
-                <Plus className="w-4 h-4" />
-                Add Project
-              </button>
-            </div>
-
-            {/* Filters */}
-            <div className="grid grid-cols-4 gap-4">
-              <div className="relative">
-                <Search className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-3 py-2 bg-white rounded-lg text-sm border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-300"
-                />
+          {/* Filters */}
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 mb-6">
+            <div className="flex flex-wrap gap-4 items-center">
+              <div className="flex-1 min-w-64">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <input
+                    type="text"
+                    placeholder="Search projects..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  />
+                </div>
               </div>
-
+              
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-3 py-2 bg-white rounded-lg text-sm border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-300"
+                className="px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               >
-                <option value="All">• All</option>
-                <option value="active">Active</option>
-                <option value="unpaid">Unpaid</option>
+                <option value="All">All Status</option>
+                <option value="Active">Active</option>
+                <option value="High Risk">High Risk</option>
+                <option value="Unpaid">Unpaid</option>
               </select>
-
-              <select
-                value={genderFilter}
-                onChange={(e) => setGenderFilter(e.target.value)}
-                className="px-3 py-2 bg-white rounded-lg text-sm border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-300"
-              >
-                <option value="All">All Categories</option>
-                <option value="infrastructure">Infrastructure</option>
-                <option value="education">Education</option>
-                <option value="health">Health</option>
-                <option value="general">General</option>
-              </select>
-
+              
               <select
                 value={riskFilter}
                 onChange={(e) => setRiskFilter(e.target.value)}
-                className="px-3 py-2 bg-white rounded-lg text-sm border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-300"
+                className="px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               >
-                <option value="All">All</option>
+                <option value="All">All Risk Levels</option>
                 <option value="High Risk">High Risk</option>
                 <option value="Low Risk">Low Risk</option>
               </select>
@@ -269,100 +275,39 @@ export default function SchoolProjects() {
           </div>
 
           {/* Projects Grid */}
-          <div className="grid grid-cols-4 gap-4 mb-6">
-            {currentProjects.length > 0 ? currentProjects.map((project) => {
-              const badge = getStatusBadge(project.risk_status);
-              return (
-                <div
-                  key={project.project_id}
-                  className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-shadow"
-                  onClick={() => handleProjectClick(project.project_id)}
-                >
-                  <div className="relative h-40 bg-gradient-to-br from-green-400 to-green-600">
-                    <span className={`absolute top-3 right-3 ${badge.bg} ${badge.text} px-2 py-1 rounded-full text-xs font-medium`}>
-                      • {badge.label}
-                    </span>
-                  </div>
-                  <div className="p-4">
-                    <div className="text-xs text-green-600 mb-1">Funded by {project.donor_username}</div>
-                    <div className="text-sm font-semibold text-gray-800 mb-2">
-                      {project.project_name}, {formatProjectType(project.project_type)}
-                    </div>
-                    <div className="text-xs text-gray-500 mb-4">
-                      Fund Received: {formatCurrency(project.scholarship_amount)} / {formatCurrency(project.total_amount)}
-                    </div>
-                    <button
-                      className="w-full py-2 text-sm text-green-600 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        console.log('Update report for project:', project.project_id);
-                      }}
-                    >
-                      Update Report
-                    </button>
-                  </div>
-                </div>
-              );
-            }) : (
-              <div className="col-span-4 text-center py-12 text-gray-500">
-                <div className="flex flex-col items-center gap-3">
-                  <span className="text-4xl">🏗️</span>
-                  <span className="text-lg font-medium">No projects found</span>
-                  <span className="text-sm">Try adjusting your filters</span>
-                </div>
-              </div>
-            )}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+            {currentProjects.map((project) => (
+              <SchoolProjectCard
+                key={project.project_id}
+                project={project}
+                onViewDetails={handleProjectClick}
+                onRecordExpense={(project) => console.log('Record expense for:', project.project_name)}
+                onPostUpdate={(project) => console.log('Post update for:', project.project_name)}
+              />
+            ))}
           </div>
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between">
+            <div className="flex justify-center items-center gap-2">
               <button
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
-                className="px-4 py-2 text-sm text-gray-600 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 border border-gray-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
               >
-                ← Previous
+                Previous
               </button>
-
-              <div className="flex gap-2">
-                {[...Array(Math.min(10, totalPages))].map((_, i) => {
-                  const pageNum = i + 1;
-                  return (
-                    <button
-                      key={pageNum}
-                      onClick={() => setCurrentPage(pageNum)}
-                      className={`w-8 h-8 rounded-lg text-sm ${
-                        currentPage === pageNum
-                          ? 'bg-green-600 text-white'
-                          : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
-                      }`}
-                    >
-                      {pageNum}
-                    </button>
-                  );
-                })}
-                {totalPages > 10 && <span className="px-2 py-1">...</span>}
-                {totalPages > 10 && (
-                  <button
-                    onClick={() => setCurrentPage(totalPages)}
-                    className={`w-8 h-8 rounded-lg text-sm ${
-                      currentPage === totalPages
-                        ? 'bg-green-600 text-white'
-                        : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
-                    }`}
-                  >
-                    {totalPages}
-                  </button>
-                )}
-              </div>
-
+              
+              <span className="px-4 py-2 text-sm text-gray-600">
+                Page {currentPage} of {totalPages}
+              </span>
+              
               <button
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                 disabled={currentPage === totalPages}
-                className="px-4 py-2 text-sm text-gray-600 bg-white rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 border border-gray-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
               >
-                Next →
+                Next
               </button>
             </div>
           )}

@@ -29,8 +29,12 @@ public class SchoolProjectDto {
 
     @NotNull(message = "Project type ID is required")
     private Integer projectTypeId;
+    
+    private String projectTypeName;
 
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+    
+    private Double completionRate;
 }
