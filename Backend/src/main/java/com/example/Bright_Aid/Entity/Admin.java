@@ -46,7 +46,5 @@ public class Admin {
     @Column(name = "admin_notes")
     private String adminNotes;
 
-    @OneToMany(mappedBy = "verifiedBy", fetch = FetchType.LAZY)
-    @ToString.Exclude
-    private List<Ngo> verifiedNgos;
+
 }

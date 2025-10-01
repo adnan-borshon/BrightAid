@@ -2,65 +2,52 @@ package com.example.Bright_Aid.controller;
 
 import com.example.Bright_Aid.Dto.DonorDto;
 import com.example.Bright_Aid.service.DonorService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/donors")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class DonorController {
 
     private final DonorService donorService;
 
     @PostMapping
-    public ResponseEntity<DonorDto> saveDonor(@Valid @RequestBody DonorDto donorDto) {
-        DonorDto savedDonor = donorService.saveDonor(donorDto);
-        return new ResponseEntity<>(savedDonor, HttpStatus.CREATED);
+    public DonorDto createDonor(@RequestBody DonorDto donorDto) {
+        return donorService.createDonor(donorDto);
+    }
+
+    @GetMapping("/user/{userId}")
+    public Optional<DonorDto> getByUserId(@PathVariable Integer userId) {
+        return donorService.getByUserId(userId);
+    }
+
+    @GetMapping("/anonymous")
+    public List<DonorDto> getAnonymousDonors() {
+        return donorService.getAnonymousDonors();
+    }
+
+    @GetMapping("/min-donation/{amount}")
+    public List<DonorDto> getByMinDonation(@PathVariable BigDecimal amount) {
+        return donorService.getDonorsByMinDonation(amount);
+    }
+
+    @GetMapping("/top/{limit}")
+    public List<DonorDto> getTopDonors(@PathVariable int limit) {
+        return donorService.getTopDonors(limit);
     }
 
     @GetMapping
-    public ResponseEntity<List<DonorDto>> getAllDonors() {
-        List<DonorDto> donors = donorService.getAllDonors();
-        return ResponseEntity.ok(donors);
+    public List<DonorDto> getAllDonors() {
+        return donorService.getAllDonors();
     }
 
     @GetMapping("/{donorId}")
-    public ResponseEntity<DonorDto> getDonorById(@PathVariable Integer donorId) {
-        DonorDto donor = donorService.getDonorById(donorId);
-        return ResponseEntity.ok(donor);
-    }
-
-    @DeleteMapping("/{donorId}")
-    public ResponseEntity<Void> deleteDonor(@PathVariable Integer donorId) {
-        donorService.deleteDonor(donorId);
-        return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/{donorId}/gamifications")
-    public ResponseEntity<List<Integer>> getGamificationIds(@PathVariable Integer donorId) {
-        List<Integer> gamificationIds = donorService.getGamificationIds(donorId);
-        return ResponseEntity.ok(gamificationIds);
-    }
-
-    @PutMapping("/{donorId}/update-stats")
-    public ResponseEntity<DonorDto> updateDonationStats(@PathVariable Integer donorId,
-                                                        @RequestParam(required = false) BigDecimal additionalAmount,
-                                                        @RequestParam(required = false) Integer additionalSchools,
-                                                        @RequestParam(required = false) Integer additionalStudents) {
-        DonorDto donor = donorService.updateDonationStats(donorId, additionalAmount, additionalSchools, additionalStudents);
-        return ResponseEntity.ok(donor);
-    }
-
-    @PutMapping("/{donorId}/toggle-anonymous")
-    public ResponseEntity<DonorDto> toggleAnonymousStatus(@PathVariable Integer donorId) {
-        DonorDto donor = donorService.toggleAnonymousStatus(donorId);
-        return ResponseEntity.ok(donor);
+    public Optional<DonorDto> getDonorById(@PathVariable Integer donorId) {
+        return donorService.getDonorById(donorId);
     }
 }

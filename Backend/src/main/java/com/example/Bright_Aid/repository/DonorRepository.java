@@ -13,5 +13,22 @@ import java.util.Optional;
 @Repository
 public interface DonorRepository extends JpaRepository<Donor, Integer> {
 
+    // 1. Find donor by userId
+    @Query("SELECT d FROM Donor d WHERE d.user.userId = :userId")
+    Optional<Donor> findByUserId(@Param("userId") Integer userId);
+
+    // 2. Get all anonymous donors
+    @Query("SELECT d FROM Donor d WHERE d.isAnonymous = true")
+    List<Donor> findAllAnonymousDonors();
+
+    // 3. Get donors who donated more than X
+    @Query("SELECT d FROM Donor d WHERE d.totalDonated > :amount")
+    List<Donor> findByTotalDonatedGreaterThan(@Param("amount") BigDecimal amount);
+
+
+
+    // 5. Top N donors by totalDonated
+    @Query("SELECT d FROM Donor d ORDER BY d.totalDonated DESC")
+    List<Donor> findTopDonors(org.springframework.data.domain.Pageable pageable);
 
 }

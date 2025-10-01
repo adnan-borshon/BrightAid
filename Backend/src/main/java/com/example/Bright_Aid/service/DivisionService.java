@@ -2,7 +2,6 @@ package com.example.Bright_Aid.service;
 
 import com.example.Bright_Aid.Entity.District;
 import com.example.Bright_Aid.Entity.Division;
-import com.example.Bright_Aid.Entity.Donor;
 import com.example.Bright_Aid.Entity.School;
 import com.example.Bright_Aid.Dto.DivisionDto;
 import com.example.Bright_Aid.repository.DivisionRepository;
@@ -79,14 +78,7 @@ public class DivisionService {
         return schools.stream().map(School::getSchoolId).collect(Collectors.toList());
     }
 
-    // Get all donors for a division
-    public List<Integer> getDonorIds(Integer divisionId) {
-        Division division = divisionRepository.findById(divisionId)
-                .orElseThrow(() -> new RuntimeException("Division not found"));
-        List<Donor> donors = division.getDonors();
-        if (donors == null) return List.of();
-        return donors.stream().map(Donor::getDonorId).collect(Collectors.toList());
-    }
+
 
     // Map Division entity to DTO
     private DivisionDto mapToDto(Division division) {
@@ -98,17 +90,13 @@ public class DivisionService {
                 division.getSchools().stream().map(School::getSchoolId).toList() :
                 List.of();
 
-        List<Integer> donorIds = division.getDonors() != null ?
-                division.getDonors().stream().map(Donor::getDonorId).toList() :
-                List.of();
-
         return DivisionDto.builder()
                 .divisionId(division.getDivisionId())
                 .divisionName(division.getDivisionName())
                 .divisionCode(division.getDivisionCode())
                 .districtIds(districtIds)
                 .schoolIds(schoolIds)
-                .donorIds(donorIds)
+                .donorIds(List.of())
                 .build();
     }
 }

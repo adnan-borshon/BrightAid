@@ -1,148 +1,131 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { ChevronRight, MoreVertical, Users, Briefcase, Plus, Download } from 'lucide-react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { ChevronRight, MoreVertical, Users, Briefcase, Plus, Download, Camera } from 'lucide-react';
 import Sidebar from './DashSidebar';
-import SchoolStudents from './SchoolStudents';
-
-// Empty data structure
-const emptyData = {
-  school: null,
-  students: [],
-  projects: [],
-  donations: [],
-  highRiskStudents: []
-};
+import { useApp } from '../context/AppContext';
+import StudentEnrollmentModal from './Modal/StudentEnrollmentModal';
+import ProjectCreateModal from './Modal/ProjectCreateModal';
+import SchoolProjectCard from './SchoolProjectCard';
 
 export default function SchoolDashboard() {
   const { schoolId } = useParams();
-  const [activeNav, setActiveNav] = useState('Dashboard');
-  const [loading, setLoading] = useState(true);
-  const [data, setData] = useState(emptyData);
-  const [apiError, setApiError] = useState(false);
-  const [selectedStudent, setSelectedStudent] = useState(null);
-  const [selectedProject, setSelectedProject] = useState(null);
-  
-  // API Base URL - Update this to your backend URL
-  const API_BASE_URL = 'http://localhost:8081/api';
-
+  const navigate = useNavigate();
+  const { schoolData, studentsData, projectsData, loading, refreshData, API_BASE_URL } = useApp();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [ProjectModalOpen, setProjectModalOpen] = useState(false);
   useEffect(() => {
     if (schoolId) {
-      fetchDashboardData();
+      refreshData(schoolId);
     }
   }, [schoolId]);
 
-  const fetchDashboardData = async () => {
-    setLoading(true);
+  // Process data from context
+  const processedStudents = studentsData
+    .filter(student => (student.schoolId || student.school_id) == schoolId)
+    .slice(0, 3)
+    .map(student => ({
+      student_id: student.studentId || student.student_id,
+      student_name: student.studentName || student.student_name,
+      class_level: student.classLevel || student.class_level,
+      scholarship_amount: student.scholarshipAmount || student.scholarship_amount || 0,
+      total_amount: student.totalAmount || student.total_amount || 0,
+      risk_status: student.riskStatus || student.risk_status || 'Low Risk',
+      attendance_rate: student.attendanceRate || student.attendance_rate || 0,
+      performance_score: student.performanceScore || student.performance_score || 0
+    }));
+
+  const processedProjects = projectsData
+    .filter(project => (project.schoolId || project.school_id) == schoolId)
+    .slice(0, 3)
+    .map(project => ({
+      project_id: project.projectId || project.project_id,
+      project_name: project.projectTitle || project.project_title || 'Untitled Project',
+      project_type: project.projectTypeName || project.projectType?.typeName || project.project_type || 'General',
+      scholarship_amount: project.scholarshipAmount || project.scholarship_amount || 0,
+      total_amount: project.totalAmount || project.total_amount || 0,
+      risk_status: project.riskStatus || project.risk_status || 'Low Risk',
+      completion_rate: project.completionRate || project.completion_rate || 0,
+      performance_score: project.performanceScore || project.performance_score || 0,
+      category: project.category || 'General',
+      status: project.status || 'active',
+      donor_username: project.donorUsername || project.donor_username || '@anisha3208'
+    }));
+
+  const highRiskStudents = studentsData
+    .filter(student => {
+      const riskStatus = student.riskStatus || student.risk_status;
+      return (student.schoolId || student.school_id) == schoolId && 
+             riskStatus && (riskStatus.toLowerCase().includes('high') || riskStatus.toLowerCase().includes('at risk'));
+    })
+    .slice(0, 4)
+    .map(student => ({
+      student_id: student.studentId || student.student_id,
+      student_name: student.studentName || student.student_name,
+      class_level: student.classLevel || student.class_level,
+      attendance_rate: student.attendanceRate || student.attendance_rate || 0,
+      performance_score: student.performanceScore || student.performance_score || 0,
+      risk_score: student.riskScore || student.risk_score || 0
+    }));
+
+  const handleEnrollStudent = async (formData) => {
     try {
-      console.log('Fetching data for school ID:', schoolId);
+      // Create student with JSON data first
+      const jsonData = {
+        schoolId: parseInt(schoolId),
+        studentName: formData.get('student_name'),
+        studentIdNumber: formData.get('student_id_number'),
+        gender: formData.get('gender').toUpperCase(),
+        dateOfBirth: formData.get('date_of_birth'),
+        classLevel: mapClassLevel(formData.get('class_level')),
+        fatherName: formData.get('father_name') || null,
+        fatherAlive: formData.get('father_alive') === 'true',
+        fatherOccupation: formData.get('father_occupation') || null,
+        motherName: formData.get('mother_name') || null,
+        motherAlive: formData.get('mother_alive') === 'true',
+        motherOccupation: formData.get('mother_occupation') || null,
+        guardianPhone: formData.get('guardian_phone'),
+        address: formData.get('address') || null,
+        familyMonthlyIncome: formData.get('family_monthly_income') ? parseFloat(formData.get('family_monthly_income')) : null,
+        hasScholarship: false
+      };
       
-      // Fetch all data in parallel - using available endpoints
-      const [schoolRes, studentsRes, projectsRes, donationsRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/schools/${schoolId}`).catch(() => null),
-        fetch(`${API_BASE_URL}/students`).catch(() => null),
-        fetch(`${API_BASE_URL}/school-projects`).catch(() => null),
-        fetch(`${API_BASE_URL}/donations`).catch(() => null),
-      ]);
+      const response = await fetch(`${API_BASE_URL}/students`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(jsonData)
+      });
+      
+      if (response.ok) {
+        const studentData = await response.json();
+        console.log('Student created successfully:', studentData);
+        
+        // Upload image separately if provided
+        const profileImage = formData.get('profile_image');
+        if (profileImage && profileImage.size > 0) {
+          const imageFormData = new FormData();
+          imageFormData.append('image', profileImage);
+          
+          const imageResponse = await fetch(`${API_BASE_URL}/students/${studentData.studentId}/image`, {
+            method: 'POST',
+            body: imageFormData,
+          });
+          
+          if (!imageResponse.ok) {
+            console.error('Image upload failed:', await imageResponse.text());
+          }
+        }
 
-      const newData = { ...emptyData };
-      
-      if (schoolRes && schoolRes.ok) {
-        const schoolData = await schoolRes.json();
-        newData.school = {
-          ...schoolData,
-          total_students: schoolData.totalStudents || schoolData.total_students || 0,
-          active_projects: schoolData.activeProjects || schoolData.active_projects || 0,
-          total_received: schoolData.totalReceived || schoolData.total_received || 0
-        };
+        setIsModalOpen(false);
+        refreshData(schoolId);
+      } else {
+        const errorData = await response.text();
+        console.error('Student creation failed:', errorData);
+        alert('Failed to create student: ' + errorData);
       }
-      
-      if (studentsRes && studentsRes.ok) {
-        const studentsData = await studentsRes.json();
-        const students = Array.isArray(studentsData) ? studentsData : studentsData.data || [];
-        
-        // Filter students by school ID and map data
-        const schoolStudents = students.filter(student => 
-          (student.schoolId || student.school_id) == schoolId
-        );
-        
-        newData.students = schoolStudents.slice(0, 3).map(student => ({
-          student_id: student.studentId || student.student_id,
-          student_name: student.studentName || student.student_name,
-          class_level: student.classLevel || student.class_level,
-          scholarship_amount: student.scholarshipAmount || student.scholarship_amount || 0,
-          total_amount: student.totalAmount || student.total_amount || 0,
-          risk_status: student.riskStatus || student.risk_status || 'Low Risk',
-          attendance_rate: student.attendanceRate || student.attendance_rate || 0,
-          performance_score: student.performanceScore || student.performance_score || 0
-        }));
-        
-        // Filter high risk students for this school
-        newData.highRiskStudents = schoolStudents.filter(student => {
-          const riskStatus = student.riskStatus || student.risk_status;
-          return riskStatus && (riskStatus.toLowerCase().includes('high') || riskStatus.toLowerCase().includes('at risk'));
-        }).slice(0, 4).map(student => ({
-          student_id: student.studentId || student.student_id,
-          student_name: student.studentName || student.student_name,
-          class_level: student.classLevel || student.class_level,
-          attendance_rate: student.attendanceRate || student.attendance_rate || 0,
-          performance_score: student.performanceScore || student.performance_score || 0,
-          risk_score: student.riskScore || student.risk_score || 0
-        }));
-      }
-      
-      if (projectsRes && projectsRes.ok) {
-        const projectsData = await projectsRes.json();
-        const projects = Array.isArray(projectsData) ? projectsData : projectsData.data || [];
-        
-        // Filter projects by school ID
-        const schoolProjects = projects.filter(project => 
-          (project.schoolId || project.school_id) == schoolId
-        );
-        
-        newData.projects = schoolProjects.slice(0, 3).map(project => ({
-          project_id: project.projectId || project.project_id,
-          project_title: project.projectTitle || project.project_title,
-          raised_amount: project.raisedAmount || project.raised_amount || 0,
-          required_amount: project.requiredAmount || project.required_amount || 0,
-          status: project.status || 'active',
-          progress: project.progress || Math.round(((project.raisedAmount || project.raised_amount || 0) / (project.requiredAmount || project.required_amount || 1)) * 100)
-        }));
-      }
-      
-      if (donationsRes && donationsRes.ok) {
-        const donationsData = await donationsRes.json();
-        const donations = Array.isArray(donationsData) ? donationsData : donationsData.data || [];
-        
-        // Filter donations by school ID (assuming donations have school reference)
-        const schoolDonations = donations.filter(donation => 
-          (donation.schoolId || donation.school_id) == schoolId ||
-          (donation.recipientId || donation.recipient_id) == schoolId
-        );
-        
-        newData.donations = schoolDonations.slice(0, 7).map(donation => ({
-          donation_id: donation.donationId || donation.donation_id,
-          donor_name: donation.donorName || donation.donor_name || 'Anonymous',
-          amount: donation.amount || 0,
-          donated_at: donation.donatedAt || donation.donated_at || new Date().toLocaleDateString(),
-          payment_status: donation.paymentStatus || donation.payment_status || 'pending',
-          transaction_reference: donation.transactionReference || donation.transaction_reference || 'N/A'
-        }));
-      }
-
-      // Update school data with calculated counts
-      if (newData.school) {
-        newData.school.total_students = newData.students.length;
-        newData.school.active_projects = newData.projects.length;
-      }
-      
-      setData(newData);
-      setApiError(false);
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-      setApiError(true);
-      setData(emptyData);
-    } finally {
-      setLoading(false);
+      console.error('Error enrolling student:', error);
     }
   };
 
@@ -152,6 +135,15 @@ export default function SchoolDashboard() {
 
   const formatClassLevel = (classLevel) => {
     return classLevel ? classLevel.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'N/A';
+  };
+  
+  const mapClassLevel = (classLevel) => {
+    const classMap = {
+      '1': 'ONE', '2': 'TWO', '3': 'THREE', '4': 'FOUR', '5': 'FIVE',
+      '6': 'SIX', '7': 'SEVEN', '8': 'EIGHT', '9': 'NINE', '10': 'TEN',
+      '11': 'ELEVEN', '12': 'TWELVE'
+    };
+    return classMap[classLevel] || classLevel;
   };
 
   const getStatusColor = (status) => {
@@ -175,16 +167,59 @@ export default function SchoolDashboard() {
 
   const handleStudentClick = (studentId) => {
     console.log('Viewing student details for ID:', studentId);
-    setSelectedStudent(studentId);
-    // You can navigate to student detail page or show modal
-    // navigate(`/student/${studentId}`);
   };
 
   const handleProjectClick = (projectId) => {
     console.log('Viewing project details for ID:', projectId);
-    setSelectedProject(projectId);
-    // You can navigate to project detail page or show modal
-    // navigate(`/project/${projectId}`);
+    navigate(`/project-details/${projectId}`);
+  };
+
+  const handleProjectCreation = async (formData) => {
+    try {
+      // Only send fields that exist in SchoolProjectDto
+      const jsonData = {
+        schoolId: parseInt(schoolId),
+        projectTitle: formData.get('project_title'),
+        projectDescription: formData.get('project_description'),
+        projectTypeId: parseInt(formData.get('project_type_id'))
+      };
+      
+      console.log('Sending project data:', jsonData);
+      
+      const response = await fetch(`${API_BASE_URL}/school-projects`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(jsonData)
+      });
+      
+      if (response.ok) {
+        const projectData = await response.json();
+        console.log('Project created successfully:', projectData);
+        
+        const projectImage = formData.get('project_image');
+        if (projectImage && projectImage.size > 0) {
+          const imageFormData = new FormData();
+          imageFormData.append('image', projectImage);
+          
+          await fetch(`${API_BASE_URL}/school-projects/${projectData.projectId}/image`, {
+            method: 'POST',
+            body: imageFormData,
+          }).catch(error => console.error('Image upload failed:', error));
+        }
+        
+        setProjectModalOpen(false);
+        refreshData(schoolId);
+      } else {
+        const errorData = await response.text();
+        console.error('Project creation failed:', errorData);
+        alert('Failed to create project: ' + errorData);
+      }
+    } catch (error) {
+      console.error('Error creating project:', error);
+      alert('Error creating project: ' + error.message);
+    }
   };
 
   if (loading) {
@@ -200,39 +235,75 @@ export default function SchoolDashboard() {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      <Sidebar activeNav={activeNav} setActiveNav={setActiveNav} schoolData={data.school} />
+            <StudentEnrollmentModal
+              isOpen={isModalOpen}
+              onClose={() => setIsModalOpen(false)}
+              onSubmit={handleEnrollStudent}
+            />
+
+                 <ProjectCreateModal
+              isOpen={ProjectModalOpen}
+              onClose={() => setProjectModalOpen(false)}
+              onSubmit={handleProjectCreation}
+            />
+      <Sidebar schoolData={schoolData} />
 
       {/* Main Content */}
       <div className="flex-1 overflow-auto">
-        {activeNav === 'Students' ? (
-          <SchoolStudents schoolId={schoolId} />
-        ) : (
-          <>
-            {apiError && (
-              <div className="m-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
-                ⚠ Using demo data. Connect to backend at <code className="bg-yellow-100 px-2 py-1 rounded">{API_BASE_URL}</code>
-              </div>
-            )}
 
         {/* Hero Banner */}
         <div className="bg-gradient-to-r from-green-50 to-green-100 m-6 rounded-2xl p-8 flex items-center justify-between relative overflow-hidden">
           <div className="flex-1 z-10">
             <div className="text-lg text-gray-600 mb-1">Welcome back,</div>
             <div className="text-3xl font-bold text-gray-800 mb-2 flex items-center gap-2">
-              {data.school?.schoolName || data.school?.school_name || `School ${schoolId}`}
-              {data.school && <span className="text-blue-500">✓</span>}
-          
+              {schoolData?.schoolName || schoolData?.school_name || `School ${schoolId}`}
+              {schoolData && <span className="text-blue-500">✓</span>}
             </div>
             <div className="text-sm text-gray-600 mb-2">
-              {data.school ? 'Your dedication is transforming education and reducing dropouts in your community' : 'Welcome to your school dashboard'}
+              {schoolData ? 'Your dedication is transforming education and reducing dropouts in your community' : 'Welcome to your school dashboard'}
             </div>
             <div className="text-xs text-gray-500 flex items-center gap-1">
               <span>📍</span>
-              {data.school?.address || 'Address not available'}
+              {schoolData?.address || 'Address not available'}
             </div>
           </div>
-          <div className="w-96 h-48 rounded-xl overflow-hidden shadow-lg">
-            <div className="w-full h-full bg-gradient-to-br from-green-600 to-green-800"></div>
+          <div className="w-96 h-48 rounded-xl overflow-hidden shadow-lg relative group">
+            <div className="w-full h-full bg-gradient-to-br from-green-600 to-green-800 flex items-center justify-center">
+              <div className="text-white text-6xl opacity-20">🏫</div>
+            </div>
+            <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <label className="cursor-pointer">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      const formData = new FormData();
+                      formData.append('image', file);
+                      const authData = JSON.parse(localStorage.getItem('authData') || '{}');
+                      const userId = authData.user?.userId;
+                      if (userId) {
+                        fetch(`http://localhost:8081/api/images/user/${userId}`, {
+                          method: 'POST',
+                          body: formData,
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                          console.log('User image updated:', data.imagePath);
+                          refreshData(schoolId);
+                        })
+                        .catch(error => console.error('Error uploading image:', error));
+                      }
+                    }
+                  }}
+                  className="hidden"
+                />
+                <div className="bg-white bg-opacity-90 rounded-full p-3 hover:bg-opacity-100 transition-all">
+                  <Camera className="w-6 h-6 text-gray-700" />
+                </div>
+              </label>
+            </div>
           </div>
         </div>
 
@@ -253,9 +324,9 @@ export default function SchoolDashboard() {
               </div>
               <div className="text-sm text-gray-500 mb-1">Funds Received</div>
               <div className="text-3xl font-bold text-gray-800 mb-2">
-                {data.school?.total_received ? formatCurrency(data.school.total_received) : '$0.00'}
+                {schoolData?.total_received ? formatCurrency(schoolData.total_received) : '$0.00'}
               </div>
-              <div className="text-xs text-green-600">+ {data.school?.active_projects || 0} active projects</div>
+              <div className="text-xs text-green-600">+ {processedProjects.length} active projects</div>
               <button className="secondary !border-0 hover:!bg-gray-50 hover:!text-[#0E792E] mt-4 text-sm text-green-600 hover:text-green-700 font-medium flex items-center gap-1">
                 View Account <ChevronRight className="w-4 h-4" />
               </button>
@@ -269,8 +340,8 @@ export default function SchoolDashboard() {
                 <MoreVertical className="w-4 h-4 text-gray-400" />
               </div>
               <div className="text-sm text-gray-500 mb-1">Total Students</div>
-              <div className="text-3xl font-bold text-gray-800 mb-2">{data.school?.total_students || 0}</div>
-              <div className="text-xs text-red-600">+ {data.highRiskStudents?.length || 0} High Risk Students</div>
+              <div className="text-3xl font-bold text-gray-800 mb-2">{studentsData.filter(s => (s.schoolId || s.school_id) == schoolId).length}</div>
+              <div className="text-xs text-red-600">+ {highRiskStudents.length} High Risk Students</div>
               <button className="secondary !border-0 hover:!bg-gray-50 hover:!text-[#0E792E] mt-4 font-medium flex items-center gap-1">
                 View students <ChevronRight className="w-4 h-4" />
               </button>
@@ -284,7 +355,7 @@ export default function SchoolDashboard() {
                 <MoreVertical className="w-4 h-4 text-gray-400" />
               </div>
               <div className="text-sm text-gray-500 mb-1">Active Projects</div>
-              <div className="text-3xl font-bold text-gray-800 mb-2">{data.school?.active_projects || 0}</div>
+              <div className="text-3xl font-bold text-gray-800 mb-2">{processedProjects.length}</div>
               <div className="text-xs text-red-600">+ 2 Report Pending</div>
               <button className="secondary !border-0 hover:!bg-gray-50 hover:!text-[#0E792E] mt-4 text-sm  font-medium flex items-center gap-1">
                 View projects <ChevronRight className="w-4 h-4" />
@@ -300,27 +371,30 @@ export default function SchoolDashboard() {
               <span className="text-green-600">👨‍🎓</span>
               <h2 className="text-xl font-bold text-gray-800">Active Students</h2>
             </div>
-            <button className="secondary !border-0 hover:!bg-gray-50 hover:!text-[#0E792E] text-sm font-medium flex items-center gap-1">
+            <button 
+              onClick={() => navigate(`/students/${schoolId}`)}
+              className="secondary !border-0 hover:!bg-gray-50 hover:!text-[#0E792E] text-sm font-medium flex items-center gap-1"
+            >
               View All <ChevronRight className="w-4 h-4" />
             </button>
           </div>
 
           <div className="grid grid-cols-4 gap-4">
-            <div className="bg-white rounded-xl p-6 border-2 border-dashed border-gray-300 flex flex-col items-center justify-center min-h-[280px] hover:border-green-400 transition-colors cursor-pointer">
+            <div 
+           onClick={() => setIsModalOpen(true)}
+            className="bg-white rounded-xl p-6 border-2 border-dashed border-gray-300 flex flex-col items-center justify-center min-h-[280px] hover:border-green-400 transition-colors cursor-pointer">
               <Plus className="w-12 h-12 text-gray-400 mb-4" />
               <div className="text-sm font-semibold text-gray-800 mb-1">Add New Student</div>
               <div className="text-xs text-gray-500 text-center">Add student details to ensure accurate records and streamline every learner</div>
             </div>
 
-            {data.students.length > 0 ? data.students.slice(0, 3).map((student) => (
+            {processedStudents.length > 0 ? processedStudents.map((student) => (
               <div key={student.student_id} className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleStudentClick(student.student_id)}>
                 <div className="relative h-40  ">
                   <span className="absolute top-3 right-3 bg-white px-2 py-1 rounded-full text-xs font-medium text-orange-600">
                     {student.risk_status || 'At Risk'}
                   </span>
-                  <span className="absolute top-3 left-3 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">
-                    ID: {student.student_id}
-                  </span>
+                
                 </div>
                 <div className="p-4">
                   <div className="text-xs text-green-600 mb-1">Scholarship from @anisha3228</div>
@@ -354,51 +428,31 @@ export default function SchoolDashboard() {
               <span className="text-blue-600">📚</span>
               <h2 className="text-xl font-bold text-gray-800">Active Projects</h2>
             </div>
-            <button className="secondary !border-0 hover:!bg-gray-50 hover:!text-[#0E792E] text-sm font-medium flex items-center gap-1">
+            <button 
+              onClick={() => navigate(`/projects/${schoolId}`)}
+              className="secondary !border-0 hover:!bg-gray-50 hover:!text-[#0E792E] text-sm font-medium flex items-center gap-1"
+            >
               View All <ChevronRight className="w-4 h-4" />
             </button>
           </div>
 
-          <div className="grid grid-cols-4 gap-4">
-            <div className="bg-white rounded-xl p-6 border-2 border-dashed border-gray-300 flex flex-col items-center justify-center min-h-[280px] hover:border-green-400 transition-colors cursor-pointer">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div
+            onClick={() => setProjectModalOpen(true)}
+            className="bg-white rounded-xl p-6 border-2 border-dashed border-gray-300 flex flex-col items-center justify-center min-h-[280px] hover:border-green-400 transition-colors cursor-pointer">
               <Plus className="w-12 h-12 text-gray-400 mb-4" />
               <div className="text-sm font-semibold text-gray-800 mb-1">Create New Project</div>
               <div className="text-xs text-gray-500 text-center">Add request details to ensure accurate records and support for every learner</div>
             </div>
 
-            {data.projects.length > 0 ? data.projects.slice(0, 3).map((project) => {
-              const progress = Math.round((project.raised_amount / project.required_amount) * 100) || project.progress || 0;
-              return (
-                <div key={project.project_id} className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleProjectClick(project.project_id)}>
-                  <div className="relative h-40 bg-gradient-to-br from-green-700 to-green-900">
-                    <span className={`absolute top-3 right-3 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(project.status)}`}>
-                      • {project.status?.replace('_', ' ').toUpperCase() || 'ACTIVE'}
-                    </span>
-                    <span className="absolute top-3 left-3 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">
-                      ID: {project.project_id}
-                    </span>
-                  </div>
-                  <div className="p-4">
-                    <div className="text-xs text-gray-600 mb-1">Sponsored by @anisha3228</div>
-                    <div className="text-sm font-semibold text-gray-800 mb-2">{project.project_title}</div>
-                    <div className="text-xs text-gray-500 mb-3">
-                      Fund Received: {formatCurrency(project.raised_amount)} / {formatCurrency(project.required_amount)}
-                    </div>
-                    <div className="mb-4">
-                      <div className="flex justify-between text-xs text-gray-500 mb-1">
-                        <span>{progress}%</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div className="bg-green-600 h-2 rounded-full" style={{ width: `${progress}%` }}></div>
-                      </div>
-                    </div>
-                    <button className="secondary !border-0 hover:!bg-gray-50 hover:!text-[#0E792E] w-full py-2 text-sm rounded-lg hover:bg-green-50 transition-colors" onClick={(e) => { e.stopPropagation(); console.log('Update report for project:', project.project_id); }}>
-                      Update Report
-                    </button>
-                  </div>
-                </div>
-              );
-            }) : (
+            {processedProjects.length > 0 ? processedProjects.map((project) => (
+              <SchoolProjectCard
+                key={project.project_id}
+                project={project}
+                onViewDetails={handleProjectClick}
+                showAllButtons={false}
+              />
+            )) : (
               <div className="col-span-3 text-center py-12 text-gray-500">
                 <div className="flex flex-col items-center gap-3">
                   <span className="text-4xl">📚</span>
@@ -439,44 +493,14 @@ export default function SchoolDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {data.donations.length > 0 ? data.donations.map((donation) => (
-                    <tr key={donation.donation_id} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="py-3">
-                        <div className="flex items-center gap-2">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
-                            donation.donor_name?.toLowerCase().includes('spotify') ? 'bg-green-100 text-green-700' :
-                            donation.donor_name?.toLowerCase().includes('stripe') ? 'bg-purple-100 text-purple-700' :
-                            donation.donor_name?.toLowerCase().includes('figma') ? 'bg-gray-800 text-white' :
-                            'bg-gray-100 text-gray-700'
-                          }`}>
-                            {getDonorLogo(donation.donor_name)}
-                          </div>
-                          <span className="text-sm text-gray-800 truncate">{donation.donor_name || 'Anonymous'}</span>
-                        </div>
-                      </td>
-                      <td className="text-sm text-gray-600 truncate">{donation.transaction_reference || 'N/A'}</td>
-                      <td className={`text-sm font-medium ${donation.amount >= 0 ? 'text-green-600' : 'text-gray-800'}`}>
-                        {donation.amount >= 0 ? '+' : ''}{formatCurrency(donation.amount)}
-                      </td>
-                      <td className="text-sm text-gray-600">
-                        {new Date(donation.donated_at).toLocaleDateString() || donation.donated_at}
-                      </td>
-                      <td>
-                        <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(donation.payment_status)}`}>
-                          {donation.payment_status?.toUpperCase() || 'PENDING'}
-                        </span>
-                      </td>
-                    </tr>
-                  )) : (
-                    <tr>
-                      <td colSpan="5" className="py-8 text-center text-gray-500">
-                        <div className="flex flex-col items-center gap-2">
-                          <span className="text-2xl">💰</span>
-                          <span className="text-sm">No donations yet</span>
-                        </div>
-                      </td>
-                    </tr>
-                  )}
+                  <tr>
+                    <td colSpan="5" className="py-8 text-center text-gray-500">
+                      <div className="flex flex-col items-center gap-2">
+                        <span className="text-2xl">💰</span>
+                        <span className="text-sm">No donations yet</span>
+                      </div>
+                    </td>
+                  </tr>
                 </tbody>
               </table>
             </div>
@@ -495,11 +519,11 @@ export default function SchoolDashboard() {
             <h2 className="text-lg font-bold text-gray-800 mb-4">High Risk Students</h2>
             
             <div className="space-y-3">
-              {data.highRiskStudents.length > 0 ? data.highRiskStudents.map((student) => (
+              {highRiskStudents.length > 0 ? highRiskStudents.map((student) => (
                 <div key={student.student_id} className="border border-red-200 rounded-lg p-4 bg-red-50 hover:bg-red-100 transition-colors cursor-pointer" onClick={() => handleStudentClick(student.student_id)}>
                   <div className="text-sm font-semibold text-gray-800 mb-3 flex justify-between items-center">
                     <span>{student.student_name}, {formatClassLevel(student.class_level)}</span>
-                    <span className="text-xs bg-red-200 px-2 py-1 rounded">ID: {student.student_id}</span>
+              
                   </div>
                   <div className="space-y-2 mb-3">
                     <div className="grid grid-cols-1 gap-1 text-xs">
@@ -530,8 +554,6 @@ export default function SchoolDashboard() {
             </button>
           </div>
         </div>
-          </>
-        )}
       </div>
     </div>
   );

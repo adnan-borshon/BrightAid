@@ -45,6 +45,21 @@ public class DonorGamification {
     @Column(name = "ranking_position")
     private Integer rankingPosition;
 
+    // Denormalized donor name
+    @Column(name = "donor_name")
+    private String donorName;
+
     @Column(name = "last_updated", nullable = false)
     private LocalDateTime lastUpdated;
+
+    // Set donor name before saving
+    @PrePersist
+    @PreUpdate
+    private void updateDonorName() {
+        if (donor != null && donor.getDonorName() != null) {
+            this.donorName = donor.getDonorName();
+        } else {
+            this.donorName = "Unknown Donor";
+        }
+    }
 }

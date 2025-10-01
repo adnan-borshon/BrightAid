@@ -3,150 +3,91 @@ package com.example.Bright_Aid.controller;
 import com.example.Bright_Aid.Dto.NgoProjectDto;
 import com.example.Bright_Aid.Entity.NgoProject;
 import com.example.Bright_Aid.service.NgoProjectService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/ngo-projects")
 @RequiredArgsConstructor
-@Slf4j
-@CrossOrigin(origins = "*")
 public class NgoProjectController {
 
     private final NgoProjectService ngoProjectService;
 
-    @PostMapping
-    public ResponseEntity<NgoProjectDto> createNgoProject(
-            @Valid @RequestBody NgoProjectDto ngoProjectDto) {
-        log.info("REST request to create NGO project for NGO ID: {}", ngoProjectDto.getNgoId());
-
-        NgoProjectDto createdProject = ngoProjectService.createNgoProject(ngoProjectDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdProject);
-    }
-
-    @GetMapping("/{ngoProjectId}")
-    public ResponseEntity<NgoProjectDto> getNgoProjectById(@PathVariable Integer ngoProjectId) {
-        log.info("REST request to get NGO project with ID: {}", ngoProjectId);
-
-        NgoProjectDto project = ngoProjectService.getNgoProjectById(ngoProjectId);
-        return ResponseEntity.ok(project);
-    }
-
+    // GET all projects
     @GetMapping
-    public ResponseEntity<List<NgoProjectDto>> getAllNgoProjects() {
-        log.info("REST request to get all NGO projects");
-
-        List<NgoProjectDto> projects = ngoProjectService.getAllNgoProjects();
-        return ResponseEntity.ok(projects);
+    public ResponseEntity<List<NgoProjectDto>> getAllProjects() {
+        List<NgoProjectDto> dtos = ngoProjectService.getAllProjects()
+                .stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(dtos);
     }
 
-    @GetMapping("/paginated")
-    public ResponseEntity<Page<NgoProjectDto>> getAllNgoProjects(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "ngoProjectId") String sortBy,
-            @RequestParam(defaultValue = "DESC") String sortDirection) {
-
-        log.info("REST request to get NGO projects with pagination - page: {}, size: {}, sortBy: {}, sortDirection: {}",
-                page, size, sortBy, sortDirection);
-
-        Sort sort = sortDirection.equalsIgnoreCase("DESC") ?
-                Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
-
-        Pageable pageable = PageRequest.of(page, size, sort);
-        Page<NgoProjectDto> projects = ngoProjectService.getAllNgoProjects(pageable);
-
-        return ResponseEntity.ok(projects);
+    // GET project by ID
+    @GetMapping("/{id}")
+    public ResponseEntity<NgoProjectDto> getProjectById(@PathVariable Integer id) {
+        NgoProject project = ngoProjectService.getProjectById(id);
+        return ResponseEntity.ok(toDto(project));
     }
 
-    @GetMapping("/by-status/{status}")
-    public ResponseEntity<List<NgoProjectDto>> getNgoProjectsByStatus(
-            @PathVariable NgoProject.ProjectStatus status) {
-        log.info("REST request to get NGO projects with status: {}", status);
-
-        List<NgoProjectDto> projects = ngoProjectService.getNgoProjectsByStatus(status);
-        return ResponseEntity.ok(projects);
+    // POST create project
+    @PostMapping
+    public ResponseEntity<NgoProjectDto> createProject(@RequestBody NgoProjectDto dto) {
+        NgoProject project = fromDto(dto);
+        NgoProject saved = ngoProjectService.createProject(project, dto.getNgoId(), dto.getProjectTypeId());
+        return ResponseEntity.ok(toDto(saved));
     }
 
-    @GetMapping("/by-ngo/{ngoId}")
-    public ResponseEntity<List<NgoProjectDto>> getNgoProjectsByNgo(@PathVariable Integer ngoId) {
-        log.info("REST request to get NGO projects for NGO ID: {}", ngoId);
-
-        List<NgoProjectDto> projects = ngoProjectService.getNgoProjectsByNgo(ngoId);
-        return ResponseEntity.ok(projects);
+    // PUT update project
+    @PutMapping("/{id}")
+    public ResponseEntity<NgoProjectDto> updateProject(@PathVariable Integer id,
+                                                       @RequestBody NgoProjectDto dto) {
+        NgoProject project = fromDto(dto);
+        NgoProject saved = ngoProjectService.updateProject(id, project);
+        return ResponseEntity.ok(toDto(saved));
     }
 
-    @GetMapping("/by-project-type/{projectTypeId}")
-    public ResponseEntity<List<NgoProjectDto>> getNgoProjectsByProjectType(@PathVariable Integer projectTypeId) {
-        log.info("REST request to get NGO projects for project type ID: {}", projectTypeId);
-
-        List<NgoProjectDto> projects = ngoProjectService.getNgoProjectsByProjectType(projectTypeId);
-        return ResponseEntity.ok(projects);
-    }
-
-    @GetMapping("/active")
-    public ResponseEntity<List<NgoProjectDto>> getActiveNgoProjects() {
-        log.info("REST request to get active NGO projects");
-
-        List<NgoProjectDto> projects = ngoProjectService.getActiveNgoProjects();
-        return ResponseEntity.ok(projects);
-    }
-
-    @GetMapping("/completed")
-    public ResponseEntity<List<NgoProjectDto>> getCompletedNgoProjects() {
-        log.info("REST request to get completed NGO projects");
-
-        List<NgoProjectDto> projects = ngoProjectService.getCompletedNgoProjects();
-        return ResponseEntity.ok(projects);
-    }
-
-    @GetMapping("/by-date-range")
-    public ResponseEntity<List<NgoProjectDto>> getNgoProjectsByDateRange(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
-        log.info("REST request to get NGO projects between {} and {}", startDate, endDate);
-
-        List<NgoProjectDto> projects = ngoProjectService.getNgoProjectsByDateRange(startDate, endDate);
-        return ResponseEntity.ok(projects);
-    }
-
-    @PutMapping("/{ngoProjectId}")
-    public ResponseEntity<NgoProjectDto> updateNgoProject(
-            @PathVariable Integer ngoProjectId,
-            @Valid @RequestBody NgoProjectDto ngoProjectDto) {
-        log.info("REST request to update NGO project with ID: {}", ngoProjectId);
-
-        NgoProjectDto updatedProject = ngoProjectService.updateNgoProject(ngoProjectId, ngoProjectDto);
-        return ResponseEntity.ok(updatedProject);
-    }
-
-    @PatchMapping("/{ngoProjectId}/status")
-    public ResponseEntity<NgoProjectDto> updateProjectStatus(
-            @PathVariable Integer ngoProjectId,
-            @RequestParam NgoProject.ProjectStatus status) {
-        log.info("REST request to update status for NGO project ID: {} to status: {}", ngoProjectId, status);
-
-        NgoProjectDto updatedProject = ngoProjectService.updateProjectStatus(ngoProjectId, status);
-        return ResponseEntity.ok(updatedProject);
-    }
-
-    @DeleteMapping("/{ngoProjectId}")
-    public ResponseEntity<Void> deleteNgoProject(@PathVariable Integer ngoProjectId) {
-        log.info("REST request to delete NGO project with ID: {}", ngoProjectId);
-
-        ngoProjectService.deleteNgoProject(ngoProjectId);
+    // DELETE project
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteProject(@PathVariable Integer id) {
+        ngoProjectService.deleteProject(id);
         return ResponseEntity.noContent().build();
+    }
+
+    // --- Helper methods ---
+    private NgoProjectDto toDto(NgoProject project) {
+        if (project == null) return null;
+        return NgoProjectDto.builder()
+                .ngoProjectId(project.getNgoProjectId())
+                .ngoId(project.getNgo() != null ? project.getNgo().getNgoId() : null)
+                .projectName(project.getProjectName())
+                .projectDescription(project.getProjectDescription())
+                .projectTypeId(project.getProjectType() != null ? project.getProjectType().getProjectTypeId() : null)
+                .budget(project.getBudget())
+                .startDate(project.getStartDate())
+                .endDate(project.getEndDate())
+                .status(project.getStatus().name())
+                .build();
+    }
+
+    private NgoProject fromDto(NgoProjectDto dto) {
+        NgoProject project = new NgoProject();
+        project.setProjectName(dto.getProjectName());
+        project.setProjectDescription(dto.getProjectDescription());
+        project.setBudget(dto.getBudget());
+        project.setStartDate(dto.getStartDate());
+        project.setEndDate(dto.getEndDate());
+        if (dto.getStatus() != null) {
+            try {
+                project.setStatus(NgoProject.ProjectStatus.valueOf(dto.getStatus().toUpperCase()));
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Invalid project status: " + dto.getStatus() + ". Valid values are: PLANNED, ACTIVE, COMPLETED, CANCELLED");
+            }
+        }
+        return project;
     }
 }

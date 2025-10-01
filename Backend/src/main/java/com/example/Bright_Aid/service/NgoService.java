@@ -36,6 +36,13 @@ public class NgoService {
         User user = userRepository.findById(ngoDto.getUserId())
                 .orElseThrow(() -> new RuntimeException("User not found with ID: " + ngoDto.getUserId()));
 
+        // Check if NGO already exists for this user
+        boolean ngoExists = ngoRepository.findAll().stream()
+                .anyMatch(ngo -> ngo.getUser().getUserId().equals(ngoDto.getUserId()));
+        if (ngoExists) {
+            throw new RuntimeException("NGO already exists for user ID: " + ngoDto.getUserId());
+        }
+
         Ngo.NgoBuilder ngoBuilder = Ngo.builder()
                 .user(user)
                 .ngoName(ngoDto.getNgoName())
@@ -45,12 +52,7 @@ public class NgoService {
                 .contactPhone(ngoDto.getContactPhone())
                 .verificationStatus(ngoDto.getVerificationStatus());
 
-        // Set verified by admin if provided (optional)
-        if (ngoDto.getVerifiedBy() != null) {
-            Admin verifiedBy = adminRepository.findById(ngoDto.getVerifiedBy())
-                    .orElse(null); // Make it optional instead of throwing exception
-            ngoBuilder.verifiedBy(verifiedBy);
-        }
+
 
         // Set verified at timestamp if provided
         if (ngoDto.getVerifiedAt() != null) {
@@ -104,13 +106,7 @@ public class NgoService {
             existingNgo.setUser(user);
         }
 
-        // Update verified by admin if provided (optional)
-        if (ngoDto.getVerifiedBy() != null &&
-                (existingNgo.getVerifiedBy() == null || !ngoDto.getVerifiedBy().equals(existingNgo.getVerifiedBy().getAdminId()))) {
-            Admin verifiedBy = adminRepository.findById(ngoDto.getVerifiedBy())
-                    .orElse(null); // Make it optional instead of throwing exception
-            existingNgo.setVerifiedBy(verifiedBy);
-        }
+
 
         if (ngoDto.getNgoName() != null) {
             existingNgo.setNgoName(ngoDto.getNgoName());
@@ -193,7 +189,6 @@ public class NgoService {
                 .orElseThrow(() -> new RuntimeException("Admin not found with ID: " + adminId));
 
         ngo.setVerificationStatus(Ngo.VerificationStatus.VERIFIED);
-        ngo.setVerifiedBy(admin);
         ngo.setVerifiedAt(LocalDateTime.now());
 
         Ngo updatedNgo = ngoRepository.save(ngo);
@@ -213,7 +208,6 @@ public class NgoService {
                 .orElseThrow(() -> new RuntimeException("Admin not found with ID: " + adminId));
 
         ngo.setVerificationStatus(Ngo.VerificationStatus.REJECTED);
-        ngo.setVerifiedBy(admin);
         ngo.setVerifiedAt(LocalDateTime.now());
 
         Ngo updatedNgo = ngoRepository.save(ngo);
@@ -247,13 +241,6 @@ public class NgoService {
     }
 
     private NgoDto convertToDto(Ngo ngo) {
-        List<Integer> projectIds = null;
-        if (ngo.getProjects() != null) {
-            projectIds = ngo.getProjects().stream()
-                    .map(NgoProject::getNgoProjectId)
-                    .collect(Collectors.toList());
-        }
-
         return NgoDto.builder()
                 .ngoId(ngo.getNgoId())
                 .userId(ngo.getUser().getUserId())
@@ -264,8 +251,6 @@ public class NgoService {
                 .contactPhone(ngo.getContactPhone())
                 .verificationStatus(ngo.getVerificationStatus())
                 .verifiedAt(ngo.getVerifiedAt())
-                .verifiedBy(ngo.getVerifiedBy() != null ? ngo.getVerifiedBy().getAdminId() : null)
-                .projectIds(projectIds)
                 .createdAt(ngo.getCreatedAt())
                 .updatedAt(ngo.getUpdatedAt())
                 .build();

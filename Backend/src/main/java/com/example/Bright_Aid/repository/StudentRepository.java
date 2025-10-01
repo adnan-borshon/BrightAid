@@ -43,4 +43,8 @@ public interface StudentRepository extends JpaRepository<Student, Integer> {
 
     // ✅ New: Find students where profile image is not null (students with images)
     List<Student> findByProfileImageIsNotNull();
+    
+    // ✅ Count students by school ID
+    @Query(value = "SELECT COUNT(*) FROM students WHERE school_id = :schoolId", nativeQuery = true)
+    Long countStudentsBySchoolId(@Param("schoolId") Integer schoolId);
 }

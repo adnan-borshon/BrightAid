@@ -29,8 +29,8 @@ public class Donor extends BaseEntity {
     @NotNull
     private User user;
 
-    @Column(name = "organization_name")
-    private String organizationName;
+    @Column(name = "donor_name")
+    private String donorName;
 
     @Column(name = "tax_id")
     private String taxId;
@@ -51,10 +51,7 @@ public class Donor extends BaseEntity {
     @Builder.Default
     private Integer totalStudentsSponsored = 0;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "division_id")
-    @ToString.Exclude
-    private Division division;
+
 
     @OneToMany(mappedBy = "donor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @ToString.Exclude

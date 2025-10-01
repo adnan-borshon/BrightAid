@@ -29,6 +29,12 @@ public class NgoProject extends BaseEntity {
     @ToString.Exclude
     private Ngo ngo;
 
+    @Column(name = "project_name", nullable = false)
+    private String projectName;
+
+    @Column(name = "project_description", columnDefinition = "TEXT")
+    private String projectDescription;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_type_id", nullable = false)
     @NotNull
@@ -52,7 +58,6 @@ public class NgoProject extends BaseEntity {
     @OneToMany(mappedBy = "ngoProject", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @ToString.Exclude
     private List<NgoProjectSchool> schoolParticipations;
-
 
     public enum ProjectStatus {
         PLANNED, ACTIVE, COMPLETED, CANCELLED

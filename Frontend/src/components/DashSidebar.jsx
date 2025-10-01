@@ -1,16 +1,35 @@
 import React from 'react';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { Home, Users, Briefcase, FileText, CreditCard, HelpCircle, Settings, ChevronRight, Search } from 'lucide-react';
+import { useApp } from '../context/AppContext';
 
-export default function DashSidebar({ activeNav, setActiveNav, schoolData }) {
+export default function DashSidebar() {
+  const { schoolData, studentsData, projectsData } = useApp();
+  const navigate = useNavigate();
+  const { schoolId } = useParams();
+  const location = useLocation();
   const navItems = [
-    { name: 'Dashboard', icon: Home, badge: null },
-    { name: 'Students', icon: Users, badge: schoolData?.total_students?.toString() || '0' },
-    { name: 'Projects', icon: Briefcase, badge: schoolData?.active_projects?.toString() || '0' },
-    { name: 'Reporting', icon: FileText, badge: 'Pending', badgeColor: 'text-red-600' },
-    { name: 'Account', icon: CreditCard, badge: null },
-    { name: 'Support', icon: HelpCircle, badge: null }, // divider will appear above this
-    { name: 'Settings', icon: Settings, badge: null },
+    { name: 'Dashboard', icon: Home, badge: null, path: `/dashboard/${schoolId}` },
+    { name: 'Students', icon: Users, badge: studentsData?.length?.toString() || '0', path: `/students/${schoolId}` },
+    { name: 'Projects', icon: Briefcase, badge: projectsData?.length?.toString() || '0', path: `/projects/${schoolId}` },
+    { name: 'Reporting', icon: FileText, badge: 'Pending', badgeColor: 'text-red-600', path: `/reporting/${schoolId}` },
+    { name: 'Account', icon: CreditCard, badge: null, path: `/account/${schoolId}` },
+    { name: 'Support', icon: HelpCircle, badge: null, path: `/support/${schoolId}` }, 
+    { name: 'Settings', icon: Settings, badge: null, path: `/settings/${schoolId}` },
   ];
+
+  const getActiveNav = () => {
+    const path = location.pathname;
+    if (path.includes('/students/')) return 'Students';
+    if (path.includes('/projects/')) return 'Projects';
+    if (path.includes('/reporting/')) return 'Reporting';
+    if (path.includes('/account/')) return 'Account';
+    if (path.includes('/support/')) return 'Support';
+    if (path.includes('/settings/')) return 'Settings';
+    return 'Dashboard';
+  };
+
+  const activeNav = getActiveNav();
 
   return (
     <div className="w-64 bg-gradient-to-b from-green-50 to-green-100 p-6 flex flex-col">
@@ -50,7 +69,7 @@ export default function DashSidebar({ activeNav, setActiveNav, schoolData }) {
             return (
               <div key={item.name} className="border-t border-gray-300 pt-6 mt-6 space-y-1">
                 <button
-                  onClick={() => setActiveNav(item.name)}
+                  onClick={() => navigate(item.path)}
                   className={` w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
                     isActive
                       ? 'secondary !border-0 hover:!bg-gray-50 hover:!text-[#0E792E]'
@@ -67,7 +86,7 @@ export default function DashSidebar({ activeNav, setActiveNav, schoolData }) {
           return (
             <button
               key={item.name}
-              onClick={() => setActiveNav(item.name)}
+              onClick={() => navigate(item.path)}
               className={`secondary w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
                 isActive
                   ? 'secondary !border-0 hover:!bg-gray-50 hover:!text-[#0E792E]'

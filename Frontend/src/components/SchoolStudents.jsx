@@ -1,23 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Search, Plus, AlertTriangle, Users as UsersIcon, Layers } from 'lucide-react';
+import { Search, Plus, AlertTriangle, Users as UsersIcon, Layers, Camera } from 'lucide-react';
 import Sidebar from './DashSidebar';
+import { useApp } from '../context/AppContext';
 import StudentEnrollmentModal from './Modal/StudentEnrollmentModal';
 
-const emptyData = {
-  school: null,
-  students: [],
-  totalCount: 0,
-  highRiskCount: 0,
-  scholarshipPendingCount: 0
-};
 
 export default function SchoolStudents() {
   const { schoolId } = useParams();
-  const [activeNav, setActiveNav] = useState('Students');
-  const [loading, setLoading] = useState(true);
-  const [data, setData] = useState(emptyData);
-  const [apiError, setApiError] = useState(false);
+  const { schoolData, studentsData, loading, refreshData, API_BASE_URL } = useApp();
   const [isModalOpen, setIsModalOpen] = useState(false);
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -27,83 +18,45 @@ export default function SchoolStudents() {
   
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const studentsPerPage = 10;
+  const studentsPerPage = 12;
   
-  const API_BASE_URL = 'http://localhost:8081/api';
+
 
   useEffect(() => {
     if (schoolId) {
-      fetchStudentsData();
+      refreshData(schoolId);
     }
   }, [schoolId]);
 
-  const fetchStudentsData = async () => {
-    setLoading(true);
-    try {
-      console.log('Fetching students for school ID:', schoolId);
-      
-      const [schoolRes, studentsRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/schools/${schoolId}`).catch(() => null),
-        fetch(`${API_BASE_URL}/students`).catch(() => null),
-      ]);
+  // Process students data for display
+  const processedStudents = studentsData
+    .filter(student => (student.schoolId || student.school_id) == schoolId)
+    .map(student => ({
+      student_id: student.studentId || student.student_id,
+      student_name: student.studentName || student.student_name,
+      class_level: student.classLevel || student.class_level,
+      scholarship_amount: student.scholarshipAmount || student.scholarship_amount || 0,
+      total_amount: student.totalAmount || student.total_amount || 0,
+      risk_status: student.riskStatus || student.risk_status || 'Low Risk',
+      attendance_rate: student.attendanceRate || student.attendance_rate || 0,
+      performance_score: student.performanceScore || student.performance_score || 0,
+      gender: student.gender || 'Not specified',
+      status: student.status || 'active',
+      donor_username: student.donorUsername || student.donor_username || '',
+      profile_image: student.profileImage || student.profile_image
+    }));
 
-      const newData = { ...emptyData };
-      
-      if (schoolRes && schoolRes.ok) {
-        const schoolData = await schoolRes.json();
-        newData.school = {
-          ...schoolData,
-          total_students: schoolData.totalStudents || schoolData.total_students || 0,
-          active_projects: schoolData.activeProjects || schoolData.active_projects || 0,
-          total_received: schoolData.totalReceived || schoolData.total_received || 0
-        };
-      }
-      
-      if (studentsRes && studentsRes.ok) {
-        const studentsData = await studentsRes.json();
-        const students = Array.isArray(studentsData) ? studentsData : studentsData.data || [];
-        
-        const schoolStudents = students
-          .filter(student => (student.schoolId || student.school_id) == schoolId)
-          .map(student => ({
-            student_id: student.studentId || student.student_id,
-            student_name: student.studentName || student.student_name,
-            class_level: student.classLevel || student.class_level,
-            scholarship_amount: student.scholarshipAmount || student.scholarship_amount || 0,
-            total_amount: student.totalAmount || student.total_amount || 0,
-            risk_status: student.riskStatus || student.risk_status || 'Low Risk',
-            attendance_rate: student.attendanceRate || student.attendance_rate || 0,
-            performance_score: student.performanceScore || student.performance_score || 0,
-            gender: student.gender || 'Not specified',
-            status: student.status || 'active',
-            donor_username: student.donorUsername || student.donor_username || '',
-            profile_image: student.profileImage || student.profile_image
-          }));
-        
-        newData.students = schoolStudents;
-        newData.totalCount = schoolStudents.length;
-        newData.highRiskCount = schoolStudents.filter(s => 
-          s.risk_status && (s.risk_status.toLowerCase().includes('high') || s.risk_status.toLowerCase().includes('at risk'))
-        ).length;
-        newData.scholarshipPendingCount = schoolStudents.filter(s => 
-          s.status && s.status.toLowerCase() === 'unpaid'
-        ).length;
-      }
-      
-      setData(newData);
-      setApiError(false);
-    } catch (error) {
-      console.error('Error fetching students data:', error);
-      setApiError(true);
-      setData(emptyData);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const totalCount = processedStudents.length;
+  const highRiskCount = processedStudents.filter(s => 
+    s.risk_status && (s.risk_status.toLowerCase().includes('high') || s.risk_status.toLowerCase().includes('at risk'))
+  ).length;
+  const scholarshipPendingCount = processedStudents.filter(s => 
+    s.status && s.status.toLowerCase() === 'unpaid'
+  ).length;
 
   const handleEnrollStudent = async (formData) => {
     try {
-      // Convert FormData to backend DTO format
+      // Create student with JSON data first
       const jsonData = {
         schoolId: parseInt(schoolId),
         studentName: formData.get('student_name'),
@@ -132,10 +85,31 @@ export default function SchoolStudents() {
       });
       
       if (response.ok) {
-        const data = await response.json();
-        console.log('Student enrolled successfully:', data);
+        const studentData = await response.json();
+        console.log('Student created successfully:', studentData);
+        
+        // Upload image separately if provided
+        const profileImage = formData.get('profile_image');
+        if (profileImage && profileImage.size > 0) {
+          const imageFormData = new FormData();
+          imageFormData.append('image', profileImage);
+          
+          const imageResponse = await fetch(`${API_BASE_URL}/students/${studentData.studentId}/image`, {
+            method: 'POST',
+            body: imageFormData,
+          });
+          
+          if (!imageResponse.ok) {
+            console.error('Image upload failed:', await imageResponse.text());
+          }
+        }
+
         setIsModalOpen(false);
-        fetchStudentsData();
+        refreshData(schoolId);
+      } else {
+        const errorData = await response.text();
+        console.error('Student creation failed:', errorData);
+        alert('Failed to create student: ' + errorData);
       }
     } catch (error) {
       console.error('Error enrolling student:', error);
@@ -171,7 +145,7 @@ export default function SchoolStudents() {
   };
 
   // Filter students
-  const filteredStudents = data.students.filter(student => {
+  const filteredStudents = processedStudents.filter(student => {
     const matchesSearch = student.student_name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'All' || student.status?.toLowerCase() === statusFilter.toLowerCase();
     const matchesGender = genderFilter === 'All' || student.gender?.toLowerCase() === genderFilter.toLowerCase();
@@ -193,6 +167,11 @@ export default function SchoolStudents() {
     // Navigate to student detail page
   };
 
+  const handleImageUpdate = (studentId, imagePath) => {
+    // Refresh data to get updated image
+    refreshData(schoolId);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen bg-gray-50">
@@ -205,16 +184,10 @@ export default function SchoolStudents() {
   }
 
   return (
-    <>
     <div className="flex h-screen bg-gray-50">
-      {/* <Sidebar activeNav={activeNav} setActiveNav={setActiveNav} schoolData={data.school} /> */}
+      <Sidebar />
 
       <div className="flex-1 overflow-auto">
-        {apiError && (
-          <div className="m-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
-            ⚠ Using demo data. Connect to backend at <code className="bg-yellow-100 px-2 py-1 rounded">{API_BASE_URL}</code>
-          </div>
-        )}
 
         <div className="p-6">
           {/* Header */}
@@ -232,7 +205,7 @@ export default function SchoolStudents() {
                 </div>
                 <div>
                   <div className="text-sm text-gray-500">Total Students</div>
-                  <div className="text-3xl font-bold text-gray-800">{data.totalCount}</div>
+                  <div className="text-3xl font-bold text-gray-800">{totalCount}</div>
                 </div>
               </div>
             </div>
@@ -244,7 +217,7 @@ export default function SchoolStudents() {
                 </div>
                 <div>
                   <div className="text-sm text-gray-500">High Risk Students</div>
-                  <div className="text-3xl font-bold text-gray-800">{data.highRiskCount}</div>
+                  <div className="text-3xl font-bold text-gray-800">{highRiskCount}</div>
                 </div>
               </div>
             </div>
@@ -256,7 +229,7 @@ export default function SchoolStudents() {
                 </div>
                 <div>
                   <div className="text-sm text-gray-500">Scholarship Pending</div>
-                  <div className="text-3xl font-bold text-gray-800">{data.scholarshipPendingCount}</div>
+                  <div className="text-3xl font-bold text-gray-800">{scholarshipPendingCount}</div>
                 </div>
               </div>
             </div>
@@ -329,22 +302,58 @@ export default function SchoolStudents() {
                   className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-shadow"
                   onClick={() => handleStudentClick(student.student_id)}
                 >
-               <div className="relative h-40 bg-gray-100 flex items-center justify-center">
-  <img 
-    src={student.profile_image 
-      ? `${API_BASE_URL}${student.profile_image}` 
-      : 'https://via.placeholder.com/150?text=No+Image'
-    }
-    alt={student.student_name}
-    className="w-full h-full object-cover"
-    onError={(e) => {
-      e.target.onerror = null;
-      e.target.src = 'https://via.placeholder.com/150?text=No+Image';
-    }}
-  />
+               <div className="relative h-40 bg-gray-100 flex items-center justify-center group">
+  {student.profile_image ? (
+    <img 
+      src={`http://localhost:8081${student.profile_image}`}
+      alt={student.student_name}
+      className="w-full h-full object-cover"
+      onError={(e) => {
+        e.target.style.display = 'none';
+        e.target.nextSibling.style.display = 'flex';
+      }}
+    />
+  ) : null}
+  <div 
+    className={`w-full h-full flex items-center justify-center text-gray-400 ${student.profile_image ? 'hidden' : 'flex'}`}
+    style={{ display: student.profile_image ? 'none' : 'flex' }}
+  >
+    <div className="text-center">
+      <Camera className="w-8 h-8 mx-auto mb-2" />
+      <span className="text-sm">No Image</span>
+    </div>
+  </div>
   <span className={`absolute top-3 right-3 ${badge.bg} ${badge.text} px-2 py-1 rounded-full text-xs font-medium`}>
     • {badge.label}
   </span>
+  <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+    <label className="cursor-pointer">
+      <input
+        type="file"
+        accept="image/*"
+        onChange={(e) => {
+          const file = e.target.files[0];
+          if (file) {
+            const formData = new FormData();
+            formData.append('image', file);
+            fetch(`http://localhost:8081/api/students/${student.student_id}/image`, {
+              method: 'POST',
+              body: formData,
+            })
+            .then(response => response.json())
+            .then(data => {
+              handleImageUpdate(student.student_id, data.imagePath);
+            })
+            .catch(error => console.error('Error uploading image:', error));
+          }
+        }}
+        className="hidden"
+      />
+      <div className="bg-white bg-opacity-90 rounded-full p-2 hover:bg-opacity-100 transition-all">
+        <Camera className="w-5 h-5 text-gray-700" />
+      </div>
+    </label>
+  </div>
 </div>
                   <div className="p-4">
                     <div className="text-xs text-green-600 mb-1">Scholarship from {student.donor_username}</div>
@@ -431,13 +440,11 @@ export default function SchoolStudents() {
           )}
         </div>
       </div>
+      <StudentEnrollmentModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleEnrollStudent}
+      />
     </div>
-    
-    <StudentEnrollmentModal
-      isOpen={isModalOpen}
-      onClose={() => setIsModalOpen(false)}
-      onSubmit={handleEnrollStudent}
-    />
-    </>
   );
 }

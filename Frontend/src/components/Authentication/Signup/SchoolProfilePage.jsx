@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import Sidebar from "./SideBar.jsx";
 
 const SchoolProfilePage = () => {
+  const location = useLocation();
   const [formData, setFormData] = useState({
     officialContact: '',
     principalName: '',
@@ -54,11 +56,10 @@ const SchoolProfilePage = () => {
 
     // Prepare payload according to API schema
     const payload = {
-      schoolId: 0, // Backend will generate
       userId: userInfo.userId,
       schoolName: formData.fullName,
       registrationNumber: formData.registrationNumber,
-      schoolType: formData.schoolType,
+      schoolType: formData.schoolType.toUpperCase().replace(' ', '_'),
       address: formData.detailedAddress,
       divisionId: parseInt(formData.division) || 0, // You'll need to map division name to ID
       districtId: parseInt(formData.district) || 28, // You'll need to map district name to ID
@@ -106,7 +107,10 @@ const SchoolProfilePage = () => {
   };
 
   return (
-    <div className="w-full max-w-2xl">
+    <div className="min-h-screen bg-gray-50 flex">
+      <Sidebar currentPath={location.pathname} />
+      <div className="flex-1 flex items-center justify-center p-8">
+        <div className="w-full max-w-2xl">
       <div className="text-center mb-8">
         <div className="flex items-center justify-center mb-6">
           <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center mr-3">
@@ -312,6 +316,8 @@ const SchoolProfilePage = () => {
           {loading ? "Saving..." : "Continue"}
         </button>
       </form>
+        </div>
+      </div>
     </div>
   );
 };
