@@ -1,161 +1,161 @@
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/BrightAidApplication.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Dto/AdminActivityDto.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Dto/AdminDto.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Dto/AdminNotificationDto.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Dto/AuthDTO.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Dto/AuthResponse.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Dto/DistrictDto.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Dto/DivisionDto.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Dto/DonationDto.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Dto/DonorDto.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Dto/DonorGamificationDto.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Dto/DropoutPredictionDto.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Dto/DropoutPredictionResponse.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Dto/FinancialReportDto.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Dto/FundTransparencyDto.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Dto/FundUtilizationDto.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Dto/MonthlyReportDto.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Dto/NgoDto.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Dto/NgoProjectDto.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Dto/NgoProjectSchoolDto.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Dto/PaymentTransactionDto.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Dto/ProjectTypeDto.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Dto/ProjectUpdateDto.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Dto/SchoolDocumentDto.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Dto/SchoolDto.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Dto/SchoolProjectDto.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Dto/StudentAttendanceDto.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Dto/StudentDto.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Dto/UpazilaDto.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Dto/UserDTO.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Dto/UserProfileDto.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Dto/VerificationDocumentDto.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Dto/VerificationRequestDto.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Entity/Admin.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Entity/AdminActivity.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Entity/AdminNotification.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Entity/BaseEntity.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Entity/District.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Entity/Division.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Entity/Donation.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Entity/Donor.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Entity/DonorGamification.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Entity/DropoutPrediction.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Entity/FinancialReport.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Entity/FundTransparency.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Entity/FundUtilization.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Entity/MonthlyReport.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Entity/Ngo.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Entity/NgoProject.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Entity/NgoProjectSchool.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Entity/PaymentTransaction.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Entity/ProjectType.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Entity/ProjectUpdate.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Entity/School.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Entity/SchoolDocument.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Entity/SchoolProject.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Entity/Student.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Entity/StudentAttendance.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Entity/SystemMetric.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Entity/Upazila.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Entity/User.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Entity/UserProfile.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Entity/VerificationDocument.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Entity/VerificationRequest.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Security/CustomUserDetailsService.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Security/JwtAuthenticationFilter.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Security/JwtUtil.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/Security/SwaggerConfig.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/config/WebConfig.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/controller/AdminActivityController.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/controller/AdminController.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/controller/AdminNotificationController.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/controller/AuthController.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/controller/DistrictController.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/controller/DivisionController.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/controller/DonationController.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/controller/DonorController.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/controller/DonorGamificationController.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/controller/DropoutPredictionController.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/controller/FinancialReportController.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/controller/FundTransparencyController.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/controller/FundUtilizationController.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/controller/MonthlyReportController.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/controller/NgoController.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/controller/NgoProjectController.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/controller/NgoProjectSchoolController.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/controller/PaymentTransactionController.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/controller/ProjectTypeController.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/controller/ProjectUpdateController.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/controller/SchoolController.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/controller/SchoolDocumentController.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/controller/SchoolProjectController.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/controller/StudentAttendanceController.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/controller/StudentController.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/controller/UpazilaController.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/controller/UserController.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/controller/UserProfileController.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/controller/VerificationDocumentController.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/controller/VerificationRequestController.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/repository/AdminActivityRepository.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/repository/AdminNotificationRepository.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/repository/AdminRepository.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/repository/DistrictRepository.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/repository/DivisionRepository.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/repository/DonationRepository.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/repository/DonorGamificationRepository.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/repository/DonorRepository.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/repository/DropoutPredictionRepository.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/repository/FinancialReportRepository.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/repository/FundTransparencyRepository.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/repository/FundUtilizationRepository.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/repository/MonthlyReportRepository.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/repository/NgoProjectRepository.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/repository/NgoProjectSchoolRepository.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/repository/NgoRepository.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/repository/PaymentTransactionRepository.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/repository/ProjectTypeRepository.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/repository/ProjectUpdateRepository.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/repository/SchoolDocumentRepository.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/repository/SchoolProjectRepository.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/repository/SchoolRepository.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/repository/StudentAttendanceRepository.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/repository/StudentRepository.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/repository/SystemMetricRepository.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/repository/UpazilaRepository.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/repository/UserProfileRepository.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/repository/UserRepository.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/repository/VerificationDocumentRepository.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/repository/VerificationRequestRepository.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/service/AdminActivityService.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/service/AdminNotificationService.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/service/AdminService.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/service/AuthService.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/service/DistrictService.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/service/DivisionService.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/service/DonationService.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/service/DonorGamificationService.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/service/DonorService.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/service/DropoutPredictionService.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/service/FinancialReportService.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/service/FundTransparencyService.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/service/FundUtilizationService.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/service/ImageService.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/service/MonthlyReportService.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/service/NgoProjectSchoolService.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/service/NgoProjectService.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/service/NgoService.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/service/PaymentTransactionService.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/service/ProjectTypeService.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/service/ProjectUpdateService.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/service/SchoolDocumentService.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/service/SchoolProjectService.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/service/SchoolService.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/service/SecurityConfig.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/service/StudentAttendanceService.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/service/StudentService.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/service/UpazilaService.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/service/UserProfileService.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/service/UserService.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/service/VerificationDocumentService.java
-/Users/user/Desktop/BrightAid/Backend/src/main/java/com/example/Bright_Aid/service/VerificationRequestService.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\BrightAidApplication.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\config\WebConfig.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\AdminActivityController.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\AdminController.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\AdminNotificationController.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\AuthController.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\DistrictController.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\DivisionController.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\DonationController.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\DonorController.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\DonorGamificationController.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\DropoutPredictionController.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\FinancialReportController.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\FundTransparencyController.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\FundUtilizationController.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\MonthlyReportController.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\NgoController.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\NgoProjectController.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\NgoProjectSchoolController.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\PaymentTransactionController.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\ProjectTypeController.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\ProjectUpdateController.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\SchoolController.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\SchoolDocumentController.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\SchoolProjectController.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\StudentAttendanceController.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\StudentController.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\UpazilaController.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\UserController.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\UserProfileController.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\VerificationDocumentController.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\VerificationRequestController.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\AdminActivityDto.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\AdminDto.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\AdminNotificationDto.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\AuthDTO.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\AuthResponse.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\DistrictDto.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\DivisionDto.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\DonationDto.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\DonorDto.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\DonorGamificationDto.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\DropoutPredictionDto.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\DropoutPredictionResponse.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\FinancialReportDto.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\FundTransparencyDto.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\FundUtilizationDto.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\MonthlyReportDto.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\NgoDto.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\NgoProjectDto.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\NgoProjectSchoolDto.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\PaymentTransactionDto.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\ProjectTypeDto.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\ProjectUpdateDto.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\SchoolDocumentDto.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\SchoolDto.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\SchoolProjectDto.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\StudentAttendanceDto.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\StudentDto.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\UpazilaDto.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\UserDTO.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\UserProfileDto.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\VerificationDocumentDto.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\VerificationRequestDto.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\Admin.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\AdminActivity.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\AdminNotification.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\BaseEntity.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\District.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\Division.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\Donation.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\Donor.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\DonorGamification.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\DropoutPrediction.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\FinancialReport.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\FundTransparency.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\FundUtilization.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\MonthlyReport.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\Ngo.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\NgoProject.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\NgoProjectSchool.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\PaymentTransaction.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\ProjectType.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\ProjectUpdate.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\School.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\SchoolDocument.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\SchoolProject.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\Student.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\StudentAttendance.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\SystemMetric.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\Upazila.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\User.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\UserProfile.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\VerificationDocument.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\VerificationRequest.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\repository\AdminActivityRepository.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\repository\AdminNotificationRepository.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\repository\AdminRepository.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\repository\DistrictRepository.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\repository\DivisionRepository.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\repository\DonationRepository.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\repository\DonorGamificationRepository.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\repository\DonorRepository.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\repository\DropoutPredictionRepository.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\repository\FinancialReportRepository.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\repository\FundTransparencyRepository.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\repository\FundUtilizationRepository.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\repository\MonthlyReportRepository.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\repository\NgoProjectRepository.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\repository\NgoProjectSchoolRepository.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\repository\NgoRepository.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\repository\PaymentTransactionRepository.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\repository\ProjectTypeRepository.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\repository\ProjectUpdateRepository.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\repository\SchoolDocumentRepository.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\repository\SchoolProjectRepository.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\repository\SchoolRepository.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\repository\StudentAttendanceRepository.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\repository\StudentRepository.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\repository\SystemMetricRepository.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\repository\UpazilaRepository.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\repository\UserProfileRepository.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\repository\UserRepository.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\repository\VerificationDocumentRepository.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\repository\VerificationRequestRepository.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Security\CustomUserDetailsService.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Security\JwtAuthenticationFilter.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Security\JwtUtil.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Security\SwaggerConfig.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\AdminActivityService.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\AdminNotificationService.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\AdminService.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\AuthService.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\DistrictService.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\DivisionService.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\DonationService.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\DonorGamificationService.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\DonorService.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\DropoutPredictionService.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\FinancialReportService.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\FundTransparencyService.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\FundUtilizationService.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\ImageService.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\MonthlyReportService.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\NgoProjectSchoolService.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\NgoProjectService.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\NgoService.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\PaymentTransactionService.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\ProjectTypeService.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\ProjectUpdateService.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\SchoolDocumentService.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\SchoolProjectService.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\SchoolService.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\SecurityConfig.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\StudentAttendanceService.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\StudentService.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\UpazilaService.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\UserProfileService.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\UserService.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\VerificationDocumentService.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\VerificationRequestService.java

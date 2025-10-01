@@ -4,6 +4,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import './index.css'
 import App from './App.jsx'
 import { AppProvider } from './context/AppContext.jsx'
+import { DonorProvider } from './context/DonorContext.jsx'
 import SignUp from './components/Authentication/Signup/SignUp.jsx'
 import SignUp1 from './components/Authentication/SignUp1.jsx'
 import SchoolProfilePage from './components/Authentication/Signup/SchoolProfilePage.jsx'
@@ -14,6 +15,9 @@ import SchoolStudents from './components/SchoolStudents'
 import SchoolProjects from './components/SchoolProjects'
 import ProjectDetails from './components/ProjectDetails'
 import DonorDashboard from './components/DonorDashboard'
+import DonorProjectView from './components/DonorProjectView'
+import DonorStudentsView from './components/DonorStudentsView'
+import Reporting from './components/Reporting'
 import NgoDashboard from './components/NgoDashboard'
 import DonorProfile from './components/DonorProfile'
 import NgoProfile from './components/NgoProfile'
@@ -87,6 +91,18 @@ const router = createBrowserRouter([
     element: <DonorDashboard /> 
   },
   { 
+    path: "/donor-projects/:donorId", 
+    element: <DonorProjectView /> 
+  },
+  { 
+    path: "/donor-students/:donorId", 
+    element: <DonorStudentsView /> 
+  },
+  { 
+    path: "/donor-reporting/:donorId", 
+    element: <Reporting /> 
+  },
+  { 
     path: "/ngo-dashboard/:ngoId", 
     element: <NgoDashboard /> 
   },
@@ -106,7 +122,9 @@ const router = createBrowserRouter([
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <AppProvider>
-      <RouterProvider router={router} />
+      <DonorProvider>
+        <RouterProvider router={router} />
+      </DonorProvider>
     </AppProvider>
   </StrictMode>,
 );
