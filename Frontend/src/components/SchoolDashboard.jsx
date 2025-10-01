@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { ChevronRight, MoreVertical, Users, Briefcase, Plus, Download } from 'lucide-react';
+import { ChevronRight, MoreVertical, Users, Briefcase, Plus, Download, Camera } from 'lucide-react';
 import Sidebar from './DashSidebar';
 import SchoolStudents from './SchoolStudents';
+import ImageUpload from './ImageUpload';
+import { API_BASE_URL } from '../config/api';
 
 // Empty data structure
 const emptyData = {
@@ -21,9 +23,6 @@ export default function SchoolDashboard() {
   const [apiError, setApiError] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [selectedProject, setSelectedProject] = useState(null);
-  
-  // API Base URL - Update this to your backend URL
-  const API_BASE_URL = 'http://localhost:8081/api';
 
   useEffect(() => {
     if (schoolId) {
@@ -37,20 +36,28 @@ export default function SchoolDashboard() {
       console.log('Fetching data for school ID:', schoolId);
       
       // Fetch all data in parallel - using available endpoints
-      const [schoolRes, studentsRes, projectsRes, donationsRes] = await Promise.all([
+      const [schoolRes, studentsRes, studentCountRes, projectsRes, donationsRes] = await Promise.all([
         fetch(`${API_BASE_URL}/schools/${schoolId}`).catch(() => null),
         fetch(`${API_BASE_URL}/students`).catch(() => null),
+        fetch(`${API_BASE_URL}/students/count/school/${schoolId}`).catch(() => null),
         fetch(`${API_BASE_URL}/school-projects`).catch(() => null),
         fetch(`${API_BASE_URL}/donations`).catch(() => null),
       ]);
 
       const newData = { ...emptyData };
       
+      // Get actual student count from backend
+      let actualStudentCount = 0;
+      if (studentCountRes && studentCountRes.ok) {
+        const countData = await studentCountRes.json();
+        actualStudentCount = countData.count || 0;
+      }
+      
       if (schoolRes && schoolRes.ok) {
         const schoolData = await schoolRes.json();
         newData.school = {
           ...schoolData,
-          total_students: schoolData.totalStudents || schoolData.total_students || 0,
+          total_students: actualStudentCount, // Use actual count from backend
           active_projects: schoolData.activeProjects || schoolData.active_projects || 0,
           total_received: schoolData.totalReceived || schoolData.total_received || 0
         };
@@ -129,9 +136,8 @@ export default function SchoolDashboard() {
         }));
       }
 
-      // Update school data with calculated counts
+      // Update school data with calculated project count only
       if (newData.school) {
-        newData.school.total_students = newData.students.length;
         newData.school.active_projects = newData.projects.length;
       }
       
@@ -231,8 +237,43 @@ export default function SchoolDashboard() {
               {data.school?.address || 'Address not available'}
             </div>
           </div>
-          <div className="w-96 h-48 rounded-xl overflow-hidden shadow-lg">
-            <div className="w-full h-full bg-gradient-to-br from-green-600 to-green-800"></div>
+          <div className="w-96 h-48 rounded-xl overflow-hidden shadow-lg relative group">
+            <div className="w-full h-full bg-gradient-to-br from-green-600 to-green-800 flex items-center justify-center">
+              <div className="text-white text-6xl opacity-20">🏫</div>
+            </div>
+            <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <label className="cursor-pointer">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      const formData = new FormData();
+                      formData.append('image', file);
+                      const authData = JSON.parse(localStorage.getItem('authData') || '{}');
+                      const userId = authData.user?.userId;
+                      if (userId) {
+                        fetch(`http://localhost:8081/api/images/user/${userId}`, {
+                          method: 'POST',
+                          body: formData,
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                          console.log('User image updated:', data.imagePath);
+                          fetchDashboardData();
+                        })
+                        .catch(error => console.error('Error uploading image:', error));
+                      }
+                    }
+                  }}
+                  className="hidden"
+                />
+                <div className="bg-white bg-opacity-90 rounded-full p-3 hover:bg-opacity-100 transition-all">
+                  <Camera className="w-6 h-6 text-gray-700" />
+                </div>
+              </label>
+            </div>
           </div>
         </div>
 

@@ -18,7 +18,7 @@ const SignUp = () => {
         return <DocumentVerificationPage />;
       case "/approval":
         return <ApprovalPage />;
-      default:
+      default: 
         return <RegistrationPage />;
     }
   };

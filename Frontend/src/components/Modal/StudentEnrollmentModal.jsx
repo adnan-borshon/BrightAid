@@ -74,13 +74,15 @@ const StudentEnrollmentModal = ({ isOpen, onClose, onSubmit }) => {
     // Append all form fields
     Object.keys(formData).forEach((key) => {
       if (formData[key] !== null && formData[key] !== "") {
-        if (key === "profile_image" && formData[key]) {
-          submitData.append(key, formData[key]);
-        } else if (key === "family_monthly_income") {
-          submitData.append(key, formData[key] || null);
-        } else {
-          submitData.append(key, formData[key]);
-        }
+        // if (key === "profile_image" && formData[key]) {
+        //   submitData.append(key, formData[key]);
+        // } else if (key === "family_monthly_income") {
+        //   submitData.append(key, formData[key] || null);
+        // } else {
+        //   submitData.append(key, formData[key]);
+        // }
+                  submitData.append(key, formData[key]);
+
       }
     });
 
