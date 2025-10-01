@@ -19,7 +19,7 @@ public class NgoDto {
 
     private Integer ngoId;
 
-    private Integer ngoProjectId;
+
 
     @NotNull(message = "User ID is required")
     private Integer userId;
@@ -41,9 +41,7 @@ public class NgoDto {
 
     private LocalDateTime verifiedAt;
 
-    private Integer verifiedBy;
 
-    private List<Integer> projectIds;
 
     private LocalDateTime createdAt;
 

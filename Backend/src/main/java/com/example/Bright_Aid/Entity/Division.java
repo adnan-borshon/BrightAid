@@ -39,7 +39,5 @@ public class Division {
     @ToString.Exclude
     private List<School> schools;
 
-    @OneToMany(mappedBy = "division", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @ToString.Exclude
-    private List<Donor> donors;
+
 }

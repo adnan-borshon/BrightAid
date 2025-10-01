@@ -1,46 +1,36 @@
 package com.example.Bright_Aid.Dto;
 
-import lombok.*;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Min;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Builder;
+import lombok.Data;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class DonorGamificationDto {
 
+    // For response
     private Integer gamificationId;
-
-    @NotNull(message = "Donor ID is required")
     private Integer donorId;
-
-    @Min(value = 0, message = "Total points must be non-negative")
-    @Builder.Default
-    private Integer totalPoints = 0;
-
+    private String donorName;
+    private String organizationName;
+    private Integer totalPoints;
     private String currentLevel;
-
     private List<String> badgesEarned;
-
     private Integer rankingPosition;
-
     private LocalDateTime lastUpdated;
 
-    // Nested DTO for donor information (optional, for response enrichment)
-    private DonorBasicDto donor;
-
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class DonorBasicDto {
-        private Integer donorId;
-        private String organizationName;
-        private Boolean isAnonymous;
-        private String userName; // From User entity
-        private String userEmail; // From User entity
-    }
+    // For request - hidden from JSON response
+    @JsonIgnore
+    private Integer donorIdRequest;
+    @JsonIgnore
+    private Integer totalPointsRequest;
+    @JsonIgnore
+    private String currentLevelRequest;
+    @JsonIgnore
+    private List<String> badgesEarnedRequest;
+    @JsonIgnore
+    private Integer rankingPositionRequest;
 }

@@ -54,9 +54,5 @@ public class DivisionController {
         return ResponseEntity.ok(schoolIds);
     }
 
-    @GetMapping("/{divisionId}/donors")
-    public ResponseEntity<List<Integer>> getDonorIds(@PathVariable Integer divisionId) {
-        List<Integer> donorIds = divisionService.getDonorIds(divisionId);
-        return ResponseEntity.ok(donorIds);
-    }
+
 }

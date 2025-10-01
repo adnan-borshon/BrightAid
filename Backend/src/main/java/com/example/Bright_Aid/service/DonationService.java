@@ -52,27 +52,72 @@ public class DonationService {
         PaymentTransaction transaction = null;
         if (donationDto.getTransactionId() != null) {
             transaction = paymentTransactionRepository.findById(donationDto.getTransactionId())
-                    .orElseThrow(() -> new RuntimeException("Transaction not found"));
+                    .orElse(null); // Make transaction optional
         }
 
-        Donation donation = Donation.builder()
-                .donationId(donationDto.getDonationId())
-                .donor(donor)
-                .project(project)
-                .student(student)
-                .amount(donationDto.getAmount())
-                .donationType(donationDto.getDonationType())
-                .transaction(transaction)
-                .paymentStatus(donationDto.getPaymentStatus() != null ?
-                        donationDto.getPaymentStatus() : Donation.PaymentStatus.PENDING)
-                .purpose(donationDto.getPurpose())
-                .donorMessage(donationDto.getDonorMessage())
-                .isAnonymous(donationDto.getIsAnonymous() != null ?
-                        donationDto.getIsAnonymous() : false)
-                .donatedAt(donationDto.getDonatedAt() != null ?
-                        donationDto.getDonatedAt() : LocalDateTime.now())
-                .paymentCompletedAt(donationDto.getPaymentCompletedAt())
-                .build();
+        Donation donation;
+        if (donationDto.getDonationId() != null && donationDto.getDonationId() > 0) {
+            // Try to update existing donation, create new if not found
+            donation = donationRepository.findById(donationDto.getDonationId())
+                    .orElse(null);
+            
+            if (donation != null) {
+                // Update existing donation
+                donation.setDonor(donor);
+                donation.setProject(project);
+                donation.setStudent(student);
+                donation.setAmount(donationDto.getAmount());
+                donation.setDonationType(donationDto.getDonationType());
+                donation.setTransaction(transaction);
+                donation.setPaymentStatus(donationDto.getPaymentStatus() != null ?
+                        donationDto.getPaymentStatus() : Donation.PaymentStatus.PENDING);
+                donation.setPurpose(donationDto.getPurpose());
+                donation.setDonorMessage(donationDto.getDonorMessage());
+                donation.setIsAnonymous(donationDto.getIsAnonymous() != null ?
+                        donationDto.getIsAnonymous() : false);
+                donation.setDonatedAt(donationDto.getDonatedAt() != null ?
+                        donationDto.getDonatedAt() : LocalDateTime.now());
+                donation.setPaymentCompletedAt(donationDto.getPaymentCompletedAt());
+            } else {
+                // Create new donation if existing not found
+                donation = Donation.builder()
+                        .donor(donor)
+                        .project(project)
+                        .student(student)
+                        .amount(donationDto.getAmount())
+                        .donationType(donationDto.getDonationType())
+                        .transaction(transaction)
+                        .paymentStatus(donationDto.getPaymentStatus() != null ?
+                                donationDto.getPaymentStatus() : Donation.PaymentStatus.PENDING)
+                        .purpose(donationDto.getPurpose())
+                        .donorMessage(donationDto.getDonorMessage())
+                        .isAnonymous(donationDto.getIsAnonymous() != null ?
+                                donationDto.getIsAnonymous() : false)
+                        .donatedAt(donationDto.getDonatedAt() != null ?
+                                donationDto.getDonatedAt() : LocalDateTime.now())
+                        .paymentCompletedAt(donationDto.getPaymentCompletedAt())
+                        .build();
+            }
+        } else {
+            // Create new donation
+            donation = Donation.builder()
+                    .donor(donor)
+                    .project(project)
+                    .student(student)
+                    .amount(donationDto.getAmount())
+                    .donationType(donationDto.getDonationType())
+                    .transaction(transaction)
+                    .paymentStatus(donationDto.getPaymentStatus() != null ?
+                            donationDto.getPaymentStatus() : Donation.PaymentStatus.PENDING)
+                    .purpose(donationDto.getPurpose())
+                    .donorMessage(donationDto.getDonorMessage())
+                    .isAnonymous(donationDto.getIsAnonymous() != null ?
+                            donationDto.getIsAnonymous() : false)
+                    .donatedAt(donationDto.getDonatedAt() != null ?
+                            donationDto.getDonatedAt() : LocalDateTime.now())
+                    .paymentCompletedAt(donationDto.getPaymentCompletedAt())
+                    .build();
+        }
 
         Donation saved = donationRepository.save(donation);
         return mapToDto(saved);
@@ -140,7 +185,7 @@ public class DonationService {
                 .isAnonymous(donation.getIsAnonymous())
                 .donatedAt(donation.getDonatedAt())
                 .paymentCompletedAt(donation.getPaymentCompletedAt())
-                .fundUtilizationId(donation.getFundUtilization() != null ? donation.getFundUtilization().getUtilizationId() : null)
+
                 .createdAt(donation.getCreatedAt())
                 .updatedAt(donation.getUpdatedAt())
                 .build();
