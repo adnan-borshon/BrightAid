@@ -169,6 +169,13 @@ public class DonationService {
         return updatePaymentStatus(donationId, Donation.PaymentStatus.FAILED);
     }
 
+    // Get donations by donor ID
+    public List<DonationDto> getDonationsByDonor(Integer donorId) {
+        return donationRepository.findByDonor_DonorId(donorId).stream()
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
+    }
+
     // Map Donation entity to DTO
     private DonationDto mapToDto(Donation donation) {
         return DonationDto.builder()

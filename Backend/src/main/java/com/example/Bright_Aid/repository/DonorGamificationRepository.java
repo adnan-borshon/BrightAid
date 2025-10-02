@@ -34,4 +34,24 @@ public interface DonorGamificationRepository extends JpaRepository<DonorGamifica
     // Find gamification by donor entity
     @Query(value = "SELECT * FROM donor_gamification WHERE donor_id = :#{#donor.donorId}", nativeQuery = true)
     java.util.Optional<DonorGamification> findByDonor(@Param("donor") com.example.Bright_Aid.Entity.Donor donor);
+    
+    // Find single gamification by donor ID - returns Optional for single result
+    @Query(value = "SELECT * FROM donor_gamification WHERE donor_id = :donorId LIMIT 1", nativeQuery = true)
+    java.util.Optional<DonorGamification> findByDonor_DonorId(@Param("donorId") Integer donorId);
+    
+    // Count unique schools from donor's sponsored students and projects
+    @Query(value = """
+        SELECT COUNT(DISTINCT school_id) FROM (
+            SELECT st.school_id 
+            FROM donation d 
+            JOIN student st ON d.student_id = st.student_id 
+            WHERE d.donor_id = :donorId AND d.student_id IS NOT NULL
+            UNION
+            SELECT sp.school_id 
+            FROM donation d 
+            JOIN school_project sp ON d.project_id = sp.project_id 
+            WHERE d.donor_id = :donorId AND d.project_id IS NOT NULL
+        ) AS unique_schools
+        """, nativeQuery = true)
+    Integer getUniqueSchoolsCountByDonor(@Param("donorId") Integer donorId);
 }

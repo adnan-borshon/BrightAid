@@ -48,6 +48,22 @@ public class DonorGamificationController {
         return ResponseEntity.noContent().build();
     }
 
+    // GET gamification by donor ID
+    @GetMapping("/donor/{donorId}")
+    public ResponseEntity<DonorGamificationDto> getByDonorId(@PathVariable Integer donorId) {
+        return ResponseEntity.ok(donorGamificationService.getGamificationByDonorId(donorId));
+    }
+
+    // GET unique schools count for donor
+    @GetMapping("/donor/{donorId}/unique-schools")
+    public ResponseEntity<Integer> getUniqueSchoolsCount(@PathVariable Integer donorId) {
+        return ResponseEntity.ok(donorGamificationService.getUniqueSchoolsCount(donorId));
+    }
+
+    // GET donor statistics
+    @GetMapping("/donor/{donorId}/stats")
+    public ResponseEntity<com.example.Bright_Aid.Dto.DonorStatsDto> getDonorStats(@PathVariable Integer donorId) {
+        return ResponseEntity.ok(donorGamificationService.getDonorStats(donorId));
+    }
 
 }
-

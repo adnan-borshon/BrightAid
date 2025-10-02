@@ -21,6 +21,11 @@ public class DonorGamificationDto {
     private List<String> badgesEarned;
     private Integer rankingPosition;
     private LocalDateTime lastUpdated;
+    
+    // Progress to next level fields
+    private Integer pointsToNextLevel;
+    private Double progressPercentage;
+    private String nextLevel;
 
     // For request - hidden from JSON response
     @JsonIgnore

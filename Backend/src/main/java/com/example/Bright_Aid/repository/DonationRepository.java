@@ -13,5 +13,20 @@ import java.util.List;
 @Repository
 public interface DonationRepository extends JpaRepository<Donation, Integer> {
 
+    // Find donations by donor ID
+    List<Donation> findByDonor_DonorId(Integer donorId);
+
+    // Find donations by project ID
+    List<Donation> findByProject_ProjectId(Integer projectId);
+
+    // Find donations by student ID
+    List<Donation> findByStudent_StudentId(Integer studentId);
+
+    // Find donations by payment status
+    List<Donation> findByPaymentStatus(Donation.PaymentStatus paymentStatus);
+
+    // Custom query to get donor statistics
+    @Query("SELECT SUM(d.amount) FROM Donation d WHERE d.donor.donorId = :donorId AND d.paymentStatus = 'COMPLETED'")
+    BigDecimal getTotalDonatedByDonor(@Param("donorId") Integer donorId);
 
 }

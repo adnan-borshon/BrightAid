@@ -54,6 +54,10 @@ const handleInputChange = (e) => { const { name, value } = e.target; setFormData
       };
       
       localStorage.setItem('authData', JSON.stringify(authData));
+      // IMPORTANT: Save userId separately for easy access
+      localStorage.setItem('userId', data.user.userId.toString());
+      
+      console.log('✅ Login successful - userId saved:', data.user.userId);
       
       // Navigate based on user type
       if (data.user.userType === 'SCHOOL') {
@@ -87,6 +91,9 @@ const handleInputChange = (e) => { const { name, value } = e.target; setFormData
               (donor.userId || donor.user_id) === data.user.userId
             );
             if (userDonor) {
+              // Save donorId for quick access
+              localStorage.setItem('donorId', (userDonor.donorId || userDonor.donor_id).toString());
+              console.log('✅ Donor ID saved:', userDonor.donorId || userDonor.donor_id);
               navigate(`/donor-dashboard/${userDonor.donorId || userDonor.donor_id}`);
             } else {
               navigate('/donor-profile'); // If no donor found, complete profile

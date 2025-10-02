@@ -307,7 +307,8 @@ public class PaymentTransactionService {
             gamification.setCurrentLevel(calculateLevel(gamification.getTotalPoints()));
             
             // Update badges
-            gamification.setBadgesEarned(calculateBadges(gamification.getTotalPoints()));
+            List<String> badges = calculateBadges(gamification.getTotalPoints());
+            gamification.setBadgesEarned(badges);
             
             gamification.setLastUpdated(LocalDateTime.now());
             

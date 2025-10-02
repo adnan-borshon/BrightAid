@@ -21,14 +21,34 @@ public interface DonorRepository extends JpaRepository<Donor, Integer> {
     @Query("SELECT d FROM Donor d WHERE d.isAnonymous = true")
     List<Donor> findAllAnonymousDonors();
 
-    // 3. Get donors who donated more than X
-    @Query("SELECT d FROM Donor d WHERE d.totalDonated > :amount")
-    List<Donor> findByTotalDonatedGreaterThan(@Param("amount") BigDecimal amount);
 
-
-
-    // 5. Top N donors by totalDonated
-    @Query("SELECT d FROM Donor d ORDER BY d.totalDonated DESC")
-    List<Donor> findTopDonors(org.springframework.data.domain.Pageable pageable);
+    
+    // Calculate total donated amount for a donor
+    @Query(value = "SELECT COALESCE(SUM(amount), 0) FROM donation WHERE donor_id = :donorId", nativeQuery = true)
+    BigDecimal calculateTotalDonated(@Param("donorId") Integer donorId);
+    
+    // Calculate total schools supported for a donor
+    @Query(value = """
+        SELECT COUNT(DISTINCT school_id) FROM (
+            SELECT st.school_id 
+            FROM donation d 
+            JOIN student st ON d.student_id = st.student_id 
+            WHERE d.donor_id = :donorId AND d.student_id IS NOT NULL
+            UNION
+            SELECT sp.school_id 
+            FROM donation d 
+            JOIN school_project sp ON d.project_id = sp.project_id 
+            WHERE d.donor_id = :donorId AND d.project_id IS NOT NULL
+        ) AS unique_schools
+        """, nativeQuery = true)
+    Integer calculateTotalSchoolsSupported(@Param("donorId") Integer donorId);
+    
+    // Calculate total students sponsored for a donor
+    @Query(value = "SELECT COUNT(DISTINCT student_id) FROM donation WHERE donor_id = :donorId AND student_id IS NOT NULL", nativeQuery = true)
+    Integer calculateTotalStudentsSponsored(@Param("donorId") Integer donorId);
+    
+    // Calculate total projects donated for a donor
+    @Query(value = "SELECT COUNT(DISTINCT project_id) FROM donation WHERE donor_id = :donorId AND project_id IS NOT NULL", nativeQuery = true)
+    Integer calculateTotalProjectsDonated(@Param("donorId") Integer donorId);
 
 }

@@ -121,10 +121,12 @@ const router = createBrowserRouter([
 ])
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <AppProvider>
       <DonorProvider>
+    <AppProvider>
+    
         <RouterProvider router={router} />
-      </DonorProvider>
+      
     </AppProvider>
+    </DonorProvider>
   </StrictMode>,
 );

@@ -61,4 +61,10 @@ public class DonationController {
         DonationDto donation = donationService.updatePaymentStatus(donationId, paymentStatus);
         return ResponseEntity.ok(donation);
     }
+
+    @GetMapping("/donor/{donorId}")
+    public ResponseEntity<List<DonationDto>> getDonationsByDonor(@PathVariable Integer donorId) {
+        List<DonationDto> donations = donationService.getDonationsByDonor(donorId);
+        return ResponseEntity.ok(donations);
+    }
 }

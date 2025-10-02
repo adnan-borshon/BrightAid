@@ -39,17 +39,7 @@ public class Donor extends BaseEntity {
     @Builder.Default
     private Boolean isAnonymous = false;
 
-    @Column(name = "total_donated", precision = 15, scale = 2)
-    @Builder.Default
-    private BigDecimal totalDonated = BigDecimal.ZERO;
 
-    @Column(name = "total_schools_supported")
-    @Builder.Default
-    private Integer totalSchoolsSupported = 0;
-
-    @Column(name = "total_students_sponsored")
-    @Builder.Default
-    private Integer totalStudentsSponsored = 0;
 
 
 

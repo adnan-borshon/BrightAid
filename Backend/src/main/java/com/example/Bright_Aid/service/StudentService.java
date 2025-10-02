@@ -177,5 +177,10 @@ public String saveStudentImage(MultipartFile file, Integer studentId) {
         return studentRepository.countStudentsBySchoolId(schoolId);
     }
 
+    public List<StudentDto> getStudentsSponsoredByDonor(Integer donorId) {
+        return studentRepository.findStudentsSponsoredByDonor(donorId)
+                .stream().map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
 
 }

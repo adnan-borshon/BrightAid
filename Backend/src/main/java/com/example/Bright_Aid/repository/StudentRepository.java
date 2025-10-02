@@ -47,4 +47,32 @@ public interface StudentRepository extends JpaRepository<Student, Integer> {
     // ✅ Count students by school ID
     @Query(value = "SELECT COUNT(*) FROM students WHERE school_id = :schoolId", nativeQuery = true)
     Long countStudentsBySchoolId(@Param("schoolId") Integer schoolId);
+
+    // Find students sponsored by a specific donor
+    @Query("SELECT DISTINCT d.student FROM Donation d WHERE d.donor.donorId = :donorId AND d.student IS NOT NULL")
+    List<Student> findStudentsSponsoredByDonor(@Param("donorId") Integer donorId);
+
+    // Native query to get students sponsored by donor with school info
+    @Query(value = """
+        SELECT DISTINCT 
+            s.student_id,
+            s.student_name,
+            s.student_id_number,
+            s.gender,
+            s.date_of_birth,
+            s.class_level,
+            s.profile_image,
+            s.family_monthly_income,
+            s.has_scholarship,
+            sch.school_name,
+            sch.school_id
+        FROM students s
+        JOIN donations don ON s.student_id = don.student_id
+        JOIN schools sch ON s.school_id = sch.school_id
+        WHERE don.donor_id = :donorId 
+        AND don.payment_status = 'COMPLETED'
+        ORDER BY s.student_name
+        """, nativeQuery = true)
+    List<Object[]> findSponsoredStudentsWithSchoolByDonorId(@Param("donorId") Integer donorId);
+
 }

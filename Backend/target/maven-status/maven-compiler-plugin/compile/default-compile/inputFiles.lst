@@ -9,7 +9,6 @@ C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\DonationController.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\DonorController.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\DonorGamificationController.java
-C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\DropoutPredictionController.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\FinancialReportController.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\FundTransparencyController.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\FundUtilizationController.java
@@ -40,6 +39,7 @@ C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\DonationDto.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\DonorDto.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\DonorGamificationDto.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\DonorStatsDto.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\DropoutPredictionDto.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\DropoutPredictionResponse.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\FinancialReportDto.java

@@ -1,18 +1,39 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Search, MapPin, GraduationCap, Calendar, X, FileText, User, Home as HomeIcon, Phone, Award } from "lucide-react";
-import { useApp } from "@/context/AppContext";
+import { useDonor } from "@/context/DonorContext";
 import Sidebar from './DonorDashSidebar';
 
 export default function DonorStudentsView() {
   const { donorId } = useParams();
-  const { studentsData, loading } = useApp();
+  const { donorData, sponsoredStudentsData, loading, refreshDonorData, API_BASE_URL } = useDonor();
+  const [studentsData, setStudentsData] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStudent, setSelectedStudent] = useState(null);
 
   useEffect(() => {
-    // Students data is already loaded from AppContext
+    const userId = localStorage.getItem('userId');
+    if (userId) {
+      refreshDonorData(userId);
+    }
   }, []);
+
+  useEffect(() => {
+    // Use sponsored students data from context instead of fetching all students
+    setStudentsData(sponsoredStudentsData || []);
+  }, [sponsoredStudentsData]);
+
+  const fetchAllStudents = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/students`);
+      if (response.ok) {
+        const data = await response.json();
+        setStudentsData(Array.isArray(data) ? data : []);
+      }
+    } catch (error) {
+      console.error('Error fetching students:', error);
+    }
+  };
 
   const filterStudents = () => {
     return studentsData.filter(
@@ -47,9 +68,9 @@ export default function DonorStudentsView() {
       <div className="flex-1 overflow-auto bg-white">
       <div className="border-b">
         <div className="p-6">
-          <h1 className="text-2xl font-bold mb-1">My Funded Students</h1>
+          <h1 className="text-2xl font-bold mb-1">Sponsored Students</h1>
           <p className="text-gray-600 text-sm">
-            View progress and track academic performance of students you support
+            Students you have sponsored through donations
           </p>
 
           <div className="relative mt-6 max-w-md">
@@ -76,7 +97,7 @@ export default function DonorStudentsView() {
             <div className="grid gap-4">
               {filterStudents().length === 0 ? (
                 <div className="text-center py-12">
-                  <p className="text-gray-500">No students found.</p>
+                  <p className="text-gray-500">No sponsored students found.</p>
                   <p className="text-sm text-gray-400 mt-2">Students you sponsor will appear here.</p>
                 </div>
               ) : (

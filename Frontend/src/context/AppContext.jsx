@@ -25,6 +25,11 @@ export const AppProvider = ({ children }) => {
         const data = await response.json();
         setSchoolData(data);
         return data;
+      } else {
+        console.error(`Error fetching school data: ${response.status} ${response.statusText}`);
+        if (response.status === 404) {
+          console.error(`School with ID ${schoolId} not found`);
+        }
       }
     } catch (error) {
       console.error('Error fetching school data:', error);
@@ -70,11 +75,19 @@ export const AppProvider = ({ children }) => {
 
   const refreshData = async (schoolId) => {
     setLoading(true);
-    await Promise.all([
-      fetchSchoolData(schoolId),
-      fetchStudentsData(schoolId),
-      fetchProjectsData(schoolId)
-    ]);
+    try {
+      const schoolData = await fetchSchoolData(schoolId);
+      if (schoolData) {
+        await Promise.all([
+          fetchStudentsData(schoolId),
+          fetchProjectsData(schoolId)
+        ]);
+      } else {
+        console.error(`School with ID ${schoolId} not found. Please check if this school exists.`);
+      }
+    } catch (error) {
+      console.error('Error refreshing data:', error);
+    }
     setLoading(false);
   };
 
