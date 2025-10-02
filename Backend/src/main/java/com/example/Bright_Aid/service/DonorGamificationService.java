@@ -41,7 +41,6 @@ public class DonorGamificationService {
                 .totalPoints(dto.getTotalPointsRequest())
                 .currentLevel(dto.getCurrentLevelRequest())
                 .badgesEarned(dto.getBadgesEarnedRequest())
-                .rankingPosition(dto.getRankingPositionRequest())
                 .lastUpdated(LocalDateTime.now())
                 .build();
 
@@ -61,7 +60,6 @@ public class DonorGamificationService {
         if (dto.getTotalPointsRequest() != null) gamification.setTotalPoints(dto.getTotalPointsRequest());
         if (dto.getCurrentLevelRequest() != null) gamification.setCurrentLevel(dto.getCurrentLevelRequest());
         if (dto.getBadgesEarnedRequest() != null) gamification.setBadgesEarned(dto.getBadgesEarnedRequest());
-        if (dto.getRankingPositionRequest() != null) gamification.setRankingPosition(dto.getRankingPositionRequest());
 
         gamification.setLastUpdated(LocalDateTime.now());
 
@@ -77,6 +75,9 @@ public class DonorGamificationService {
         double progressPercent = calculateProgressPercentage(points, level);
         String nextLevel = getNextLevel(level);
         
+        // Calculate ranking dynamically
+        Integer ranking = gamificationRepository.calculateDonorRanking(entity.getDonor().getDonorId());
+        
         return DonorGamificationDto.builder()
                 .gamificationId(entity.getGamificationId())
                 .donorId(entity.getDonor().getDonorId())
@@ -85,7 +86,7 @@ public class DonorGamificationService {
                 .totalPoints(entity.getTotalPoints())
                 .currentLevel(entity.getCurrentLevel())
                 .badgesEarned(entity.getBadgesEarned())
-                .rankingPosition(entity.getRankingPosition())
+                .rankingPosition(ranking != null ? ranking : 999)
                 .lastUpdated(entity.getLastUpdated())
                 .pointsToNextLevel(pointsToNext)
                 .progressPercentage(progressPercent)
@@ -117,7 +118,7 @@ public class DonorGamificationService {
                 .totalPoints(0)
                 .currentLevel("Bronze")
                 .badgesEarned(java.util.Arrays.asList("New Donor"))
-                .rankingPosition(999)
+                .rankingPosition(999) // Default ranking for new donors
                 .lastUpdated(java.time.LocalDateTime.now())
                 .pointsToNextLevel(1000)
                 .progressPercentage(0.0)

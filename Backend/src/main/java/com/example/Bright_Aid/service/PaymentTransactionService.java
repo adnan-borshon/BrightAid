@@ -149,8 +149,13 @@ public class PaymentTransactionService {
     public Map<String, Object> initiateSSLCommerzPayment(Integer donorId, BigDecimal amount, 
                                                         String productName, String productCategory) {
         try {
-            Donor donor = donorRepository.findById(donorId).orElseThrow();
+            System.out.println("Initiating payment for donorId: " + donorId);
+            
+            Donor donor = donorRepository.findById(donorId)
+                    .orElseThrow(() -> new RuntimeException("Donor not found with ID: " + donorId));
             String transactionRef = "TXN_" + UUID.randomUUID().toString().substring(0, 8);
+            System.out.println("Generated transaction reference: " + transactionRef);
+            System.out.println("Donor found: " + donor.getDonorName());
             
             // Create transaction record
             PaymentTransaction transaction = PaymentTransaction.builder()
@@ -171,6 +176,7 @@ public class PaymentTransactionService {
                     .build();
             
             PaymentTransaction savedTransaction = paymentTransactionRepository.save(transaction);
+            System.out.println("Transaction saved with ID: " + savedTransaction.getTransactionId());
             
             // Prepare SSLCommerz request
             MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
@@ -243,6 +249,8 @@ public class PaymentTransactionService {
             );
             
         } catch (Exception e) {
+            System.err.println("Payment initiation error: " + e.getMessage());
+            e.printStackTrace();
             return Map.of(
                 "status", "ERROR",
                 "message", "Error initiating payment: " + e.getMessage()
@@ -262,6 +270,8 @@ public class PaymentTransactionService {
                 case "VALIDATED":
                     transaction.setStatus(PaymentTransaction.TransactionStatus.SUCCESS);
                     transaction.setCompletedAt(LocalDateTime.now());
+                    // Create donation record for successful payment
+                    createDonationFromTransaction(transaction);
                     // Award points for successful payment
                     awardPointsForDonation(transaction.getDonor(), transaction.getAmount());
                     break;
@@ -296,7 +306,6 @@ public class PaymentTransactionService {
                             .donor(donor)
                             .totalPoints(0)
                             .currentLevel("Bronze")
-                            .rankingPosition(999)
                             .lastUpdated(LocalDateTime.now())
                             .build());
             
@@ -339,5 +348,46 @@ public class PaymentTransactionService {
         if (totalPoints >= 50000) badges.add("BrightAid Legend"); // ৳10,000
         
         return badges;
+    }
+    
+    // Create donation record from successful payment transaction
+    private void createDonationFromTransaction(PaymentTransaction transaction) {
+        try {
+            Donation donation = Donation.builder()
+                    .donor(transaction.getDonor())
+                    .amount(transaction.getAmount())
+                    .donationType(mapTransactionTypeToDonationType(transaction.getTransactionType()))
+                    .purpose(mapTransactionTypeToPurpose(transaction.getTransactionType()))
+                    .paymentStatus(Donation.PaymentStatus.COMPLETED)
+                    .donorMessage("Payment via " + transaction.getPaymentMethod())
+                    .isAnonymous(false)
+                    .donatedAt(LocalDateTime.now())
+                    .paymentCompletedAt(LocalDateTime.now())
+                    .build();
+            
+            Donation savedDonation = donationRepository.save(donation);
+            
+            // Link the donation to the transaction
+            transaction.setDonation(savedDonation);
+            paymentTransactionRepository.save(transaction);
+            
+        } catch (Exception e) {
+            System.err.println("Error creating donation from transaction: " + e.getMessage());
+        }
+    }
+    
+    private Donation.DonationType mapTransactionTypeToDonationType(PaymentTransaction.TransactionType transactionType) {
+        // All payments are one-time donations for now
+        return Donation.DonationType.ONE_TIME;
+    }
+    
+    private Donation.DonationPurpose mapTransactionTypeToPurpose(PaymentTransaction.TransactionType transactionType) {
+        switch (transactionType) {
+            case SPONSORSHIP:
+                return Donation.DonationPurpose.STUDENT_SPONSORSHIP;
+            case DONATION:
+            default:
+                return Donation.DonationPurpose.GENERAL_SUPPORT;
+        }
     }
 }

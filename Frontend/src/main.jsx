@@ -22,6 +22,8 @@ import NgoDashboard from './components/NgoDashboard'
 import DonorProfile from './components/DonorProfile'
 import NgoProfile from './components/NgoProfile'
 import Login from './components/Authentication/Login'
+import PaymentSuccess from './components/PaymentSuccess'
+import PaymentClose from './components/PaymentClose'
 
 
 const router = createBrowserRouter([
@@ -117,6 +119,14 @@ const router = createBrowserRouter([
   { 
     path: "/ngo-profile", 
     element: <NgoProfile /> 
+  },
+  { 
+    path: "/payment-success", 
+    element: <PaymentSuccess /> 
+  },
+  { 
+    path: "/payment-close", 
+    element: <PaymentClose /> 
   },
 ])
 createRoot(document.getElementById('root')).render(

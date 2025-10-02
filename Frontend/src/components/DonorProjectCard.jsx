@@ -1,13 +1,12 @@
 import { MapPin, Calendar } from "lucide-react";
 
-export default function DonorProjectCard({ project, onProjectClick }) {
+export default function DonorProjectCard({ project, onProjectClick, onDonateClick }) {
   const progressPercentage = ((project.raisedAmount || 0) / (project.requiredAmount || 100000)) * 100;
 
   return (
     <div
       key={project.projectId || project.id}
-      className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow cursor-pointer"
-      onClick={() => onProjectClick && onProjectClick(project)}
+      className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow"
     >
       <div className="flex justify-between items-start mb-4">
         <div>
@@ -52,6 +51,27 @@ export default function DonorProjectCard({ project, onProjectClick }) {
         <div className="text-sm text-gray-600 mt-1">
           {progressPercentage.toFixed(1)}% funded
         </div>
+      </div>
+      
+      <div className="flex gap-3 mt-4">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onProjectClick && onProjectClick(project);
+          }}
+          className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
+        >
+          View Details
+        </button>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onDonateClick && onDonateClick(project);
+          }}
+          className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium"
+        >
+          Donate Now
+        </button>
       </div>
     </div>
   );

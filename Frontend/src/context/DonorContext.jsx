@@ -173,14 +173,22 @@ const fetchGamificationData = async (donorId) => {
   };
 
   const fetchDonorStats = async (donorId) => {
-    if (!donorId) return null;
+    if (!donorId) {
+      console.log('No donorId provided for stats fetch');
+      return null;
+    }
     
     try {
-      const response = await fetch(`${API_BASE_URL}/donor-gamifications/donor/${donorId}/stats`);
+      const url = `${API_BASE_URL}/donor-gamifications/donor/${donorId}/stats`;
+      console.log('Fetching donor stats from:', url);
+      const response = await fetch(url);
       
       if (response.ok) {
         const stats = await response.json();
+        console.log('Donor stats received:', stats);
         return stats;
+      } else {
+        console.error('Donor stats API error:', response.status, response.statusText);
       }
     } catch (error) {
       console.error('Error fetching donor statistics:', error);

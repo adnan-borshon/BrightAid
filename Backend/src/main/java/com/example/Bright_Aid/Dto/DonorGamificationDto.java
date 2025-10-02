@@ -19,8 +19,10 @@ public class DonorGamificationDto {
     private Integer totalPoints;
     private String currentLevel;
     private List<String> badgesEarned;
-    private Integer rankingPosition;
     private LocalDateTime lastUpdated;
+    
+    // Calculated dynamically - not stored in database
+    private Integer rankingPosition;
     
     // Progress to next level fields
     private Integer pointsToNextLevel;
@@ -36,6 +38,4 @@ public class DonorGamificationDto {
     private String currentLevelRequest;
     @JsonIgnore
     private List<String> badgesEarnedRequest;
-    @JsonIgnore
-    private Integer rankingPositionRequest;
 }

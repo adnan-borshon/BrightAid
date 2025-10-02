@@ -13,6 +13,7 @@ import {
   Info,
 } from "lucide-react";
 import { useDonor } from "@/context/DonorContext";
+import { useToast } from "@/hooks/use-toast";
 import DonorBrowseSchoolDialog from "@/components/Dialog/DonorBrowseSchoolDialog";
 import DonorDonationDialog from "@/components/Dialog/DonorDonationDialog";
 import DonorProjectDialog from "@/components/Dialog/DonorProjectDialog";
@@ -57,6 +58,7 @@ const mockStudentsForSponsorship = [
 
 export default function DonorDashboard() {
   const { donorId } = useParams();
+  const { toast } = useToast();
   const { 
     donorData, 
     donationsData, 
@@ -73,6 +75,7 @@ export default function DonorDashboard() {
   const [activeTab, setActiveTab] = useState("available");
   const [browseSchoolsOpen, setBrowseSchoolsOpen] = useState(false);
   const [donationDialogOpen, setDonationDialogOpen] = useState(false);
+  const [donationDialogData, setDonationDialogData] = useState(null);
   const [selectedProject, setSelectedProject] = useState(null);
   const [projectDetailsOpen, setProjectDetailsOpen] = useState(false);
 
@@ -81,6 +84,45 @@ export default function DonorDashboard() {
     if (userId) {
       refreshDonorData(userId);
     }
+
+    // Listen for payment completion messages from popup window
+    const handlePaymentMessage = (event) => {
+      if (event.origin !== window.location.origin) return;
+      
+      if (event.data.type === 'PAYMENT_COMPLETE') {
+        const { status, transactionId } = event.data;
+        
+        if (status === 'VALID') {
+          toast({
+            title: "Payment Successful!",
+            description: "Your donation has been processed successfully. Thank you for your contribution!",
+          });
+          // Refresh donor data to show updated stats
+          const userId = localStorage.getItem('userId');
+          if (userId) {
+            refreshDonorData(userId);
+          }
+        } else if (status === 'FAILED') {
+          toast({
+            title: "Payment Failed",
+            description: "Your payment could not be processed. Please try again.",
+            variant: "destructive"
+          });
+        } else if (status === 'CANCELLED') {
+          toast({
+            title: "Payment Cancelled",
+            description: "You have cancelled the payment.",
+            variant: "destructive"
+          });
+        }
+      }
+    };
+
+    window.addEventListener('message', handlePaymentMessage);
+    
+    return () => {
+      window.removeEventListener('message', handlePaymentMessage);
+    };
   }, []);
 
   // Use calculated statistics from backend
@@ -177,6 +219,10 @@ export default function DonorDashboard() {
         <DonorDonationDialog
           open={donationDialogOpen}
           onOpenChange={setDonationDialogOpen}
+          donationType={donationDialogData?.donationType}
+          title={donationDialogData?.title}
+          description={donationDialogData?.description}
+          itemData={donationDialogData?.itemData}
         />
         <DonorProjectDialog
           open={projectDetailsOpen}
@@ -227,7 +273,18 @@ export default function DonorDashboard() {
                       <br />
                       Schools throughout Bangladesh
                     </p>
-                    <button className="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700">
+                    <button 
+                      onClick={() => {
+                        setDonationDialogData({
+                          donationType: "student",
+                          title: "Sponsor a Student",
+                          description: "Help provide education opportunities for students in need",
+                          itemData: null // Don't show student info in dialog
+                        });
+                        setDonationDialogOpen(true);
+                      }}
+                      className="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700"
+                    >
                       Start Now
                     </button>
                   </div>
@@ -261,7 +318,14 @@ export default function DonorDashboard() {
                     Browse Schools
                   </button>
                   <button
-                    onClick={() => setDonationDialogOpen(true)}
+                    onClick={() => {
+                      setDonationDialogData({
+                        donationType: "general",
+                        title: "Make a Donation",
+                        description: "Support education initiatives across Bangladesh"
+                      });
+                      setDonationDialogOpen(true);
+                    }}
                     className="bg-white border border-gray-300 px-4 py-2 rounded-lg font-semibold flex items-center gap-2 hover:bg-gray-50"
                   >
                     <DollarSign size={18} />
@@ -351,6 +415,15 @@ export default function DonorDashboard() {
                           setSelectedProject(project);
                           setProjectDetailsOpen(true);
                         }}
+                        onDonateClick={(project) => {
+                          setDonationDialogData({
+                            donationType: "project",
+                            title: "Project Donation",
+                            description: "Support this specific project to help students and schools",
+                            itemData: project
+                          });
+                          setDonationDialogOpen(true);
+                        }}
                       />
                     ))}
                     
@@ -376,11 +449,12 @@ export default function DonorDashboard() {
                 progressPercentage={gamificationData?.progressPercentage}
               />
               {/* Debug info */}
-              <div className="bg-white p-4 rounded-lg border text-xs">
+              {/* <div className="bg-white p-4 rounded-lg border text-xs">
                 <h4 className="font-bold mb-2">Debug Info:</h4>
+                <p>Donor Stats: {JSON.stringify(donorStats, null, 2)}</p>
                 <p>Gamification Data: {JSON.stringify(gamificationData, null, 2)}</p>
                 <p>Donor Data: {JSON.stringify(donorData, null, 2)}</p>
-              </div>
+              </div> */}
               <DonorRecentActivityFeed activities={recentActivities} />
             </div>
           </div>

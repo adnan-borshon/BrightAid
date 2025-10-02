@@ -42,9 +42,6 @@ public class DonorGamification {
     @Column(name = "badges_earned", columnDefinition = "JSON")
     private List<String> badgesEarned;
 
-    @Column(name = "ranking_position")
-    private Integer rankingPosition;
-
     // Denormalized donor name
     @Column(name = "donor_name")
     private String donorName;

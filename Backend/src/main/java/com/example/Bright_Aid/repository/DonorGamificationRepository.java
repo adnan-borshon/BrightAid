@@ -43,15 +43,27 @@ public interface DonorGamificationRepository extends JpaRepository<DonorGamifica
     @Query(value = """
         SELECT COUNT(DISTINCT school_id) FROM (
             SELECT st.school_id 
-            FROM donation d 
-            JOIN student st ON d.student_id = st.student_id 
+            FROM donations d 
+            JOIN students st ON d.student_id = st.student_id 
             WHERE d.donor_id = :donorId AND d.student_id IS NOT NULL
             UNION
             SELECT sp.school_id 
-            FROM donation d 
-            JOIN school_project sp ON d.project_id = sp.project_id 
+            FROM donations d 
+            JOIN school_projects sp ON d.project_id = sp.project_id 
             WHERE d.donor_id = :donorId AND d.project_id IS NOT NULL
         ) AS unique_schools
         """, nativeQuery = true)
     Integer getUniqueSchoolsCountByDonor(@Param("donorId") Integer donorId);
+    
+    // Calculate donor ranking based on total points using native query
+    @Query(value = """
+        SELECT ranking FROM (
+            SELECT donor_id, 
+                   total_points,
+                   RANK() OVER (ORDER BY total_points DESC) as ranking
+            FROM donor_gamification
+        ) ranked_donors 
+        WHERE donor_id = :donorId
+        """, nativeQuery = true)
+    Integer calculateDonorRanking(@Param("donorId") Integer donorId);
 }
