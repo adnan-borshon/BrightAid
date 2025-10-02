@@ -22,6 +22,8 @@ import NgoDashboard from './components/NgoDashboard'
 import DonorProfile from './components/DonorProfile'
 import NgoProfile from './components/NgoProfile'
 import Login from './components/Authentication/Login'
+import PaymentSuccess from './components/PaymentSuccess'
+import PaymentClose from './components/PaymentClose'
 
 
 const router = createBrowserRouter([
@@ -87,19 +89,19 @@ const router = createBrowserRouter([
     element: <div className="p-8 text-center"><h1 className="text-2xl font-bold">Settings</h1><p className="text-gray-600 mt-2">Coming Soon...</p></div> 
   },
   { 
-    path: "/donor-dashboard/:donorId", 
+    path: "/donor-dashboard/:id", 
     element: <DonorDashboard /> 
   },
   { 
-    path: "/donor-projects/:donorId", 
+    path: "/donor-projects/:id", 
     element: <DonorProjectView /> 
   },
   { 
-    path: "/donor-students/:donorId", 
+    path: "/donor-students/:id", 
     element: <DonorStudentsView /> 
   },
   { 
-    path: "/donor-reporting/:donorId", 
+    path: "/donor-reporting/:id", 
     element: <Reporting /> 
   },
   { 
@@ -118,13 +120,23 @@ const router = createBrowserRouter([
     path: "/ngo-profile", 
     element: <NgoProfile /> 
   },
+  { 
+    path: "/payment-success", 
+    element: <PaymentSuccess /> 
+  },
+  { 
+    path: "/payment-close", 
+    element: <PaymentClose /> 
+  },
 ])
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <AppProvider>
       <DonorProvider>
+    <AppProvider>
+    
         <RouterProvider router={router} />
-      </DonorProvider>
+      
     </AppProvider>
+    </DonorProvider>
   </StrictMode>,
 );

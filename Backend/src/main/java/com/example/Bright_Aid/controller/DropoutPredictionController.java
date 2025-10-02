@@ -1,11 +1,8 @@
 package com.example.Bright_Aid.controller;
 
 import com.example.Bright_Aid.Dto.DropoutPredictionDto;
-import com.example.Bright_Aid.Entity.DropoutPrediction;
-import com.example.Bright_Aid.Entity.Student;
-import com.example.Bright_Aid.repository.StudentRepository;
+import com.example.Bright_Aid.Dto.DropoutPredictionRequestDto;
 import com.example.Bright_Aid.service.DropoutPredictionService;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,61 +14,46 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DropoutPredictionController {
 
-    private final DropoutPredictionService predictionService;
-    private final StudentRepository studentRepository;
+    private final DropoutPredictionService dropoutPredictionService;
 
-    // Single student calculation
-    @PostMapping("/calculate/{studentId}")
-    public ResponseEntity<DropoutPredictionDto> calculateRiskForStudent(
-            @PathVariable Integer studentId,
-            @RequestParam double attendanceRate,
-            @RequestParam double familyMonthlyIncome,
-            @RequestParam boolean fatherAlive,
-            @RequestParam boolean motherAlive,
-            @RequestParam(required = false) String interventionNotes) {
-
-        Student student = studentRepository.findById(studentId)
-                .orElseThrow(() -> new RuntimeException("Student not found"));
-
-        DropoutPrediction prediction = predictionService.calculateAndSavePrediction(
-                student, attendanceRate, familyMonthlyIncome, fatherAlive, motherAlive, interventionNotes
-        );
-
-        return ResponseEntity.ok(DropoutPredictionDto.fromEntity(prediction));
+    // GET all dropout predictions
+    @GetMapping
+    public ResponseEntity<List<DropoutPredictionDto>> getAllPredictions() {
+        return ResponseEntity.ok(dropoutPredictionService.getAllPredictions());
     }
 
-    // Batch calculation
-    @PostMapping("/calculate/batch")
-    public ResponseEntity<List<DropoutPredictionDto>> calculateRiskForAllStudents(
-            @RequestBody List<StudentRiskDTO> studentRiskDTOs) {
-
-        List<DropoutPredictionDto> predictions = studentRiskDTOs.stream()
-                .map(dto -> {
-                    Student student = studentRepository.findById(dto.getStudentId())
-                            .orElseThrow(() -> new RuntimeException("Student not found: " + dto.getStudentId()));
-
-                    DropoutPrediction prediction = predictionService.calculateAndSavePrediction(
-                            student,
-                            dto.getAttendanceRate(),
-                            dto.getFamilyMonthlyIncome(),
-                            dto.isFatherAlive(),
-                            dto.isMotherAlive(),
-                            dto.getInterventionNotes()
-                    );
-                    return DropoutPredictionDto.fromEntity(prediction);
-                }).toList();
-
-        return ResponseEntity.ok(predictions);
+    // GET by ID
+    @GetMapping("/{id}")
+    public ResponseEntity<DropoutPredictionDto> getById(@PathVariable Integer id) {
+        return ResponseEntity.ok(dropoutPredictionService.getPredictionById(id));
     }
 
-    // Batch DTO
-    @Data
-    public static class StudentRiskDTO {
-        private Integer studentId;
-        private double attendanceRate;
-        private double familyMonthlyIncome;
-        private boolean fatherAlive;
-        private boolean motherAlive;
-        private String interventionNotes;
+    // GET by student ID
+    @GetMapping("/student/{studentId}")
+    public ResponseEntity<List<DropoutPredictionDto>> getByStudentId(@PathVariable Integer studentId) {
+        return ResponseEntity.ok(dropoutPredictionService.getPredictionsByStudentId(studentId));
+    }
+
+    // POST new prediction
+    @PostMapping
+    public ResponseEntity<DropoutPredictionDto> create(@RequestBody DropoutPredictionRequestDto request) {
+        return ResponseEntity.ok(dropoutPredictionService.createPrediction(
+            request.getStudentId(),
+            request.getAttendanceRate()
+        ));
+    }
+
+    // PUT update prediction
+    @PutMapping("/{id}")
+    public ResponseEntity<DropoutPredictionDto> update(@PathVariable Integer id,
+                                                       @RequestBody DropoutPredictionRequestDto request) {
+        return ResponseEntity.ok(dropoutPredictionService.updatePrediction(id, request.getAttendanceRate()));
+    }
+
+    // DELETE prediction
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Integer id) {
+        dropoutPredictionService.deletePrediction(id);
+        return ResponseEntity.noContent().build();
     }
 }

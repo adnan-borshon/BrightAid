@@ -31,15 +31,7 @@ public class DonorController {
         return donorService.getAnonymousDonors();
     }
 
-    @GetMapping("/min-donation/{amount}")
-    public List<DonorDto> getByMinDonation(@PathVariable BigDecimal amount) {
-        return donorService.getDonorsByMinDonation(amount);
-    }
 
-    @GetMapping("/top/{limit}")
-    public List<DonorDto> getTopDonors(@PathVariable int limit) {
-        return donorService.getTopDonors(limit);
-    }
 
     @GetMapping
     public List<DonorDto> getAllDonors() {

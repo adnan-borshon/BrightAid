@@ -71,10 +71,21 @@ button.secondary {
 
 /* Hover effect */
 button.secondary:hover {
-  background-color: #0E792E;     /* Green background */
-  color: #ffffff;                /* White text */
+  background-color: #0E792E;  
+  color: #ffffff;                
 }
 
+button.third {
+  background-color: #ffffff;
+  color: #0E792E;
+   cursor: pointer;
+}
+
+button.third:hover {
+  background-color: #f9fafb;  
+
+              
+}
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);

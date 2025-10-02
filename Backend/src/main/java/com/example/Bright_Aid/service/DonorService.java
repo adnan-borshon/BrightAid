@@ -26,9 +26,7 @@ public class DonorService {
         dto.setDonorName(donor.getDonorName());
         dto.setTaxId(donor.getTaxId());
         dto.setIsAnonymous(donor.getIsAnonymous());
-        dto.setTotalDonated(donor.getTotalDonated());
-        dto.setTotalSchoolsSupported(donor.getTotalSchoolsSupported());
-        dto.setTotalStudentsSponsored(donor.getTotalStudentsSponsored());
+
         return dto;
     }
 
@@ -38,10 +36,7 @@ public class DonorService {
         donor.setDonorName(dto.getDonorName());
         donor.setTaxId(dto.getTaxId());
         donor.setIsAnonymous(dto.getIsAnonymous() != null ? dto.getIsAnonymous() : false);
-        donor.setTotalDonated(dto.getTotalDonated() != null ? dto.getTotalDonated() : BigDecimal.ZERO);
-        donor.setTotalSchoolsSupported(dto.getTotalSchoolsSupported() != null ? dto.getTotalSchoolsSupported() : 0);
-        donor.setTotalStudentsSponsored(dto.getTotalStudentsSponsored() != null ? dto.getTotalStudentsSponsored() : 0);
-
+       
         // Link user only by ID
         if (dto.getUserId() != null) {
             User user = new User();
@@ -64,16 +59,6 @@ public class DonorService {
 
     public List<DonorDto> getAnonymousDonors() {
         return donorRepository.findAllAnonymousDonors()
-                .stream().map(this::toDTO).collect(Collectors.toList());
-    }
-
-    public List<DonorDto> getDonorsByMinDonation(BigDecimal amount) {
-        return donorRepository.findByTotalDonatedGreaterThan(amount)
-                .stream().map(this::toDTO).collect(Collectors.toList());
-    }
-
-    public List<DonorDto> getTopDonors(int limit) {
-        return donorRepository.findTopDonors(PageRequest.of(0, limit))
                 .stream().map(this::toDTO).collect(Collectors.toList());
     }
 

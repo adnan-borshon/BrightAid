@@ -17,13 +17,8 @@ public class DropoutPredictionDto {
 
     private Integer predictionId;
     private Integer studentId;
-    private Integer attendanceRate;
-    private Integer familyIncomeScore;
-    private Integer parentStatusScore;
-    private Integer overallRiskScore;
-    private DropoutPrediction.RiskLevel riskLevel;
-    private List<String> calculatedRiskFactors;
-    private String interventionNotes;
+    private Double attendanceRate;
+    private DropoutPrediction.RiskStatus riskStatus;
     private LocalDateTime lastCalculated;
 
     // Convert Entity → DTO
@@ -32,12 +27,7 @@ public class DropoutPredictionDto {
                 .predictionId(prediction.getPredictionId())
                 .studentId(prediction.getStudent().getStudentId())
                 .attendanceRate(prediction.getAttendanceRate())
-                .familyIncomeScore(prediction.getFamilyIncomeScore())
-                .parentStatusScore(prediction.getParentStatusScore())
-                .overallRiskScore(prediction.getOverallRiskScore())
-                .riskLevel(prediction.getRiskLevel())
-                .calculatedRiskFactors(prediction.getCalculatedRiskFactors())
-                .interventionNotes(prediction.getInterventionNotes())
+                .riskStatus(prediction.getRiskStatus())
                 .lastCalculated(prediction.getLastCalculated())
                 .build();
     }

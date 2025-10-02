@@ -13,6 +13,7 @@ import {
   Info,
 } from "lucide-react";
 import { useDonor } from "@/context/DonorContext";
+import { useToast } from "@/hooks/use-toast";
 import DonorBrowseSchoolDialog from "@/components/Dialog/DonorBrowseSchoolDialog";
 import DonorDonationDialog from "@/components/Dialog/DonorDonationDialog";
 import DonorProjectDialog from "@/components/Dialog/DonorProjectDialog";
@@ -20,7 +21,9 @@ import DonorDonationChart from "@/components/DonorDonationChart";
 import DonorDonationHistoryTable from "@/components/DonorDonationHistory";
 import DonorGamificationCard from "@/components/DonorGamificationCard";
 import DonorRecentActivityFeed from "@/components/DonorRecentActivity";
+import DonorProjectCard from "@/components/DonorProjectCard";
 import Sidebar from './DonorDashSidebar';
+import DonorProjectView from "./DonorProjectView";
 
 const mockStudentsForSponsorship = [
   {
@@ -54,12 +57,17 @@ const mockStudentsForSponsorship = [
 ];
 
 export default function DonorDashboard() {
-  const { donorId } = useParams();
+  const { id: userId } = useParams(); // URL param is now userId
+  const { toast } = useToast();
   const { 
     donorData, 
     donationsData, 
     projectsData, 
     schoolsData, 
+    sponsoredStudentsData,
+    gamificationData,
+    donorStats,
+    uniqueSchoolsCount,
     loading, 
     refreshDonorData 
   } = useDonor();
@@ -67,6 +75,7 @@ export default function DonorDashboard() {
   const [activeTab, setActiveTab] = useState("available");
   const [browseSchoolsOpen, setBrowseSchoolsOpen] = useState(false);
   const [donationDialogOpen, setDonationDialogOpen] = useState(false);
+  const [donationDialogData, setDonationDialogData] = useState(null);
   const [selectedProject, setSelectedProject] = useState(null);
   const [projectDetailsOpen, setProjectDetailsOpen] = useState(false);
 
@@ -75,47 +84,101 @@ export default function DonorDashboard() {
     if (userId) {
       refreshDonorData(userId);
     }
+
+    // Listen for payment completion messages from popup window
+    const handlePaymentMessage = (event) => {
+      if (event.origin !== window.location.origin) return;
+      
+      if (event.data.type === 'PAYMENT_COMPLETE') {
+        const { status, transactionId } = event.data;
+        
+        if (status === 'VALID') {
+          toast({
+            title: "Payment Successful!",
+            description: "Your donation has been processed successfully. Thank you for your contribution!",
+          });
+          // Refresh donor data to show updated stats
+          const userId = localStorage.getItem('userId');
+          if (userId) {
+            refreshDonorData(userId);
+          }
+        } else if (status === 'FAILED') {
+          toast({
+            title: "Payment Failed",
+            description: "Your payment could not be processed. Please try again.",
+            variant: "destructive"
+          });
+        } else if (status === 'CANCELLED') {
+          toast({
+            title: "Payment Cancelled",
+            description: "You have cancelled the payment.",
+            variant: "destructive"
+          });
+        }
+      }
+    };
+
+    window.addEventListener('message', handlePaymentMessage);
+    
+    return () => {
+      window.removeEventListener('message', handlePaymentMessage);
+    };
   }, []);
 
-  const totalDonated = donationsData.reduce((sum, donation) => sum + (donation.amount || 0), 0);
-  const uniqueSchools = new Set(projectsData.map(p => p.schoolId)).size;
-  const activeProjects = projectsData.filter(p => p.status === 'ACTIVE').length;
+  // Use calculated statistics from backend
+  const totalDonated = donorStats?.totalDonated || 0;
+  const schoolsSupported = donorStats?.totalSchoolsSupported || 0;
+  const studentsSponsored = donorStats?.totalStudentsSponsored || 0;
+  const donatedProjectsCount = donorStats?.totalProjectsDonated || 0;
+  
+
   
   const stats = [
     {
       label: "Total Donated",
-      value: `৳${totalDonated.toLocaleString()}`,
-      change: "+12%",
-      period: "Last 30 days",
+      value: `৳${Number(totalDonated).toLocaleString()}`,
+      change: "+1%",
+      period: "Lifetime donations",
       icon: DollarSign,
       color: "green",
     },
     {
       label: "Schools Supported",
-      value: uniqueSchools.toString(),
+      value: schoolsSupported.toString(),
       change: "+8%",
-      period: "Active partnerships",
+      period: "Unique schools",
       icon: School,
       color: "green",
     },
     {
       label: "Students Sponsored",
-      value: "0",
+      value: studentsSponsored.toString(),
       change: "",
-      period: "Direct beneficiaries",
+      period: "Direct sponsorships",
       icon: Users,
       color: "green",
     },
     {
-      label: "Active Projects",
-      value: activeProjects.toString(),
+      label: "Donated Projects",
+      value: donatedProjectsCount.toString(),
       change: "+3%",
-      period: "Ongoing initiatives",
+      period: "Projects supported",
       icon: TrendingUp,
       color: "green",
     },
   ];
 
+
+  const gamificationInfo = {
+    currentLevel: gamificationData?.currentLevel || "Bronze",
+    totalPoints: gamificationData?.totalPoints || 0,
+    badgesEarned: gamificationData?.badgesEarned || ["New Donor"],
+    rankingPosition: gamificationData?.rankingPosition || 999
+  };
+
+  console.log('Processed gamificationInfo:', gamificationInfo);
+
+  
   const handleViewDetails = (project) => {
     setSelectedProject(project);
     setProjectDetailsOpen(true);
@@ -130,13 +193,7 @@ export default function DonorDashboard() {
     amount: donation.amount || 0
   }));
 
-  const gamificationData = {
-    currentLevel: "Gold",
-    totalPoints: 8500,
-    pointsToNextLevel: 1500,
-    earnedBadges: ["School Supporter", "Child Guardian", "Top Contributor", "Early Adopter"],
-    rankingPosition: 12
-  };
+
 
   const recentActivities = donationsData.slice(-4).map((donation, index) => ({
     id: donation.id || index,
@@ -162,6 +219,10 @@ export default function DonorDashboard() {
         <DonorDonationDialog
           open={donationDialogOpen}
           onOpenChange={setDonationDialogOpen}
+          donationType={donationDialogData?.donationType}
+          title={donationDialogData?.title}
+          description={donationDialogData?.description}
+          itemData={donationDialogData?.itemData}
         />
         <DonorProjectDialog
           open={projectDetailsOpen}
@@ -212,7 +273,18 @@ export default function DonorDashboard() {
                       <br />
                       Schools throughout Bangladesh
                     </p>
-                    <button className="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700">
+                    <button 
+                      onClick={() => {
+                        setDonationDialogData({
+                          donationType: "student",
+                          title: "Sponsor a Student",
+                          description: "Help provide education opportunities for students in need",
+                          itemData: null // Don't show student info in dialog
+                        });
+                        setDonationDialogOpen(true);
+                      }}
+                      className="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700"
+                    >
                       Start Now
                     </button>
                   </div>
@@ -246,11 +318,44 @@ export default function DonorDashboard() {
                     Browse Schools
                   </button>
                   <button
-                    onClick={() => setDonationDialogOpen(true)}
+                    onClick={() => {
+                      setDonationDialogData({
+                        donationType: "general",
+                        title: "Make a Donation",
+                        description: "Support education initiatives across Bangladesh"
+                      });
+                      setDonationDialogOpen(true);
+                    }}
                     className="bg-white border border-gray-300 px-4 py-2 rounded-lg font-semibold flex items-center gap-2 hover:bg-gray-50"
                   >
                     <DollarSign size={18} />
                     Make Donation
+                  </button>
+                  <button
+                    onClick={() => {
+                      const userId = localStorage.getItem('userId');
+                      if (userId) refreshDonorData(userId);
+                    }}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700"
+                  >
+                    Refresh Data
+                  </button>
+                  <button
+                    onClick={async () => {
+                      const userId = localStorage.getItem('userId');
+                      if (userId && donorData?.donorId) {
+                        try {
+                          const response = await fetch(`http://localhost:8081/api/donor-gamifications/donor/${donorData.donorId}`);
+                          const data = await response.json();
+                          console.log('Direct API call result:', data);
+                        } catch (error) {
+                          console.error('Direct API call error:', error);
+                        }
+                      }
+                    }}
+                    className="bg-purple-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-purple-700"
+                  >
+                    Test API
                   </button>
                 </div>
               </div>
@@ -303,24 +408,23 @@ export default function DonorDashboard() {
 
                   <div className="space-y-4">
                     {activeTab === "available" && projectsData.map((project, idx) => (
-                      <div key={project.id || idx} className="border border-gray-200 rounded-lg p-5">
-                        <h4 className="font-bold text-lg">{project.projectTitle || project.title}</h4>
-                        <p className="text-gray-600 text-sm mb-4">{project.description || 'No description available'}</p>
-                        <div className="flex gap-3">
-                          <button
-                            onClick={() => handleViewDetails(project)}
-                            className="flex-1 border border-gray-300 px-4 py-2 rounded-lg font-semibold hover:bg-gray-50"
-                          >
-                            View Details
-                          </button>
-                          <button
-                            onClick={() => handleDonate(project)}
-                            className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700"
-                          >
-                            Donate Now
-                          </button>
-                        </div>
-                      </div>
+                      <DonorProjectCard 
+                        key={project.projectId || project.id || idx}
+                        project={project}
+                        onProjectClick={(project) => {
+                          setSelectedProject(project);
+                          setProjectDetailsOpen(true);
+                        }}
+                        onDonateClick={(project) => {
+                          setDonationDialogData({
+                            donationType: "project",
+                            title: "Project Donation",
+                            description: "Support this specific project to help students and schools",
+                            itemData: project
+                          });
+                          setDonationDialogOpen(true);
+                        }}
+                      />
                     ))}
                     
                     {activeTab === "history" && (
@@ -336,7 +440,21 @@ export default function DonorDashboard() {
             </div>
 
             <div className="space-y-6">
-              <DonorGamificationCard {...gamificationData} />
+              <DonorGamificationCard 
+                currentLevel={gamificationInfo.currentLevel}
+                totalPoints={gamificationInfo.totalPoints}
+                badgesEarned={gamificationInfo.badgesEarned}
+                rankingPosition={gamificationInfo.rankingPosition}
+                pointsToNextLevel={gamificationData?.pointsToNextLevel}
+                progressPercentage={gamificationData?.progressPercentage}
+              />
+              {/* Debug info */}
+              {/* <div className="bg-white p-4 rounded-lg border text-xs">
+                <h4 className="font-bold mb-2">Debug Info:</h4>
+                <p>Donor Stats: {JSON.stringify(donorStats, null, 2)}</p>
+                <p>Gamification Data: {JSON.stringify(gamificationData, null, 2)}</p>
+                <p>Donor Data: {JSON.stringify(donorData, null, 2)}</p>
+              </div> */}
               <DonorRecentActivityFeed activities={recentActivities} />
             </div>
           </div>

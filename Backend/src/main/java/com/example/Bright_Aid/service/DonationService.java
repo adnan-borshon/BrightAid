@@ -169,6 +169,21 @@ public class DonationService {
         return updatePaymentStatus(donationId, Donation.PaymentStatus.FAILED);
     }
 
+    // Get donations by donor ID
+    public List<DonationDto> getDonationsByDonor(Integer donorId) {
+        return donationRepository.findByDonor_DonorId(donorId).stream()
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
+    }
+
+    // Get donations by donor ID with transaction details and proper ordering (recent first)
+    public List<DonationDto> getDonationsByDonorWithDetails(Integer donorId) {
+        List<Object[]> results = donationRepository.findDonationsByDonorWithDetailsOrderByDateDesc(donorId);
+        return results.stream()
+                .map(this::mapResultToDto)
+                .collect(Collectors.toList());
+    }
+
     // Map Donation entity to DTO
     private DonationDto mapToDto(Donation donation) {
         return DonationDto.builder()
@@ -185,9 +200,31 @@ public class DonationService {
                 .isAnonymous(donation.getIsAnonymous())
                 .donatedAt(donation.getDonatedAt())
                 .paymentCompletedAt(donation.getPaymentCompletedAt())
-
                 .createdAt(donation.getCreatedAt())
                 .updatedAt(donation.getUpdatedAt())
+                .build();
+    }
+
+    // Map native query result to DTO with transaction and project details
+    private DonationDto mapResultToDto(Object[] result) {
+        return DonationDto.builder()
+                .donationId((Integer) result[0])
+                .donorId((Integer) result[1])
+                .projectId((Integer) result[2])
+                .studentId((Integer) result[3])
+                .amount((BigDecimal) result[4])
+                .donationType(result[5] != null ? Donation.DonationType.valueOf((String) result[5]) : null)
+                .transactionId((Integer) result[6])
+                .paymentStatus(result[7] != null ? Donation.PaymentStatus.valueOf((String) result[7]) : Donation.PaymentStatus.PENDING)
+                .purpose(result[8] != null ? Donation.DonationPurpose.valueOf((String) result[8]) : null)
+                .donorMessage((String) result[9])
+                .isAnonymous((Boolean) result[10])
+                .donatedAt(result[11] != null ? ((java.sql.Timestamp) result[11]).toLocalDateTime() : null)
+                .paymentCompletedAt(result[12] != null ? ((java.sql.Timestamp) result[12]).toLocalDateTime() : null)
+                .createdAt(result[13] != null ? ((java.sql.Timestamp) result[13]).toLocalDateTime() : null)
+                .updatedAt(result[14] != null ? ((java.sql.Timestamp) result[14]).toLocalDateTime() : null)
+                .transactionRef((String) result[15]) // Transaction reference from native query
+                .projectName((String) result[16]) // Project name from native query
                 .build();
     }
 }

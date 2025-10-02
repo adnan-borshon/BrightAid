@@ -35,15 +35,11 @@ public class DonorGamification {
     @Builder.Default
     private Integer totalPoints = 0;
 
-    @Column(name = "current_level")
-    private String currentLevel;
+
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "badges_earned", columnDefinition = "JSON")
     private List<String> badgesEarned;
-
-    @Column(name = "ranking_position")
-    private Integer rankingPosition;
 
     // Denormalized donor name
     @Column(name = "donor_name")

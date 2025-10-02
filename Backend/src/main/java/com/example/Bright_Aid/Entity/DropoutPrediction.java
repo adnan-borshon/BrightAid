@@ -35,35 +35,16 @@ public class DropoutPrediction extends BaseEntity {
     private Student student;
 
     @Column(name = "attendance_rate")
-    private Integer attendanceRate;
-
-    @Column(name = "family_income_score")
-    private Integer familyIncomeScore;
-
-    @Column(name = "parent_status_score")
-    @JsonProperty("parentStatusScore")
-    @EqualsAndHashCode.Include
-    private Integer parentStatusScore;
-
-    @Column(name = "overall_risk_score")
-    private Integer overallRiskScore;
+    private Double attendanceRate;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "risk_level", nullable = false)
-    private RiskLevel riskLevel;
-
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "calculated_risk_factors", columnDefinition = "JSON")
-    private List<String> calculatedRiskFactors;
-
-    @Lob
-    @Column(name = "intervention_notes")
-    private String interventionNotes;
+    @Column(name = "risk_status", nullable = false)
+    private RiskStatus riskStatus;
 
     @Column(name = "last_calculated", nullable = false)
     private LocalDateTime lastCalculated;
 
-    public enum RiskLevel {
-        LOW, MEDIUM, HIGH, CRITICAL
+    public enum RiskStatus {
+        LOW, MEDIUM, HIGH
     }
 }

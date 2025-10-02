@@ -23,7 +23,6 @@ C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\SchoolController.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\SchoolDocumentController.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\SchoolProjectController.java
-C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\StudentAttendanceController.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\StudentController.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\UpazilaController.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\UserController.java
@@ -40,7 +39,9 @@ C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\DonationDto.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\DonorDto.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\DonorGamificationDto.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\DonorStatsDto.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\DropoutPredictionDto.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\DropoutPredictionRequestDto.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\DropoutPredictionResponse.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\FinancialReportDto.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\FundTransparencyDto.java
@@ -55,7 +56,6 @@ C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\SchoolDocumentDto.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\SchoolDto.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\SchoolProjectDto.java
-C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\StudentAttendanceDto.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\StudentDto.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\UpazilaDto.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\UserDTO.java
@@ -86,7 +86,6 @@ C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\SchoolDocument.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\SchoolProject.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\Student.java
-C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\StudentAttendance.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\SystemMetric.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\Upazila.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\User.java
@@ -115,7 +114,6 @@ C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\repository\SchoolDocumentRepository.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\repository\SchoolProjectRepository.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\repository\SchoolRepository.java
-C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\repository\StudentAttendanceRepository.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\repository\StudentRepository.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\repository\SystemMetricRepository.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\repository\UpazilaRepository.java
@@ -152,7 +150,6 @@ C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\SchoolProjectService.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\SchoolService.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\SecurityConfig.java
-C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\StudentAttendanceService.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\StudentService.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\UpazilaService.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\UserProfileService.java

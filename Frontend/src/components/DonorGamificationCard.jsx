@@ -12,21 +12,32 @@ const levelColors = {
 };
 
 const badgeIcons = {
-  "School Supporter": Trophy,
-  "Child Guardian": Heart,
-  "Top Contributor": Star,
-  "Early Adopter": Sparkles,
+  "First Donation": Heart,
+  "Regular Supporter": Trophy,
+  "Dedicated Donor": Star,
+  "Major Contributor": Award,
+  "Project Champion": Trophy,
+  "Student Guardian": Heart,
+  "Top Supporter": Sparkles,
+  "New Donor": Award,
 };
 
 export default function DonorGamificationCard({
   currentLevel,
   totalPoints,
-  pointsToNextLevel,
-  earnedBadges,
   rankingPosition,
+  badgesEarned,
+  pointsToNextLevel,
+  progressPercentage
 }) {
-  const progressPercentage = (totalPoints / (totalPoints + pointsToNextLevel)) * 100;
 
+  // Use backend-provided values or fallback to local calculation
+  const pointsNeeded = pointsToNextLevel !== undefined ? pointsToNextLevel : 0;
+  const progress = progressPercentage !== undefined ? progressPercentage : 0;
+
+console.log("All props:", { currentLevel, totalPoints, rankingPosition, badgesEarned, pointsToNextLevel, progressPercentage });
+console.log("Point needed", pointsNeeded);
+console.log("Progress:", progress);  
   return (
     <Card>
       <CardHeader>
@@ -46,7 +57,7 @@ export default function DonorGamificationCard({
             </Badge>
           </div>
           <div className="space-y-1">
-            <p className="text-2xl font-bold font-mono" data-testid="text-total-points">{totalPoints.toLocaleString()}</p>
+            <p className="text-2xl font-bold font-mono" data-testid="text-total-points">{(totalPoints || 0).toLocaleString()}</p>
             <p className="text-sm text-muted-foreground">Total Points</p>
           </div>
         </div>
@@ -54,12 +65,12 @@ export default function DonorGamificationCard({
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Progress to next level</span>
-            <span className="font-medium">{pointsToNextLevel} pts needed</span>
+            <span className="font-medium">{pointsNeeded} pts needed</span>
           </div>
-          <Progress value={progressPercentage} className="h-2" />
+          <Progress value={Math.min(Math.max(progress, 0), 100)} className="h-2" />
         </div>
 
-        {rankingPosition && (
+        {rankingPosition && rankingPosition !== 999 && (
           <div className="text-center p-3 bg-accent rounded-lg">
             <p className="text-sm text-muted-foreground">Regional Ranking</p>
             <p className="text-xl font-bold" data-testid="text-ranking-position">#{rankingPosition}</p>
@@ -69,7 +80,7 @@ export default function DonorGamificationCard({
         <div>
           <h4 className="text-sm font-medium mb-3">Earned Badges</h4>
           <div className="grid grid-cols-2 gap-2">
-            {earnedBadges.map((badge) => {
+            {(badgesEarned || []).map((badge) => {
               const BadgeIcon = badgeIcons[badge] || Star;
               return (
                 <div

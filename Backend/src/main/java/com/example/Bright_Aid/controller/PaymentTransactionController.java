@@ -6,8 +6,10 @@ import com.example.Bright_Aid.service.PaymentTransactionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.view.RedirectView;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -21,6 +23,15 @@ import java.util.Map;
 public class PaymentTransactionController {
 
     private final PaymentTransactionService paymentTransactionService;
+    
+    @Value("${frontend.payment.success.url}")
+    private String frontendSuccessUrl;
+    
+    @Value("${frontend.payment.fail.url}")
+    private String frontendFailUrl;
+    
+    @Value("${frontend.payment.cancel.url}")
+    private String frontendCancelUrl;
 
     // Create
     @PostMapping
@@ -79,7 +90,7 @@ public class PaymentTransactionController {
     
     @PostMapping("/sslcommerz/success")
     @Operation(summary = "SSLCommerz Success Callback", description = "Handle successful payment callback from SSLCommerz")
-    public ResponseEntity<Map<String, String>> sslcommerzSuccess(@RequestParam Map<String, String> params) {
+    public RedirectView sslcommerzSuccess(@RequestParam Map<String, String> params) {
         String transactionRef = params.get("tran_id");
         String status = params.get("status");
         
@@ -87,40 +98,31 @@ public class PaymentTransactionController {
             paymentTransactionService.updatePaymentStatus(transactionRef, status, params);
         }
         
-        Map<String, String> response = new HashMap<>();
-        response.put("status", "success");
-        response.put("message", "Payment processed successfully");
-        return ResponseEntity.ok(response);
+        return new RedirectView(frontendSuccessUrl + "?status=" + status + "&tran_id=" + transactionRef);
     }
     
     @PostMapping("/sslcommerz/fail")
     @Operation(summary = "SSLCommerz Fail Callback", description = "Handle failed payment callback from SSLCommerz")
-    public ResponseEntity<Map<String, String>> sslcommerzFail(@RequestParam Map<String, String> params) {
+    public RedirectView sslcommerzFail(@RequestParam Map<String, String> params) {
         String transactionRef = params.get("tran_id");
         
         if (transactionRef != null) {
             paymentTransactionService.updatePaymentStatus(transactionRef, "FAILED", params);
         }
         
-        Map<String, String> response = new HashMap<>();
-        response.put("status", "failed");
-        response.put("message", "Payment failed");
-        return ResponseEntity.ok(response);
+        return new RedirectView(frontendFailUrl + "?status=FAILED&tran_id=" + transactionRef);
     }
     
     @PostMapping("/sslcommerz/cancel")
     @Operation(summary = "SSLCommerz Cancel Callback", description = "Handle cancelled payment callback from SSLCommerz")
-    public ResponseEntity<Map<String, String>> sslcommerzCancel(@RequestParam Map<String, String> params) {
+    public RedirectView sslcommerzCancel(@RequestParam Map<String, String> params) {
         String transactionRef = params.get("tran_id");
         
         if (transactionRef != null) {
             paymentTransactionService.updatePaymentStatus(transactionRef, "CANCELLED", params);
         }
         
-        Map<String, String> response = new HashMap<>();
-        response.put("status", "cancelled");
-        response.put("message", "Payment cancelled");
-        return ResponseEntity.ok(response);
+        return new RedirectView(frontendCancelUrl + "?status=CANCELLED&tran_id=" + transactionRef);
     }
     
     @PostMapping("/sslcommerz/ipn")

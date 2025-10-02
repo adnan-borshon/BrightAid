@@ -76,5 +76,10 @@ public class StudentController {
         return ResponseEntity.ok(Map.of("count", count));
     }
 
+    @GetMapping("/sponsored/donor/{donorId}")
+    public ResponseEntity<List<StudentDto>> getStudentsSponsoredByDonor(@PathVariable Integer donorId) {
+        List<StudentDto> students = studentService.getStudentsSponsoredByDonor(donorId);
+        return ResponseEntity.ok(students);
+    }
 
 }
