@@ -34,8 +34,7 @@ public class DonorGamificationDto {
     private Integer donorIdRequest;
     @JsonIgnore
     private Integer totalPointsRequest;
-    @JsonIgnore
-    private String currentLevelRequest;
+
     @JsonIgnore
     private List<String> badgesEarnedRequest;
 }

@@ -6,13 +6,13 @@ import { useDonor } from '../context/DonorContext';
 export default function DonorDashSidebar() {
   const { donationsData, projectsData } = useDonor();
   const navigate = useNavigate();
-  const { donorId } = useParams();
+  const { id: userId } = useParams(); // URL param is now userId
   const location = useLocation();
   const navItems = [
-    { name: 'Home', icon: Home, badge: null, path: `/donor-dashboard/${donorId}` },
-    { name: 'Projects', icon: Briefcase, badge: projectsData?.length?.toString() || '0', path: `/donor-projects/${donorId}` },
-    { name: 'Students', icon: Users, badge: '0', path: `/donor-students/${donorId}` },
-    { name: 'Reporting', icon: FileText, badge: null, path: `/donor-reporting/${donorId}` },
+    { name: 'Home', icon: Home, badge: null, path: `/donor-dashboard/${userId}` },
+    { name: 'Projects', icon: Briefcase, badge: projectsData?.length?.toString() || '0', path: `/donor-projects/${userId}` },
+    { name: 'Students', icon: Users, badge: '0', path: `/donor-students/${userId}` },
+    { name: 'Reporting', icon: FileText, badge: null, path: `/donor-reporting/${userId}` },
   ];
 
   const getActiveNav = () => {

@@ -53,4 +53,8 @@ public class DonationDto {
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+
+    // Additional fields for reporting with transaction and project details
+    private String transactionRef;
+    private String projectName;
 }

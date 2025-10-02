@@ -35,8 +35,7 @@ public class DonorGamification {
     @Builder.Default
     private Integer totalPoints = 0;
 
-    @Column(name = "current_level")
-    private String currentLevel;
+
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "badges_earned", columnDefinition = "JSON")

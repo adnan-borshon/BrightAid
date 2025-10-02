@@ -89,19 +89,19 @@ const router = createBrowserRouter([
     element: <div className="p-8 text-center"><h1 className="text-2xl font-bold">Settings</h1><p className="text-gray-600 mt-2">Coming Soon...</p></div> 
   },
   { 
-    path: "/donor-dashboard/:donorId", 
+    path: "/donor-dashboard/:id", 
     element: <DonorDashboard /> 
   },
   { 
-    path: "/donor-projects/:donorId", 
+    path: "/donor-projects/:id", 
     element: <DonorProjectView /> 
   },
   { 
-    path: "/donor-students/:donorId", 
+    path: "/donor-students/:id", 
     element: <DonorStudentsView /> 
   },
   { 
-    path: "/donor-reporting/:donorId", 
+    path: "/donor-reporting/:id", 
     element: <Reporting /> 
   },
   { 

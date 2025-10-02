@@ -65,5 +65,11 @@ public class DonorGamificationController {
     public ResponseEntity<com.example.Bright_Aid.Dto.DonorStatsDto> getDonorStats(@PathVariable Integer donorId) {
         return ResponseEntity.ok(donorGamificationService.getDonorStats(donorId));
     }
+    
+    // GET total project contributions
+    @GetMapping("/donor/{donorId}/project-contributions")
+    public ResponseEntity<java.math.BigDecimal> getTotalProjectContributions(@PathVariable Integer donorId) {
+        return ResponseEntity.ok(donorGamificationService.getTotalProjectContributions(donorId));
+    }
 
 }

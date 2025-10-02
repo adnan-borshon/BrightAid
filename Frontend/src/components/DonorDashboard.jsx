@@ -57,7 +57,7 @@ const mockStudentsForSponsorship = [
 ];
 
 export default function DonorDashboard() {
-  const { donorId } = useParams();
+  const { id: userId } = useParams(); // URL param is now userId
   const { toast } = useToast();
   const { 
     donorData, 

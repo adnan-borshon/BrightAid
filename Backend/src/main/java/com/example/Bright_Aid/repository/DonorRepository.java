@@ -50,5 +50,9 @@ public interface DonorRepository extends JpaRepository<Donor, Integer> {
     // Calculate total projects donated for a donor
     @Query(value = "SELECT COUNT(DISTINCT project_id) FROM donations WHERE donor_id = :donorId AND project_id IS NOT NULL", nativeQuery = true)
     Integer calculateTotalProjectsDonated(@Param("donorId") Integer donorId);
+    
+    // Calculate total amount donated to projects only
+    @Query(value = "SELECT COALESCE(SUM(amount), 0) FROM donations WHERE donor_id = :donorId AND project_id IS NOT NULL", nativeQuery = true)
+    BigDecimal calculateTotalProjectContributions(@Param("donorId") Integer donorId);
 
 }

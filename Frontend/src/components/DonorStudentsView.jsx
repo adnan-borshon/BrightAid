@@ -5,7 +5,7 @@ import { useDonor } from "@/context/DonorContext";
 import Sidebar from './DonorDashSidebar';
 
 export default function DonorStudentsView() {
-  const { donorId } = useParams();
+  const { id: userId } = useParams(); // URL param is now userId
   const { donorData, sponsoredStudentsData, loading, refreshDonorData, API_BASE_URL } = useDonor();
   const [studentsData, setStudentsData] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");

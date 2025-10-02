@@ -35,7 +35,6 @@ export default function DonorDonationDialog({
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     amount: "",
-    paymentMethod: "",
     message: "",
     isAnonymous: false,
   });
@@ -43,17 +42,17 @@ export default function DonorDonationDialog({
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!formData.amount || !formData.paymentMethod) {
+    if (!formData.amount) {
       toast({
         title: "Error",
-        description: "Please fill in all required fields.",
+        description: "Please enter donation amount.",
         variant: "destructive"
       });
       return;
     }
 
     try {
-      const donorId = localStorage.getItem('userId');
+      const donorId = localStorage.getItem('donorId');
       if (!donorId) {
         toast({
           title: "Error",
@@ -127,7 +126,6 @@ export default function DonorDonationDialog({
         // Reset form and close dialog
         setFormData({
           amount: "",
-          paymentMethod: "",
           message: "",
           isAnonymous: false,
         });
@@ -212,25 +210,7 @@ export default function DonorDonationDialog({
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="paymentMethod">Payment Method *</Label>
-              <Select
-                value={formData.paymentMethod}
-                onValueChange={(value) => setFormData({ ...formData, paymentMethod: value })}
-                required
-              >
-                <SelectTrigger data-testid="select-payment-method">
-                  <SelectValue placeholder="Select payment method" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="bkash">bKash</SelectItem>
-                  <SelectItem value="nagad">Nagad</SelectItem>
-                  <SelectItem value="rocket">Rocket</SelectItem>
-                  <SelectItem value="bank">Bank Transfer</SelectItem>
-                  <SelectItem value="card">Credit/Debit Card</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+
 
             <div className="space-y-2">
               <Label htmlFor="message">Message (Optional)</Label>

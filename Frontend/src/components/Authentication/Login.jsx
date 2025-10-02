@@ -82,7 +82,7 @@ const handleInputChange = (e) => { const { name, value } = e.target; setFormData
           navigate('/school-profile');
         }
       } else if (data.user.userType === 'DONOR') {
-        // Find donor ID and navigate to dashboard
+        // Fetch donor data to get donorId for backend operations
         try {
           const donorResponse = await fetch('http://localhost:8081/api/donors');
           if (donorResponse.ok) {
@@ -91,20 +91,16 @@ const handleInputChange = (e) => { const { name, value } = e.target; setFormData
               (donor.userId || donor.user_id) === data.user.userId
             );
             if (userDonor) {
-              // Save donorId for quick access
+              // Store donorId for backend operations
               localStorage.setItem('donorId', (userDonor.donorId || userDonor.donor_id).toString());
-              console.log('✅ Donor ID saved:', userDonor.donorId || userDonor.donor_id);
-              navigate(`/donor-dashboard/${userDonor.donorId || userDonor.donor_id}`);
-            } else {
-              navigate('/donor-profile'); // If no donor found, complete profile
+              console.log('✅ Donor ID saved for backend operations:', userDonor.donorId || userDonor.donor_id);
             }
-          } else {
-            navigate('/donor-profile'); // If can't fetch donors, go to profile
           }
         } catch (err) {
           console.error('Error fetching donor data:', err);
-          navigate('/donor-profile');
         }
+        // Navigate using userId for URL consistency
+        navigate(`/donor-dashboard/${data.user.userId}`);
       } else if (data.user.userType === 'NGO') {
         // Find NGO ID and navigate to dashboard
         try {

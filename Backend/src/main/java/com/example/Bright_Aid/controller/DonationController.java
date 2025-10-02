@@ -64,7 +64,7 @@ public class DonationController {
 
     @GetMapping("/donor/{donorId}")
     public ResponseEntity<List<DonationDto>> getDonationsByDonor(@PathVariable Integer donorId) {
-        List<DonationDto> donations = donationService.getDonationsByDonor(donorId);
+        List<DonationDto> donations = donationService.getDonationsByDonorWithDetails(donorId);
         return ResponseEntity.ok(donations);
     }
 }

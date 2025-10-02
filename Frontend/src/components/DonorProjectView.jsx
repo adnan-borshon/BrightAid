@@ -8,7 +8,7 @@ import DonorDonationDialog from './Dialog/DonorDonationDialog';
 import DonorProjectDialog from './Dialog/DonorProjectDialog';
 
 export default function DonorProjectView() {
-  const { donorId } = useParams();
+  const { id: userId } = useParams(); // URL param is now userId
   const { projectsData, donationsData, loading, refreshDonorData, fetchProjectsData } = useDonor();
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("all");
@@ -16,13 +16,30 @@ export default function DonorProjectView() {
   const [donationDialogData, setDonationDialogData] = useState(null);
   const [selectedProject, setSelectedProject] = useState(null);
   const [projectDetailsOpen, setProjectDetailsOpen] = useState(false);
+  const [totalProjectContributions, setTotalProjectContributions] = useState(0);
 
   useEffect(() => {
     const userId = localStorage.getItem('userId');
     if (userId) {
       refreshDonorData(userId);
+      fetchProjectContributions();
     }
   }, []);
+  
+  const fetchProjectContributions = async () => {
+    try {
+      const donorId = localStorage.getItem('donorId');
+      if (donorId) {
+        const response = await fetch(`http://localhost:8081/api/donor-gamifications/donor/${donorId}/project-contributions`);
+        if (response.ok) {
+          const amount = await response.json();
+          setTotalProjectContributions(amount);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching project contributions:', error);
+    }
+  };
 
 
 
@@ -48,7 +65,7 @@ export default function DonorProjectView() {
     );
   };
 
-  const totalContributed = donationsData.reduce((sum, d) => sum + (d.amount || 0), 0);
+  const totalContributed = totalProjectContributions;
   const totalUtilized = projectsData.reduce((sum, p) => sum + (p.raisedAmount || 0), 0);
 
   if (loading) {

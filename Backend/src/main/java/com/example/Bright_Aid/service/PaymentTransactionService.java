@@ -305,7 +305,7 @@ public class PaymentTransactionService {
                     .orElse(DonorGamification.builder()
                             .donor(donor)
                             .totalPoints(0)
-                            .currentLevel("Bronze")
+                       
                             .lastUpdated(LocalDateTime.now())
                             .build());
             
@@ -313,7 +313,7 @@ public class PaymentTransactionService {
             gamification.setTotalPoints(gamification.getTotalPoints() + pointsToAward);
             
             // Update level based on total points
-            gamification.setCurrentLevel(calculateLevel(gamification.getTotalPoints()));
+          
             
             // Update badges
             List<String> badges = calculateBadges(gamification.getTotalPoints());

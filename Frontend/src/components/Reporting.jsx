@@ -5,7 +5,7 @@ import { useDonor } from "@/context/DonorContext";
 import Sidebar from './DonorDashSidebar';
 
 export default function Reporting() {
-  const { donorId } = useParams();
+  const { id: userId } = useParams(); // URL param is now userId
   const { donationsData, loading, refreshDonorData } = useDonor();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
@@ -34,12 +34,12 @@ export default function Reporting() {
 
   // Process donations data
   const processedDonations = donationsData.map(donation => ({
-    id: donation.id,
-    date: donation.createdAt || donation.donationDate || new Date().toISOString(),
-    projectName: donation.projectName || `Donation #${donation.id}`,
+    id: donation.donationId || donation.id,
+    date: donation.donatedAt || donation.createdAt || donation.donationDate || new Date().toISOString(),
+    projectName: donation.projectName || `Donation #${donation.donationId || donation.id}`,
     amount: donation.amount || 0,
     status: mapDonationStatus(donation.paymentStatus || donation.status),
-    transactionRef: donation.transactionId || `TXN${donation.id?.toString().padStart(9, '0')}`,
+    transactionRef: donation.transactionRef || `TXN${(donation.donationId || donation.id)?.toString().padStart(9, '0')}`,
   }));
 
   const completedDonations = processedDonations.filter((d) => d.status === "completed");

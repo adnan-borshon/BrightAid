@@ -151,7 +151,7 @@ export default function SchoolProjectCard({ project, onViewDetails, onRecordExpe
           </div>
           <div className="w-full bg-secondary rounded-full h-2">
             <div
-              className="bg-green-500 h-2 rounded-full transition-all"
+              className="bg-green-500 h-2  rounded-full transition-all"
               style={{ width: `${fundingPercentage}%` }}
             />
           </div>
@@ -175,14 +175,14 @@ export default function SchoolProjectCard({ project, onViewDetails, onRecordExpe
         {/* Action Buttons */}
         {showAllButtons ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-            <Button
+            <button
               onClick={() => onViewDetails(projectData.project_id)}
-              variant="secondary"
-              className="flex items-center justify-center gap-2"
+              
+              className="third flex items-center justify-center gap-2"
             >
               <Eye className="w-4 h-4" />
               View Details
-            </Button>
+            </button>
             <Button
               onClick={() => setOpenExpense(true)}
               className="flex items-center justify-center gap-2"
