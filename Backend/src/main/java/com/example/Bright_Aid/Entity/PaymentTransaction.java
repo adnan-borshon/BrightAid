@@ -15,23 +15,24 @@ public class PaymentTransaction extends BaseEntity {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "transaction_id")
     private Integer transactionId;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "donor_id", nullable = false)
+    @JoinColumn(name = "donor_id")
     private Donor donor;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "donation_id")
-    private Donation donation;
+    @JoinColumn(name = "ngo_id")
+    private Ngo ngo;
     
-    @Column(unique = true)
+    @Column(unique = true, nullable = false)
     private String transactionReference;
     
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal amount;
     
-    @Column(nullable = false, length = 3)
+    @Column(length = 3, columnDefinition = "varchar(3) default 'BDT'")
     private String currency = "BDT";
     
     @Enumerated(EnumType.STRING)
@@ -66,7 +67,7 @@ public class PaymentTransaction extends BaseEntity {
     private LocalDateTime completedAt;
     
     public enum TransactionType {
-        DONATION, SPONSORSHIP, SUBSCRIPTION
+        DONATION, SPONSORSHIP
     }
     
     public enum PaymentMethod {

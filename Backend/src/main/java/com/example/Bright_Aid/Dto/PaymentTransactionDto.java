@@ -15,6 +15,7 @@ public class PaymentTransactionDto {
     private Integer transactionId;
     private Integer donorId;
     private Integer donationId;
+    private Integer ngoId;
     private String transactionReference;
     private BigDecimal amount;
     private String currency;
