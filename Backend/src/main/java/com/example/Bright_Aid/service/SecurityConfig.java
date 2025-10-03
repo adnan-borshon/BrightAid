@@ -96,6 +96,14 @@ public class SecurityConfig {
                         .requestMatchers("/api/divisions/**").permitAll()
                         .requestMatchers("/api/districts/**").permitAll()
                         .requestMatchers("/api/upazilas/**").permitAll()
+<<<<<<< HEAD
+=======
+                        .requestMatchers("/api/ngo-gamification/**").permitAll()
+                        .requestMatchers("/api/ngo-student-donations/**").permitAll()
+                        .requestMatchers("/api/ngo-project-donations/**").permitAll()
+                        .requestMatchers("/api/ngo-project-requests/**").permitAll()
+                        .requestMatchers("/api/payment-customer-info/**").permitAll()
+>>>>>>> 852bdc8 (schema updated)
 
                         // All other endpoints require authentication
                         .anyRequest().authenticated()
