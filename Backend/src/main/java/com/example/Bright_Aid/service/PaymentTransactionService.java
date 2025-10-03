@@ -1,15 +1,5 @@
 package com.example.Bright_Aid.service;
 
-<<<<<<< HEAD
-import com.example.Bright_Aid.Entity.Donation;
-import com.example.Bright_Aid.Entity.Donor;
-import com.example.Bright_Aid.Entity.DonorGamification;
-import com.example.Bright_Aid.Entity.PaymentTransaction;
-import com.example.Bright_Aid.Dto.PaymentTransactionDto;
-import com.example.Bright_Aid.repository.DonationRepository;
-import com.example.Bright_Aid.repository.DonorGamificationRepository;
-import com.example.Bright_Aid.repository.DonorRepository;
-=======
 import com.example.Bright_Aid.Entity.Donor;
 import com.example.Bright_Aid.Entity.DonorGamification;
 import com.example.Bright_Aid.Entity.Ngo;
@@ -18,7 +8,6 @@ import com.example.Bright_Aid.Dto.PaymentTransactionDto;
 import com.example.Bright_Aid.repository.DonorGamificationRepository;
 import com.example.Bright_Aid.repository.DonorRepository;
 import com.example.Bright_Aid.repository.NgoRepository;
->>>>>>> 852bdc8 (schema updated)
 import com.example.Bright_Aid.repository.PaymentTransactionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,11 +30,7 @@ public class PaymentTransactionService {
 
     private final PaymentTransactionRepository paymentTransactionRepository;
     private final DonorRepository donorRepository;
-<<<<<<< HEAD
-    private final DonationRepository donationRepository;
-=======
     private final NgoRepository ngoRepository;
->>>>>>> 852bdc8 (schema updated)
     private final DonorGamificationRepository gamificationRepository;
     
     @Value("${sslcommerz.store.id}")
@@ -71,26 +56,16 @@ public class PaymentTransactionService {
 
     // Create
     public PaymentTransactionDto create(PaymentTransactionDto dto) {
-<<<<<<< HEAD
-        Donor donor = donorRepository.findById(dto.getDonorId()).orElseThrow();
-        Donation donation = dto.getDonationId() != null
-                ? donationRepository.findById(dto.getDonationId()).orElse(null)
-=======
         Donor donor = dto.getDonorId() != null 
                 ? donorRepository.findById(dto.getDonorId()).orElse(null) 
                 : null;
         Ngo ngo = dto.getNgoId() != null 
                 ? ngoRepository.findById(dto.getNgoId()).orElse(null) 
->>>>>>> 852bdc8 (schema updated)
                 : null;
 
         PaymentTransaction transaction = PaymentTransaction.builder()
                 .donor(donor)
-<<<<<<< HEAD
-                .donation(donation)
-=======
                 .ngo(ngo)
->>>>>>> 852bdc8 (schema updated)
                 .transactionReference(dto.getTransactionReference())
                 .amount(dto.getAmount())
                 .currency(dto.getCurrency())
@@ -154,13 +129,8 @@ public class PaymentTransactionService {
     private PaymentTransactionDto toDTO(PaymentTransaction transaction) {
         return PaymentTransactionDto.builder()
                 .transactionId(transaction.getTransactionId())
-<<<<<<< HEAD
-                .donorId(transaction.getDonor().getDonorId())
-                .donationId(transaction.getDonation() != null ? transaction.getDonation().getDonationId() : null)
-=======
                 .donorId(transaction.getDonor() != null ? transaction.getDonor().getDonorId() : null)
                 .ngoId(transaction.getNgo() != null ? transaction.getNgo().getNgoId() : null)
->>>>>>> 852bdc8 (schema updated)
                 .transactionReference(transaction.getTransactionReference())
                 .amount(transaction.getAmount())
                 .currency(transaction.getCurrency())
@@ -302,17 +272,10 @@ public class PaymentTransactionService {
                 case "VALIDATED":
                     transaction.setStatus(PaymentTransaction.TransactionStatus.SUCCESS);
                     transaction.setCompletedAt(LocalDateTime.now());
-<<<<<<< HEAD
-                    // Create donation record for successful payment
-                    createDonationFromTransaction(transaction);
-                    // Award points for successful payment
-                    awardPointsForDonation(transaction.getDonor(), transaction.getAmount());
-=======
                     // Award points for successful payment
                     if (transaction.getDonor() != null) {
                         awardPointsForDonation(transaction.getDonor(), transaction.getAmount());
                     }
->>>>>>> 852bdc8 (schema updated)
                     break;
                 case "FAILED":
                     transaction.setStatus(PaymentTransaction.TransactionStatus.FAILED);
@@ -371,11 +334,7 @@ public class PaymentTransactionService {
     private String calculateLevel(int totalPoints) {
         if (totalPoints >= 50000) return "Diamond";      // ৳10,000+
         if (totalPoints >= 25000) return "Platinum";     // ৳5,000+
-<<<<<<< HEAD
-        if (totalPoints >= 10000) return "Gold";         // ৳2,000+
-=======
         if (totalPoints >= 10000) return "Gold";         // ৳2,000+ 
->>>>>>> 852bdc8 (schema updated)
         if (totalPoints >= 2500) return "Silver";        // ৳500+
         return "Bronze";                                  // < ৳500
     }
@@ -392,49 +351,5 @@ public class PaymentTransactionService {
         
         return badges;
     }
-    
-<<<<<<< HEAD
-    // Create donation record from successful payment transaction
-    private void createDonationFromTransaction(PaymentTransaction transaction) {
-        try {
-            Donation donation = Donation.builder()
-                    .donor(transaction.getDonor())
-                    .amount(transaction.getAmount())
-                    .donationType(mapTransactionTypeToDonationType(transaction.getTransactionType()))
-                    .purpose(mapTransactionTypeToPurpose(transaction.getTransactionType()))
-                    .paymentStatus(Donation.PaymentStatus.COMPLETED)
-                    .donorMessage("Payment via " + transaction.getPaymentMethod())
-                    .isAnonymous(false)
-                    .donatedAt(LocalDateTime.now())
-                    .paymentCompletedAt(LocalDateTime.now())
-                    .build();
-            
-            Donation savedDonation = donationRepository.save(donation);
-            
-            // Link the donation to the transaction
-            transaction.setDonation(savedDonation);
-            paymentTransactionRepository.save(transaction);
-            
-        } catch (Exception e) {
-            System.err.println("Error creating donation from transaction: " + e.getMessage());
-        }
-    }
-    
-    private Donation.DonationType mapTransactionTypeToDonationType(PaymentTransaction.TransactionType transactionType) {
-        // All payments are one-time donations for now
-        return Donation.DonationType.ONE_TIME;
-    }
-    
-    private Donation.DonationPurpose mapTransactionTypeToPurpose(PaymentTransaction.TransactionType transactionType) {
-        switch (transactionType) {
-            case SPONSORSHIP:
-                return Donation.DonationPurpose.STUDENT_SPONSORSHIP;
-            case DONATION:
-            default:
-                return Donation.DonationPurpose.GENERAL_SUPPORT;
-        }
-    }
-=======
-
->>>>>>> 852bdc8 (schema updated)
+   
 }

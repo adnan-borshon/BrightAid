@@ -6,10 +6,7 @@ import com.example.Bright_Aid.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-<<<<<<< HEAD
-=======
 import java.math.BigDecimal;
->>>>>>> 852bdc8 (schema updated)
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -216,11 +213,7 @@ public class DonationService {
                 .donorId((Integer) result[1])
                 .projectId((Integer) result[2])
                 .studentId((Integer) result[3])
-<<<<<<< HEAD
-                .amount((BigDecimal) result[4])
-=======
                 .amount(result[4] != null ? new BigDecimal(result[4].toString()) : null)
->>>>>>> 852bdc8 (schema updated)
                 .donationType(result[5] != null ? Donation.DonationType.valueOf((String) result[5]) : null)
                 .transactionId((Integer) result[6])
                 .paymentStatus(result[7] != null ? Donation.PaymentStatus.valueOf((String) result[7]) : Donation.PaymentStatus.PENDING)
