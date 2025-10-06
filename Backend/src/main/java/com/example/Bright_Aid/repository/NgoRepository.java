@@ -3,7 +3,7 @@ package com.example.Bright_Aid.repository;
 import com.example.Bright_Aid.Entity.Ngo;
 import com.example.Bright_Aid.Entity.Ngo.VerificationStatus;
 import com.example.Bright_Aid.Entity.User;
-import com.example.Bright_Aid.Entity.Admin;
+// import com.example.Bright_Aid.Entity.Admin;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

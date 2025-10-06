@@ -59,11 +59,11 @@ public class FundUtilization extends BaseEntity {
     @Column(name = "utilization_date")
     private LocalDate utilizationDate;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "approved_by", nullable = false)
-    @NotNull
-    @ToString.Exclude
-    private Admin approvedBy;
+    // @ManyToOne(fetch = FetchType.LAZY)
+    // @JoinColumn(name = "approved_by", nullable = false)
+    // @NotNull
+    // @ToString.Exclude
+    // private Admin approvedBy;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "utilization_status", nullable = false)

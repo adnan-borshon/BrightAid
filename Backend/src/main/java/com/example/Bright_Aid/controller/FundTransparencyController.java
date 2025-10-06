@@ -84,13 +84,13 @@ public class FundTransparencyController {
         return ResponseEntity.ok(transparencies);
     }
 
-    @GetMapping("/by-verifier/{adminId}")
-    public ResponseEntity<List<FundTransparencyDto>> getFundTransparenciesByVerifiedBy(@PathVariable Integer adminId) {
-        log.info("REST request to get fund transparencies verified by admin ID: {}", adminId);
+    // @GetMapping("/by-verifier/{adminId}")
+    // public ResponseEntity<List<FundTransparencyDto>> getFundTransparenciesByVerifiedBy(@PathVariable Integer adminId) {
+    //     log.info("REST request to get fund transparencies verified by admin ID: {}", adminId);
 
-        List<FundTransparencyDto> transparencies = fundTransparencyService.getFundTransparenciesByVerifiedBy(adminId);
-        return ResponseEntity.ok(transparencies);
-    }
+    //     List<FundTransparencyDto> transparencies = fundTransparencyService.getFundTransparenciesByVerifiedBy(adminId);
+    //     return ResponseEntity.ok(transparencies);
+    // }
 
     @PutMapping("/{transparencyId}")
     public ResponseEntity<FundTransparencyDto> updateFundTransparency(

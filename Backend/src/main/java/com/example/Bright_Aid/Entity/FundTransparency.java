@@ -57,11 +57,11 @@ public class FundTransparency extends BaseEntity {
     @Column(name = "additional_notes")
     private String additionalNotes;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "verified_by", nullable = false)
-    @NotNull
-    @ToString.Exclude
-    private Admin verifiedBy;
+    // @ManyToOne(fetch = FetchType.LAZY)
+    // @JoinColumn(name = "verified_by", nullable = false)
+    // @NotNull
+    // @ToString.Exclude
+    // private Admin verifiedBy;
 
     @Column(name = "is_public", nullable = false)
     @Builder.Default

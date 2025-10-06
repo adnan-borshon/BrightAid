@@ -3,11 +3,11 @@ package com.example.Bright_Aid.service;
 import com.example.Bright_Aid.Dto.NgoDto;
 import com.example.Bright_Aid.Entity.Ngo;
 import com.example.Bright_Aid.Entity.User;
-import com.example.Bright_Aid.Entity.Admin;
+// import com.example.Bright_Aid.Entity.Admin;
 import com.example.Bright_Aid.Entity.NgoProject;
 import com.example.Bright_Aid.repository.NgoRepository;
 import com.example.Bright_Aid.repository.UserRepository;
-import com.example.Bright_Aid.repository.AdminRepository;
+// import com.example.Bright_Aid.repository.AdminRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -27,7 +27,7 @@ public class NgoService {
 
     private final NgoRepository ngoRepository;
     private final UserRepository userRepository;
-    private final AdminRepository adminRepository;
+    // private final AdminRepository adminRepository;
 
     @Transactional
     public NgoDto createNgo(NgoDto ngoDto) {
@@ -185,8 +185,8 @@ public class NgoService {
         Ngo ngo = ngoRepository.findById(ngoId)
                 .orElseThrow(() -> new RuntimeException("NGO not found with ID: " + ngoId));
 
-        Admin admin = adminRepository.findById(adminId)
-                .orElseThrow(() -> new RuntimeException("Admin not found with ID: " + adminId));
+        // Admin admin = adminRepository.findById(adminId)
+        //         .orElseThrow(() -> new RuntimeException("Admin not found with ID: " + adminId));
 
         ngo.setVerificationStatus(Ngo.VerificationStatus.VERIFIED);
         ngo.setVerifiedAt(LocalDateTime.now());
@@ -204,8 +204,8 @@ public class NgoService {
         Ngo ngo = ngoRepository.findById(ngoId)
                 .orElseThrow(() -> new RuntimeException("NGO not found with ID: " + ngoId));
 
-        Admin admin = adminRepository.findById(adminId)
-                .orElseThrow(() -> new RuntimeException("Admin not found with ID: " + adminId));
+        // Admin admin = adminRepository.findById(adminId)
+        //         .orElseThrow(() -> new RuntimeException("Admin not found with ID: " + adminId));
 
         ngo.setVerificationStatus(Ngo.VerificationStatus.REJECTED);
         ngo.setVerifiedAt(LocalDateTime.now());

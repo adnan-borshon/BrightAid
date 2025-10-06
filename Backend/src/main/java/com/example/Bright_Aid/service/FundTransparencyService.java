@@ -3,10 +3,10 @@ package com.example.Bright_Aid.service;
 import com.example.Bright_Aid.Dto.FundTransparencyDto;
 import com.example.Bright_Aid.Entity.FundTransparency;
 import com.example.Bright_Aid.Entity.FundUtilization;
-import com.example.Bright_Aid.Entity.Admin;
+// import com.example.Bright_Aid.Entity.Admin;
 import com.example.Bright_Aid.repository.FundTransparencyRepository;
 import com.example.Bright_Aid.repository.FundUtilizationRepository;
-import com.example.Bright_Aid.repository.AdminRepository;
+// import com.example.Bright_Aid.repository.AdminRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -25,7 +25,7 @@ public class FundTransparencyService {
 
     private final FundTransparencyRepository fundTransparencyRepository;
     private final FundUtilizationRepository fundUtilizationRepository;
-    private final AdminRepository adminRepository;
+    // private final AdminRepository adminRepository;
 
     @Transactional
     public FundTransparencyDto createFundTransparency(FundTransparencyDto fundTransparencyDto) {
@@ -34,8 +34,8 @@ public class FundTransparencyService {
         FundUtilization utilization = fundUtilizationRepository.findById(fundTransparencyDto.getUtilizationId())
                 .orElseThrow(() -> new RuntimeException("Fund utilization not found with ID: " + fundTransparencyDto.getUtilizationId()));
 
-        Admin verifiedBy = adminRepository.findById(fundTransparencyDto.getVerifiedBy())
-                .orElseThrow(() -> new RuntimeException("Admin not found with ID: " + fundTransparencyDto.getVerifiedBy()));
+        // Admin verifiedBy = adminRepository.findById(fundTransparencyDto.getVerifiedBy())
+        //         .orElseThrow(() -> new RuntimeException("Admin not found with ID: " + fundTransparencyDto.getVerifiedBy()));
 
         FundTransparency transparency = FundTransparency.builder()
                 .utilization(utilization)
@@ -46,7 +46,7 @@ public class FundTransparencyService {
                 .unitMeasurement(fundTransparencyDto.getUnitMeasurement())
                 .unitCost(fundTransparencyDto.getUnitCost())
                 .additionalNotes(fundTransparencyDto.getAdditionalNotes())
-                .verifiedBy(verifiedBy)
+                // .verifiedBy(verifiedBy)
                 .isPublic(fundTransparencyDto.getIsPublic())
                 .build();
 
@@ -95,12 +95,12 @@ public class FundTransparencyService {
             existingTransparency.setUtilization(utilization);
         }
 
-        if (fundTransparencyDto.getVerifiedBy() != null &&
-                !fundTransparencyDto.getVerifiedBy().equals(existingTransparency.getVerifiedBy().getAdminId())) {
-            Admin verifiedBy = adminRepository.findById(fundTransparencyDto.getVerifiedBy())
-                    .orElseThrow(() -> new RuntimeException("Admin not found with ID: " + fundTransparencyDto.getVerifiedBy()));
-            existingTransparency.setVerifiedBy(verifiedBy);
-        }
+        // if (fundTransparencyDto.getVerifiedBy() != null &&
+        //         !fundTransparencyDto.getVerifiedBy().equals(existingTransparency.getVerifiedBy().getAdminId())) {
+        //Admin verifiedBy = adminRepository.findById(fundTransparencyDto.getVerifiedBy())
+        //             .orElseThrow(() -> new RuntimeException("Admin not found with ID: " + fundTransparencyDto.getVerifiedBy()));
+        //     existingTransparency.setVerifiedBy(verifiedBy);
+        // }
 
         if (fundTransparencyDto.getBeforePhotos() != null) {
             existingTransparency.setBeforePhotos(fundTransparencyDto.getBeforePhotos());
@@ -165,15 +165,15 @@ public class FundTransparencyService {
                 .collect(Collectors.toList());
     }
 
-    public List<FundTransparencyDto> getFundTransparenciesByVerifiedBy(Integer adminId) {
-        log.info("Fetching fund transparencies verified by admin ID: {}", adminId);
+    // public List<FundTransparencyDto> getFundTransparenciesByVerifiedBy(Integer adminId) {
+    //     log.info("Fetching fund transparencies verified by admin ID: {}", adminId);
 
-        List<FundTransparency> transparencies = fundTransparencyRepository.findAll();
-        return transparencies.stream()
-                .filter(transparency -> transparency.getVerifiedBy().getAdminId().equals(adminId))
-                .map(this::convertToDto)
-                .collect(Collectors.toList());
-    }
+    //     List<FundTransparency> transparencies = fundTransparencyRepository.findAll();
+    //     return transparencies.stream()
+    //             .filter(transparency -> transparency.getVerifiedBy().getAdminId().equals(adminId))
+    //             .map(this::convertToDto)
+    //             .collect(Collectors.toList());
+    // }
 
     private FundTransparencyDto convertToDto(FundTransparency transparency) {
         return FundTransparencyDto.builder()
@@ -186,7 +186,7 @@ public class FundTransparencyService {
                 .unitMeasurement(transparency.getUnitMeasurement())
                 .unitCost(transparency.getUnitCost())
                 .additionalNotes(transparency.getAdditionalNotes())
-                .verifiedBy(transparency.getVerifiedBy().getAdminId())
+                // .verifiedBy(transparency.getVerifiedBy().getAdminId())
                 .isPublic(transparency.getIsPublic())
                 .createdAt(transparency.getCreatedAt())
                 .updatedAt(transparency.getUpdatedAt())

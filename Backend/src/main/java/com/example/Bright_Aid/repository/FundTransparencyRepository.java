@@ -2,7 +2,7 @@ package com.example.Bright_Aid.repository;
 
 import com.example.Bright_Aid.Entity.FundTransparency;
 import com.example.Bright_Aid.Entity.FundUtilization;
-import com.example.Bright_Aid.Entity.Admin;
+// import com.example.Bright_Aid.Entity.Admin;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

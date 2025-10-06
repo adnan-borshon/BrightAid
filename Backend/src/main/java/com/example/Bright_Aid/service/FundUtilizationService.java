@@ -4,12 +4,12 @@ import com.example.Bright_Aid.Dto.FundUtilizationDto;
 import com.example.Bright_Aid.Entity.FundUtilization;
 import com.example.Bright_Aid.Entity.Donation;
 import com.example.Bright_Aid.Entity.SchoolProject;
-import com.example.Bright_Aid.Entity.Admin;
+// import com.example.Bright_Aid.Entity.Admin;
 import com.example.Bright_Aid.Entity.FundTransparency;
 import com.example.Bright_Aid.repository.FundUtilizationRepository;
 import com.example.Bright_Aid.repository.DonationRepository;
 import com.example.Bright_Aid.repository.SchoolProjectRepository;
-import com.example.Bright_Aid.repository.AdminRepository;
+// import com.example.Bright_Aid.repository.AdminRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -29,7 +29,7 @@ public class FundUtilizationService {
     private final FundUtilizationRepository fundUtilizationRepository;
     private final DonationRepository donationRepository;
     private final SchoolProjectRepository schoolProjectRepository;
-    private final AdminRepository adminRepository;
+    // private final AdminRepository adminRepository;
 
     @Transactional
     public FundUtilizationDto createFundUtilization(FundUtilizationDto fundUtilizationDto) {
@@ -41,8 +41,8 @@ public class FundUtilizationService {
         SchoolProject project = schoolProjectRepository.findById(fundUtilizationDto.getProjectId())
                 .orElseThrow(() -> new RuntimeException("School project not found with ID: " + fundUtilizationDto.getProjectId()));
 
-        Admin approvedBy = adminRepository.findById(fundUtilizationDto.getApprovedBy())
-                .orElseThrow(() -> new RuntimeException("Admin not found with ID: " + fundUtilizationDto.getApprovedBy()));
+        // Admin approvedBy = adminRepository.findById(fundUtilizationDto.getApprovedBy())
+        //         .orElseThrow(() -> new RuntimeException("Admin not found with ID: " + fundUtilizationDto.getApprovedBy()));
 
         FundUtilization utilization = FundUtilization.builder()
                 .donation(donation)
@@ -54,7 +54,7 @@ public class FundUtilizationService {
                 .billInvoiceNumber(fundUtilizationDto.getBillInvoiceNumber())
                 .receiptImageUrl(fundUtilizationDto.getReceiptImageUrl())
                 .utilizationDate(fundUtilizationDto.getUtilizationDate())
-                .approvedBy(approvedBy)
+                // .approvedBy(approvedBy)
                 .utilizationStatus(fundUtilizationDto.getUtilizationStatus())
                 .build();
 
@@ -110,12 +110,12 @@ public class FundUtilizationService {
             existingUtilization.setProject(project);
         }
 
-        if (fundUtilizationDto.getApprovedBy() != null &&
-                !fundUtilizationDto.getApprovedBy().equals(existingUtilization.getApprovedBy().getAdminId())) {
-            Admin approvedBy = adminRepository.findById(fundUtilizationDto.getApprovedBy())
-                    .orElseThrow(() -> new RuntimeException("Admin not found with ID: " + fundUtilizationDto.getApprovedBy()));
-            existingUtilization.setApprovedBy(approvedBy);
-        }
+        // if (fundUtilizationDto.getApprovedBy() != null &&
+        //         !fundUtilizationDto.getApprovedBy().equals(existingUtilization.getApprovedBy().getAdminId())) {
+        //     Admin approvedBy = adminRepository.findById(fundUtilizationDto.getApprovedBy())
+        //             .orElseThrow(() -> new RuntimeException("Admin not found with ID: " + fundUtilizationDto.getApprovedBy()));
+        //     existingUtilization.setApprovedBy(approvedBy);
+        // }
 
         if (fundUtilizationDto.getAmountUsed() != null) {
             existingUtilization.setAmountUsed(fundUtilizationDto.getAmountUsed());
@@ -223,7 +223,7 @@ public class FundUtilizationService {
                 .billInvoiceNumber(utilization.getBillInvoiceNumber())
                 .receiptImageUrl(utilization.getReceiptImageUrl())
                 .utilizationDate(utilization.getUtilizationDate())
-                .approvedBy(utilization.getApprovedBy().getAdminId())
+                // .approvedBy(utilization.getApprovedBy().getAdminId())
                 .utilizationStatus(utilization.getUtilizationStatus())
                 .transparencyRecordIds(transparencyRecordIds)
                 .createdAt(utilization.getCreatedAt())
