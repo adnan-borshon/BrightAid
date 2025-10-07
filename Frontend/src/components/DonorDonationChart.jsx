@@ -14,7 +14,7 @@ export default function DonorDonationChart({ data }) {
             const height = maxAmount > 0 ? (item.amount / maxAmount) * 250 : 0;
             return (
               <div key={index} className="flex flex-col items-center gap-2 flex-1">
-                <div className="text-xs text-gray-600">৳{item.amount?.toLocaleString() || 0}</div>
+                <div className="text-xs text-gray-600">Tk {item.amount?.toLocaleString() || 0}</div>
                 <div 
                   className="bg-green-600 w-full rounded-t transition-all duration-300"
                   style={{ height: `${height}px`, minHeight: '4px' }}

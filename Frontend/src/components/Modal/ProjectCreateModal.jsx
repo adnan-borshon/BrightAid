@@ -64,16 +64,15 @@ const ProjectCreateModal = ({ isOpen, onClose, onSubmit }) => {
     e.preventDefault();
 
     // Prepare data for backend
-    const submitData = new FormData();
+    const submitData = {
+      projectTitle: formData.project_title,
+      projectDescription: formData.project_description,
+      projectTypeId: parseInt(formData.project_type_id),
+      requiredAmount: parseFloat(formData.required_amount),
+      schoolId: parseInt(localStorage.getItem('schoolId')) // Get from localStorage or context
+    };
 
-    // Append all form fields
-    Object.keys(formData).forEach((key) => {
-      if (formData[key] !== null && formData[key] !== "") {
-        submitData.append(key, formData[key]);
-      }
-    });
-
-    // Call the onSubmit callback with FormData
+    // Call the onSubmit callback with JSON data
     if (onSubmit) {
       await onSubmit(submitData);
     }
@@ -174,7 +173,7 @@ const ProjectCreateModal = ({ isOpen, onClose, onSubmit }) => {
                   </label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-medium">
-                      ৳
+                      Tk
                     </span>
                     <input
                       type="number"

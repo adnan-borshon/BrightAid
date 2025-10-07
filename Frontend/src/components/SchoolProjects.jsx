@@ -25,22 +25,9 @@ export default function SchoolProjects() {
     }
   }, [schoolId]);
 
-  // Process projects data for display
+  // Filter projects for this school (don't transform the data)
   const processedProjects = projectsData
-    .filter(project => (project.schoolId || project.school_id) == schoolId)
-    .map(project => ({
-      project_id: project.projectId || project.project_id,
-      project_name: project.projectTitle || project.project_name || 'Untitled Project',
-      project_type: project.projectTypeName || project.projectType?.typeName || project.project_type || 'General',
-      scholarship_amount: project.scholarshipAmount || project.scholarship_amount || 0,
-      total_amount: project.totalAmount || project.total_amount || 0,
-      risk_status: project.riskStatus || project.risk_status || 'Low Risk',
-      completion_rate: project.completionRate || project.completion_rate || 0,
-      performance_score: project.performanceScore || project.performance_score || 0,
-      category: project.category || 'General',
-      status: project.status || 'active',
-      donor_username: project.donorUsername || project.donor_username || '@anisha3208'
-    }));
+    .filter(project => (project.schoolId || project.school_id) == schoolId);
 
   const totalCount = processedProjects.length;
   const highRiskCount = processedProjects.filter(p => 
@@ -73,11 +60,13 @@ export default function SchoolProjects() {
 
   // Filter projects
   const filteredProjects = processedProjects.filter(project => {
-    const matchesSearch = project.project_name?.toLowerCase().includes(searchQuery.toLowerCase()) || false;
-    const matchesStatus = statusFilter === 'All' || project.status?.toLowerCase() === statusFilter.toLowerCase();
+    const projectName = project.projectTitle || project.project_name || '';
+    const matchesSearch = projectName.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = statusFilter === 'All' || (project.status && project.status.toLowerCase() === statusFilter.toLowerCase());
+    const riskStatus = project.riskStatus || project.risk_status || '';
     const matchesRisk = riskFilter === 'All' || 
-      (riskFilter === 'High Risk' && (project.risk_status?.toLowerCase().includes('high') || project.risk_status?.toLowerCase().includes('at risk'))) ||
-      (riskFilter === 'Low Risk' && project.risk_status?.toLowerCase().includes('low'));
+      (riskFilter === 'High Risk' && (riskStatus.toLowerCase().includes('high') || riskStatus.toLowerCase().includes('at risk'))) ||
+      (riskFilter === 'Low Risk' && riskStatus.toLowerCase().includes('low'));
     
     return matchesSearch && matchesStatus && matchesRisk;
   });
@@ -199,11 +188,11 @@ export default function SchoolProjects() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
             {currentProjects.map((project) => (
               <SchoolProjectCard
-                key={project.project_id}
+                key={project.projectId || project.project_id}
                 project={project}
                 onViewDetails={handleProjectClick}
-                onRecordExpense={(project) => console.log('Record expense for:', project.project_name)}
-                onPostUpdate={(project) => console.log('Post update for:', project.project_name)}
+                onRecordExpense={(project) => console.log('Record expense for:', project.projectTitle || project.project_name)}
+                onPostUpdate={(project) => console.log('Post update for:', project.projectTitle || project.project_name)}
               />
             ))}
           </div>

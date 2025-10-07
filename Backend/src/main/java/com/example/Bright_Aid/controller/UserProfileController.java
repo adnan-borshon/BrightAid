@@ -29,6 +29,13 @@ public class UserProfileController {
         return ResponseEntity.ok(dto);
     }
 
+    // Get user profile by userId - no authentication required for basic profile info
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<UserProfileDto> getUserProfileByUserId(@PathVariable Integer userId) {
+        UserProfileDto dto = userProfileService.getUserProfileByUserId(userId);
+        return ResponseEntity.ok(dto);
+    }
+
     @GetMapping
     public ResponseEntity<List<UserProfileDto>> getAllUserProfiles() {
         List<UserProfileDto> userProfiles = userProfileService.getAllUserProfiles();

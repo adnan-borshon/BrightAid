@@ -76,6 +76,7 @@ public class SchoolProjectService {
                 .projectTitle(schoolProjectDto.getProjectTitle())
                 .projectDescription(schoolProjectDto.getProjectDescription())
                 .projectType(projectType)
+                .requiredAmount(schoolProjectDto.getRequiredAmount())
                 .build();
 
         SchoolProject saved = schoolProjectRepository.save(schoolProject);
@@ -114,11 +115,15 @@ public class SchoolProjectService {
     
     // Get project completion rate
     public Integer getProjectCompletionRate(Integer projectId) {
-        return (int) (Math.random() * 100);
+        Double completionRate = schoolProjectRepository.getLatestCompletionRate(projectId);
+        return completionRate != null ? completionRate.intValue() : 0;
     }
 
     // Map SchoolProject entity to DTO
     private SchoolProjectDto mapToDto(SchoolProject schoolProject) {
+        java.math.BigDecimal raisedAmount = schoolProjectRepository.getTotalRaisedAmount(schoolProject.getProjectId());
+        Double completionRate = schoolProjectRepository.getLatestCompletionRate(schoolProject.getProjectId());
+        
         return SchoolProjectDto.builder()
                 .projectId(schoolProject.getProjectId())
                 .schoolId(schoolProject.getSchool().getSchoolId())
@@ -126,6 +131,9 @@ public class SchoolProjectService {
                 .projectDescription(schoolProject.getProjectDescription())
                 .projectTypeId(schoolProject.getProjectType().getProjectTypeId())
                 .projectTypeName(schoolProject.getProjectType().getTypeName())
+                .requiredAmount(schoolProject.getRequiredAmount())
+                .raisedAmount(raisedAmount != null ? raisedAmount : java.math.BigDecimal.ZERO)
+                .completionRate(completionRate != null ? completionRate : 0.0)
                 .createdAt(schoolProject.getCreatedAt())
                 .updatedAt(schoolProject.getUpdatedAt())
                 .build();

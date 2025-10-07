@@ -101,6 +101,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/ngo-project-donations/**").permitAll()
                         .requestMatchers("/api/ngo-project-requests/**").permitAll()
                         .requestMatchers("/api/payment-customer-info/**").permitAll()
+                        .requestMatchers("/api/user-profiles/**").permitAll()
+                        .requestMatchers("/api/fund-utilizations/**").permitAll()
 
                         // All other endpoints require authentication
                         .anyRequest().authenticated()

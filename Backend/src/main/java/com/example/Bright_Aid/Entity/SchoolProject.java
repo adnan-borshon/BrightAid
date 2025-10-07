@@ -54,4 +54,7 @@ public class SchoolProject extends BaseEntity {
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @ToString.Exclude
     private List<FundUtilization> fundUtilizations;
+
+    @Column(name = "required_amount", precision = 15, scale = 2)
+    private java.math.BigDecimal requiredAmount;
 }

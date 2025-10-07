@@ -47,6 +47,14 @@ public class UserProfileService {
         return convertToDto(userProfile);
     }
 
+    // Get user profile by userId - for easier frontend integration
+    @Transactional(readOnly = true)
+    public UserProfileDto getUserProfileByUserId(Integer userId) {
+        UserProfile userProfile = userProfileRepository.findByUser_UserId(userId)
+                .orElseThrow(() -> new RuntimeException("UserProfile not found for userId: " + userId));
+        return convertToDto(userProfile);
+    }
+
     @Transactional(readOnly = true)
     public List<UserProfileDto> getAllUserProfiles() {
         return userProfileRepository.findAll().stream()

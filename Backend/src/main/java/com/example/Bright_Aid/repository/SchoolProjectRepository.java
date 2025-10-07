@@ -22,5 +22,8 @@ public interface SchoolProjectRepository extends JpaRepository<SchoolProject, In
     
     @Query(value = "SELECT COALESCE(pu.progress_percentage, 0.0) FROM project_updates pu WHERE pu.project_id = :projectId AND pu.progress_percentage IS NOT NULL ORDER BY pu.created_at DESC LIMIT 1", nativeQuery = true)
     Double getLatestCompletionRate(@Param("projectId") Integer projectId);
+    
+    @Query(value = "SELECT COALESCE(SUM(d.amount), 0.0) FROM donations d WHERE d.project_id = :projectId AND d.payment_status = 'COMPLETED'", nativeQuery = true)
+    java.math.BigDecimal getTotalRaisedAmount(@Param("projectId") Integer projectId);
 
 }

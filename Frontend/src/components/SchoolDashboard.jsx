@@ -36,20 +36,8 @@ export default function SchoolDashboard() {
 
   const processedProjects = projectsData
     .filter(project => (project.schoolId || project.school_id) == schoolId)
-    .slice(0, 3)
-    .map(project => ({
-      project_id: project.projectId || project.project_id,
-      project_name: project.projectTitle || project.project_title || 'Untitled Project',
-      project_type: project.projectTypeName || project.projectType?.typeName || project.project_type || 'General',
-      scholarship_amount: project.scholarshipAmount || project.scholarship_amount || 0,
-      total_amount: project.totalAmount || project.total_amount || 0,
-      risk_status: project.riskStatus || project.risk_status || 'Low Risk',
-      completion_rate: project.completionRate || project.completion_rate || 0,
-      performance_score: project.performanceScore || project.performance_score || 0,
-      category: project.category || 'General',
-      status: project.status || 'active',
-      donor_username: project.donorUsername || project.donor_username || '@anisha3208'
-    }));
+    .slice(0, 3);
+    // Don't transform the data, pass it as-is from backend
 
   const highRiskStudents = studentsData
     .filter(student => {
@@ -227,7 +215,7 @@ export default function SchoolDashboard() {
       <div className="flex items-center justify-center h-screen bg-gray-50">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading dashboard...</p>
+          <p className="text-gray-600">Loading...</p>
         </div>
       </div>
     );
@@ -327,7 +315,7 @@ export default function SchoolDashboard() {
                 {schoolData?.total_received ? formatCurrency(schoolData.total_received) : '$0.00'}
               </div>
               <div className="text-xs text-green-600">+ {processedProjects.length} active projects</div>
-              <button className="secondary !border-0 hover:!bg-gray-50 hover:!text-[#0E792E] mt-4 text-sm text-green-600 hover:text-green-700 font-medium flex items-center gap-1">
+              <button className=" mt-4 text-sm font-medium flex items-center gap-1">
                 View Account <ChevronRight className="w-4 h-4" />
               </button>
             </div>
@@ -447,7 +435,7 @@ export default function SchoolDashboard() {
 
             {processedProjects.length > 0 ? processedProjects.map((project) => (
               <SchoolProjectCard
-                key={project.project_id}
+                key={project.projectId || project.project_id}
                 project={project}
                 onViewDetails={handleProjectClick}
                 showAllButtons={false}

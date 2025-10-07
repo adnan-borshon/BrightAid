@@ -204,7 +204,7 @@ export default function DonorDonationDialog({
                     onClick={() => setFormData({ ...formData, amount: preset.toString() })}
                     data-testid={`button-preset-${preset}`}
                   >
-                    ৳{preset.toLocaleString()}
+                    Tk {preset.toLocaleString()}
                   </Button>
                 ))}
               </div>
@@ -243,7 +243,7 @@ export default function DonorDonationDialog({
               Cancel
             </Button>
             <Button type="submit" data-testid="button-submit-donation">
-              Donate ৳{formData.amount ? parseInt(formData.amount).toLocaleString() : '0'}
+              Donate Tk {formData.amount ? parseInt(formData.amount).toLocaleString() : '0'}
             </Button>
           </DialogFooter>
         </form>

@@ -58,8 +58,7 @@ const ProjectUpdateModal = ({ isOpen, onClose, onSubmit, project }) => {
     e.preventDefault();
 
     const submitData = {
-      projectId: project.project_id,
-      updatedBy: 1, // TODO: Get from auth context
+      projectId: project.projectId || project.project_id,
       updateTitle: formData.updateTitle,
       updateDescription: formData.updateDescription,
       progressPercentage: formData.progressPercentage ? parseFloat(formData.progressPercentage) : null,
@@ -101,7 +100,7 @@ const ProjectUpdateModal = ({ isOpen, onClose, onSubmit, project }) => {
         <form onSubmit={handleSubmit} className="p-6">
           <div className="mb-4">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Project: {project?.project_name}
+              Project: {project?.projectTitle || project?.project_name}
             </h3>
           </div>
 

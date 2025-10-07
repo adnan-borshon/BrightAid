@@ -47,18 +47,18 @@ body {
 }
 
 /* Global button color */
-button {
+/* button {
   background-color: #0E792E;
   color: #ffffff;
    cursor: pointer;
-}
+} */
 
-button:hover {
+/* button:hover {
   background-color: #0c6a28;
-}
+} */
 
 /* Secondary Button */
-button.secondary {
+/* button.secondary {
   background-color: #ffffff;  
   color: #0E792E;              
   border: 2px solid #0E792E;     
@@ -67,10 +67,10 @@ button.secondary {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-}
+} */
 
 /* Hover effect */
-button.secondary:hover {
+/* button.secondary:hover {
   background-color: #0E792E;  
   color: #ffffff;                
 }
@@ -83,9 +83,10 @@ button.third {
 
 button.third:hover {
   background-color: #f9fafb;  
+         
+} */
 
-              
-}
+
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);

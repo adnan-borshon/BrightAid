@@ -37,4 +37,8 @@ public class SchoolProjectDto {
     private LocalDateTime updatedAt;
     
     private Double completionRate;
+    
+    private java.math.BigDecimal requiredAmount;
+    
+    private java.math.BigDecimal raisedAmount;
 }
