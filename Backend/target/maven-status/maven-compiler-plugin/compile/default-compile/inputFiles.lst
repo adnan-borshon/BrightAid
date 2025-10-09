@@ -1,6 +1,7 @@
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\BrightAidApplication.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\config\WebConfig.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\AuthController.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\ConversationController.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\DistrictController.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\DivisionController.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\DonationController.java
@@ -9,6 +10,8 @@ C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\DropoutPredictionController.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\FundTransparencyController.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\FundUtilizationController.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\ImageController.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\MessageController.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\NgoController.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\NgoGamificationController.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\NgoProjectController.java
@@ -29,6 +32,8 @@ C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\controller\UserProfileController.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\AuthDTO.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\AuthResponse.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\ConversationDto.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\ConversationParticipantDto.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\DistrictDto.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\DivisionDto.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\DonationDto.java
@@ -40,6 +45,7 @@ C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\DropoutPredictionResponse.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\FundTransparencyDto.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\FundUtilizationDto.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\MessageDto.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\NgoDto.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\NgoGamificationDTO.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\NgoProjectDonationsDTO.java
@@ -59,6 +65,8 @@ C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\UserDTO.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Dto\UserProfileDto.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\BaseEntity.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\Conversation.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\ConversationParticipant.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\District.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\Division.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\Donation.java
@@ -67,6 +75,7 @@ C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\DropoutPrediction.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\FundTransparency.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\FundUtilization.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\Message.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\Ngo.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\NgoGamification.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\NgoProject.java
@@ -86,6 +95,8 @@ C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\Upazila.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\User.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Entity\UserProfile.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\repository\ConversationParticipantRepository.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\repository\ConversationRepository.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\repository\DistrictRepository.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\repository\DivisionRepository.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\repository\DonationRepository.java
@@ -94,6 +105,7 @@ C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\repository\DropoutPredictionRepository.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\repository\FundTransparencyRepository.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\repository\FundUtilizationRepository.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\repository\MessageRepository.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\repository\NgoGamificationRepository.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\repository\NgoProjectDonationsRepository.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\repository\NgoProjectRepository.java
@@ -118,6 +130,7 @@ C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Security\JwtUtil.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\Security\SwaggerConfig.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\AuthService.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\ConversationService.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\DistrictService.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\DivisionService.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\DonationService.java
@@ -127,6 +140,7 @@ C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\FundTransparencyService.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\FundUtilizationService.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\ImageService.java
+C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\MessageService.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\NgoGamificationService.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\NgoProjectDonationsService.java
 C:\Users\Borshon\Desktop\Bright AId\BrightAid\Backend\src\main\java\com\example\Bright_Aid\service\NgoProjectRequestsService.java
