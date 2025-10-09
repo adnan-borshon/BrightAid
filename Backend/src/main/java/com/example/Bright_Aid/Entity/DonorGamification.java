@@ -35,7 +35,9 @@ public class DonorGamification {
     @Builder.Default
     private Integer totalPoints = 0;
 
-
+    @Column(name = "impact_score", nullable = false)
+    @Builder.Default
+    private Double impactScore = 0.0;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "badges_earned", columnDefinition = "JSON")

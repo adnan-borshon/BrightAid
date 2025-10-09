@@ -1,12 +1,44 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { ChevronRight, MoreVertical, Briefcase, School, Plus, Trash2, Edit, Eye, Download } from 'lucide-react';
-import Sidebar from './DashSidebar';
-import { API_BASE_URL } from '../config/api';
+import { useParams, useNavigate } from 'react-router-dom';
+import { ChevronRight, MoreVertical, Briefcase, School, Plus, Trash2, Edit, Eye, Download, Heart, Users, TrendingUp, Trophy, Award } from 'lucide-react';
+import NgoDashSidebar from './NgoDashSidebar';
+import ProjectCreateModal from './Modal/ProjectCreateModal';
+import DonorGamificationCard from './DonorGamificationCard';
+
+const mockStudentsForSponsorship = [
+  {
+    id: "1",
+    name: "Student 1",
+    class: "Class 2",
+    status: "Active",
+    image: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=300&h=300&fit=crop",
+  },
+  {
+    id: "2",
+    name: "Student 2",
+    class: "Class 3",
+    status: "Active",
+    image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&h=300&fit=crop",
+  },
+  {
+    id: "3",
+    name: "Student 3",
+    class: "Class 4",
+    status: "Active",
+    image: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=300&h=300&fit=crop",
+  },
+  {
+    id: "4",
+    name: "Student 4",
+    class: "Class 5",
+    status: "Active",
+    image: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=300&h=300&fit=crop",
+  },
+];
 
 const emptyData = {
   ngo: null,
-  ngoProjects: [],
+  schoolProjects: [],
   assignedSchools: [],
   projectUpdates: [],
   budgetSummary: { totalBudget: 0, utilizedBudget: 0, remainingBudget: 0 }
@@ -14,12 +46,22 @@ const emptyData = {
 
 export default function NgoDashboard() {
   const { ngoId } = useParams();
-  const [activeNav, setActiveNav] = useState('Dashboard');
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(emptyData);
   const [apiError, setApiError] = useState(false);
   const [showAddProject, setShowAddProject] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
+  const [donationsData, setDonationsData] = useState([]);
+  const [ngoStats, setNgoStats] = useState({
+    totalDonated: 0,
+    studentsHelped: 0,
+    schoolProjectsCount: 0,
+    schoolsReached: 0
+  });
+  const [gamificationData, setGamificationData] = useState(null);
+  const [donationDialogOpen, setDonationDialogOpen] = useState(false);
+  const [donationDialogData, setDonationDialogData] = useState(null);
 
   useEffect(() => {
     if (ngoId) {
@@ -30,11 +72,16 @@ export default function NgoDashboard() {
   const fetchNgoData = async () => {
     setLoading(true);
     try {
-      const [ngoRes, projectsRes, schoolsRes, updatesRes] = await Promise.all([
+      const API_BASE_URL = 'http://localhost:8081/api';
+      const [ngoRes, schoolProjectsRes, schoolsRes, updatesRes, studentDonationsRes, projectDonationsRes, gamificationRes, statsRes] = await Promise.all([
         fetch(`${API_BASE_URL}/ngos/${ngoId}`).catch(() => null),
-        fetch(`${API_BASE_URL}/ngo-projects`).catch(() => null),
+        fetch(`${API_BASE_URL}/school-projects`).catch(() => null),
         fetch(`${API_BASE_URL}/ngo-project-schools`).catch(() => null),
         fetch(`${API_BASE_URL}/project-updates`).catch(() => null),
+        fetch(`${API_BASE_URL}/ngo-student-donations`).catch(() => null),
+        fetch(`${API_BASE_URL}/ngo-project-donations`).catch(() => null),
+        fetch(`${API_BASE_URL}/ngo-gamification`).catch(() => null),
+        fetch(`${API_BASE_URL}/ngos/${ngoId}/stats`).catch(() => null),
       ]);
 
       const newData = { ...emptyData };
@@ -43,19 +90,16 @@ export default function NgoDashboard() {
         newData.ngo = await ngoRes.json();
       }
       
-      if (projectsRes && projectsRes.ok) {
-        const projectsData = await projectsRes.json();
+      if (schoolProjectsRes && schoolProjectsRes.ok) {
+        const projectsData = await schoolProjectsRes.json();
         const allProjects = Array.isArray(projectsData) ? projectsData : projectsData.data || [];
-        newData.ngoProjects = allProjects.filter(p => (p.ngoId || p.ngo_id) == ngoId);
+        newData.schoolProjects = allProjects;
       }
       
       if (schoolsRes && schoolsRes.ok) {
         const schoolsData = await schoolsRes.json();
         const allSchools = Array.isArray(schoolsData) ? schoolsData : schoolsData.data || [];
-        const projectIds = newData.ngoProjects.map(p => p.ngoProjectId || p.ngo_project_id);
-        newData.assignedSchools = allSchools.filter(s => 
-          projectIds.includes(s.ngoProjectId || s.ngo_project_id)
-        );
+        newData.assignedSchools = allSchools;
       }
       
       if (updatesRes && updatesRes.ok) {
@@ -63,8 +107,43 @@ export default function NgoDashboard() {
         newData.projectUpdates = Array.isArray(updatesData) ? updatesData : updatesData.data || [];
       }
       
-      const totalBudget = newData.ngoProjects.reduce((sum, p) => sum + (p.budget || 0), 0);
-      const utilizedBudget = newData.assignedSchools.reduce((sum, s) => sum + (s.utilizedBudget || s.utilized_budget || 0), 0);
+      if (gamificationRes && gamificationRes.ok) {
+        const allGamificationData = await gamificationRes.json();
+        const currentNgoGamification = Array.isArray(allGamificationData) 
+          ? allGamificationData.find(g => g.ngoId == ngoId)
+          : null;
+        setGamificationData(currentNgoGamification);
+      }
+      
+      // Process donation data
+      let allDonations = [];
+      if (studentDonationsRes && studentDonationsRes.ok) {
+        const studentDonations = await studentDonationsRes.json();
+        const ngoStudentDonations = Array.isArray(studentDonations) ? studentDonations.filter(d => d.ngoId == ngoId) : [];
+        allDonations = [...allDonations, ...ngoStudentDonations];
+      }
+      
+      if (projectDonationsRes && projectDonationsRes.ok) {
+        const projectDonations = await projectDonationsRes.json();
+        const ngoProjectDonations = Array.isArray(projectDonations) ? projectDonations.filter(d => d.ngoId == ngoId) : [];
+        allDonations = [...allDonations, ...ngoProjectDonations];
+      }
+      
+      setDonationsData(allDonations);
+      
+      // Fetch stats from backend using native queries
+      if (statsRes && statsRes.ok) {
+        const stats = await statsRes.json();
+        setNgoStats({
+          totalDonated: stats.totalDonated || 0,
+          studentsHelped: stats.studentsHelped || 0,
+          schoolProjectsCount: stats.schoolProjectsCount || 0,
+          schoolsReached: stats.schoolsReached || 0
+        });
+      }
+      
+      const totalBudget = newData.schoolProjects.reduce((sum, p) => sum + (p.requiredAmount || 0), 0);
+      const utilizedBudget = newData.schoolProjects.reduce((sum, p) => sum + (p.raisedAmount || 0), 0);
       newData.budgetSummary = {
         totalBudget,
         utilizedBudget,
@@ -82,12 +161,44 @@ export default function NgoDashboard() {
   };
 
   const formatCurrency = (amount) => {
-    return `৳${Math.abs(amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    return `Tk ${Math.abs(amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  };
+
+  const handleProjectCreation = async (formData) => {
+    try {
+      const jsonData = {
+        ngoId: parseInt(ngoId),
+        projectName: formData.get('project_title'),
+        projectDescription: formData.get('project_description'),
+        projectTypeId: parseInt(formData.get('project_type_id')),
+        budget: parseFloat(formData.get('budget') || 0)
+      };
+      
+      const response = await fetch('http://localhost:8081/api/ngo-projects', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(jsonData)
+      });
+      
+      if (response.ok) {
+        setShowAddProject(false);
+        fetchNgoData();
+      } else {
+        const errorData = await response.text();
+        console.error('Project creation failed:', errorData);
+        alert('Failed to create project: ' + errorData);
+      }
+    } catch (error) {
+      console.error('Error creating project:', error);
+      alert('Error creating project: ' + error.message);
+    }
   };
 
   const getStatusColor = (status) => {
     const statusMap = {
-      'planned': 'bg-blue-100 text-blue-700',
+      'planned': 'bg-green-100 text-green-700',
       'active': 'bg-green-100 text-green-700',
       'in_progress': 'bg-orange-100 text-orange-700',
       'completed': 'bg-green-600 text-white',
@@ -137,13 +248,31 @@ export default function NgoDashboard() {
 
   const ngoData = {
     schoolName: data.ngo?.ngoName || data.ngo?.ngo_name || `NGO ${ngoId}`,
-    total_students: data.ngoProjects.length,
-    active_projects: data.assignedSchools.length,
+    total_students: ngoStats.studentsHelped,
+    active_projects: ngoStats.schoolsReached,
+  };
+  
+  const gamificationInfo = {
+    currentLevel: gamificationData?.totalPoints >= 1000 ? "Champion" : 
+                 gamificationData?.totalPoints >= 500 ? "Expert" : 
+                 gamificationData?.totalPoints >= 200 ? "Achiever" : 
+                 gamificationData?.totalPoints >= 100 ? "Starter" : "Beginner",
+    totalPoints: gamificationData?.totalPoints || 0,
+    badgesEarned: gamificationData?.badgesEarned ? 
+      (typeof gamificationData.badgesEarned === 'string' ? 
+        JSON.parse(gamificationData.badgesEarned.replace(/\\"/g, '"')) : 
+        gamificationData.badgesEarned) : ["New NGO"],
+    rankingPosition: 1
   };
 
   return (
     <div className="flex h-screen bg-gray-50">
-      <Sidebar activeNav={activeNav} setActiveNav={setActiveNav} schoolData={ngoData} />
+      <ProjectCreateModal
+        isOpen={showAddProject}
+        onClose={() => setShowAddProject(false)}
+        onSubmit={handleProjectCreation}
+      />
+      <NgoDashSidebar />
 
       <div className="flex-1 overflow-auto">
         {apiError && (
@@ -169,7 +298,7 @@ export default function NgoDashboard() {
             </div>
           </div>
           <div className="w-96 h-48 rounded-xl overflow-hidden shadow-lg">
-            <div className="w-full h-full bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center text-white">
+            <div className="w-full h-full bg-gradient-to-br from-green-600 to-green-800 flex items-center justify-center text-white">
               <Briefcase className="w-24 h-24 opacity-20" />
             </div>
           </div>
@@ -179,112 +308,219 @@ export default function NgoDashboard() {
         <div className="px-6 mb-8">
           <div className="mb-4">
             <h2 className="text-2xl font-bold text-gray-800">Overview</h2>
-            <p className="text-sm text-gray-500">Track your projects and budget utilization</p>
+            <p className="text-sm text-gray-500">Track your impact and donations</p>
           </div>
           
-          <div className="grid grid-cols-3 gap-6">
+          <div className="grid grid-cols-4 gap-6">
             <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
               <div className="flex items-start justify-between mb-4">
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <Briefcase className="w-5 h-5 text-blue-600" />
+                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                  <Briefcase className="w-5 h-5 text-green-600" />
                 </div>
                 <MoreVertical className="w-4 h-4 text-gray-400" />
               </div>
-              <div className="text-sm text-gray-500 mb-1">Active Projects</div>
-              <div className="text-3xl font-bold text-gray-800 mb-2">{data.ngoProjects.length}</div>
-              <div className="text-xs text-green-600">
-                {data.ngoProjects.filter(p => (p.status || '').toLowerCase() === 'active').length} in progress
-              </div>
+              <div className="text-sm text-gray-500 mb-1">Total Donated</div>
+              <div className="text-3xl font-bold text-gray-800 mb-2">{formatCurrency(ngoStats.totalDonated)}</div>
+              <div className="text-xs text-green-600">{donationsData.length} donations made</div>
+              <button 
+                onClick={() => navigate(`/ngo-donations/${ngoId}`)}
+                className="secondary !border-0 hover:!bg-gray-50 hover:!text-[#0E792E] mt-4 text-sm font-medium flex items-center gap-1"
+              >
+                View Donations <ChevronRight className="w-4 h-4" />
+              </button>
             </div>
 
             <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
               <div className="flex items-start justify-between mb-4">
                 <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                  <School className="w-5 h-5 text-green-600" />
+                  <Heart className="w-5 h-5 text-green-600" />
                 </div>
                 <MoreVertical className="w-4 h-4 text-gray-400" />
               </div>
-              <div className="text-sm text-gray-500 mb-1">Schools Reached</div>
-              <div className="text-3xl font-bold text-gray-800 mb-2">{data.assignedSchools.length}</div>
-              <div className="text-xs text-green-600">Across all projects</div>
+              <div className="text-sm text-gray-500 mb-1">Total Donated</div>
+              <div className="text-3xl font-bold text-gray-800 mb-2">{formatCurrency(ngoStats.totalDonated)}</div>
+              <div className="text-xs text-green-600">{donationsData.length} donations made</div>
+              <button 
+                onClick={() => navigate(`/ngo-donations/${ngoId}`)}
+                className="secondary !border-0 hover:!bg-gray-50 hover:!text-[#0E792E] mt-4 text-sm font-medium flex items-center gap-1"
+              >
+                View Donations <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+              <div className="flex items-start justify-between mb-4">
+                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                  <Users className="w-5 h-5 text-purple-600" />
+                </div>
+                <MoreVertical className="w-4 h-4 text-gray-400" />
+              </div>
+              <div className="text-sm text-gray-500 mb-1">Students Helped</div>
+              <div className="text-3xl font-bold text-gray-800 mb-2">{ngoStats.studentsHelped}</div>
+              <div className="text-xs text-green-600">Direct sponsorships</div>
+              <button 
+                onClick={() => navigate(`/ngo-reporting/${ngoId}`)}
+                className="secondary !border-0 hover:!bg-gray-50 hover:!text-[#0E792E] mt-4 text-sm font-medium flex items-center gap-1"
+              >
+                View Impact <ChevronRight className="w-4 h-4" />
+              </button>
             </div>
 
             <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
               <div className="flex items-start justify-between mb-4">
                 <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                  <span className="text-orange-600 text-lg">💰</span>
+                  <TrendingUp className="w-5 h-5 text-orange-600" />
                 </div>
                 <MoreVertical className="w-4 h-4 text-gray-400" />
               </div>
-              <div className="text-sm text-gray-500 mb-1">Budget Utilization</div>
-              <div className="text-3xl font-bold text-gray-800 mb-2">
-                {data.budgetSummary.totalBudget > 0 
-                  ? Math.round((data.budgetSummary.utilizedBudget / data.budgetSummary.totalBudget) * 100)
-                  : 0}%
-              </div>
-              <div className="text-xs text-gray-600">
-                {formatCurrency(data.budgetSummary.utilizedBudget)} of {formatCurrency(data.budgetSummary.totalBudget)}
-              </div>
+              <div className="text-sm text-gray-500 mb-1">Schools Reached</div>
+              <div className="text-3xl font-bold text-gray-800 mb-2">{ngoStats.schoolsReached}</div>
+              <div className="text-xs text-green-600">Through projects</div>
+              <button 
+                onClick={() => navigate(`/ngo-gamification/${ngoId}`)}
+                className="secondary !border-0 hover:!bg-gray-50 hover:!text-[#0E792E] mt-4 text-sm font-medium flex items-center gap-1"
+              >
+                View Ranking <ChevronRight className="w-4 h-4" />
+              </button>
             </div>
           </div>
         </div>
 
-        {/* NGO Projects Management */}
+        {/* Start Scholarship Section */}
+        <div className="px-6 mb-8">
+          <div className="grid grid-cols-3 gap-6">
+            <div className="col-span-2">
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-8 mb-6">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="text-green-700 mb-2">Welcome, NGO</p>
+                    <h2 className="text-4xl font-bold text-gray-900 mb-2">
+                      Start Your
+                      <br />
+                      Scholarship Today
+                    </h2>
+                    <p className="text-gray-600 mb-6">
+                      Support students in Government Primary
+                      <br />
+                      Schools throughout Bangladesh
+                    </p>
+                    <button 
+                      onClick={() => {
+                        setDonationDialogData({
+                          donationType: "student",
+                          title: "Sponsor a Student",
+                          description: "Help provide education opportunities for students in need",
+                          itemData: null
+                        });
+                        setDonationDialogOpen(true);
+                      }}
+                      className="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700"
+                    >
+                      Start Now
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    {mockStudentsForSponsorship.map((student, idx) => (
+                      <div key={idx} className="bg-white rounded-lg overflow-hidden shadow-sm">
+                        <div className="relative">
+                          <img src={student.image} alt={student.name} className="w-full h-32 object-cover" />
+                          <span className="absolute top-2 right-2 bg-white text-green-600 text-xs px-2 py-1 rounded-full font-semibold">
+                            {student.status}
+                          </span>
+                        </div>
+                        <div className="p-3">
+                          <p className="text-xs text-gray-500 mb-1">Looking for Scholarship</p>
+                          <p className="font-semibold text-sm">{student.name}, {student.class}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="space-y-6">
+              <DonorGamificationCard 
+                currentLevel={gamificationInfo.currentLevel}
+                totalPoints={gamificationInfo.totalPoints}
+                badgesEarned={gamificationInfo.badgesEarned}
+                rankingPosition={gamificationInfo.rankingPosition}
+                pointsToNextLevel={gamificationData?.pointsToNextLevel}
+                progressPercentage={gamificationData?.progressPercentage}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* School Projects Available */}
         <div className="px-6 mb-8">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                <span className="text-blue-600">📋</span>
-                Your Projects
+                <span className="text-green-600">📚</span>
+                School Projects Available
               </h2>
-              <p className="text-sm text-gray-500">Manage and monitor your NGO projects</p>
+              <p className="text-sm text-gray-500">Support school projects that need funding</p>
             </div>
             <button 
-              onClick={handleAddProject}
-              className="secondary !border-0 hover:!bg-gray-50 hover:!text-[#0E792E] text-sm font-medium flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+              onClick={() => navigate(`/ngo-projects/${ngoId}`)}
+              className="secondary !border-0 hover:!bg-gray-50 hover:!text-[#0E792E] text-sm font-medium flex items-center gap-1"
             >
-              <Plus className="w-4 h-4" />
-              Add Project
+              View All <ChevronRight className="w-4 h-4" />
             </button>
           </div>
 
           <div className="grid grid-cols-3 gap-4">
-            {data.ngoProjects.length > 0 ? data.ngoProjects.map((project) => (
-              <div key={project.ngoProjectId || project.ngo_project_id} className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100">
-                <div className="relative h-40 bg-gradient-to-br from-blue-700 to-blue-900">
+            {data.schoolProjects.length > 0 ? data.schoolProjects.slice(0, 6).map((project) => (
+              <div key={project.projectId || project.project_id} className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100">
+                <div className="relative h-40 bg-gradient-to-br from-blue-100 to-blue-200">
                   <span className={`absolute top-3 right-3 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(project.status)}`}>
-                    • {(project.status || 'planned').toUpperCase()}
+                    • {(project.status || 'active').toUpperCase()}
                   </span>
-                  <span className="absolute top-3 left-3 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">
-                    ID: {project.ngoProjectId || project.ngo_project_id}
-                  </span>
+                  <div className="absolute bottom-3 left-3 text-white">
+                    <div className="text-xs opacity-80">Required</div>
+                    <div className="text-lg font-bold">{formatCurrency(project.requiredAmount || 0)}</div>
+                  </div>
                 </div>
                 <div className="p-4">
                   <div className="text-sm font-semibold text-gray-800 mb-2">
-                    {project.projectName || project.project_name || 'Untitled Project'}
+                    {project.projectTitle || project.project_title || 'School Project'}
                   </div>
                   <div className="text-xs text-gray-600 mb-3 line-clamp-2">
-                    {project.projectDescription || project.project_description || 'No description'}
+                    {project.projectDescription || project.project_description || 'Help support this school project'}
                   </div>
                   <div className="text-xs text-gray-500 mb-3">
-                    Budget: {formatCurrency(project.budget || 0)}
+                    Raised: {formatCurrency(project.raisedAmount || 0)} / {formatCurrency(project.requiredAmount || 0)}
                   </div>
-                  <div className="text-xs text-gray-500 mb-4">
-                    Duration: {project.startDate || project.start_date || 'N/A'} - {project.endDate || project.end_date || 'Ongoing'}
+                  <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
+                    <div 
+                      className="bg-green-600 h-2 rounded-full" 
+                      style={{ 
+                        width: `${project.requiredAmount > 0 ? ((project.raisedAmount || 0) / project.requiredAmount) * 100 : 0}%` 
+                      }}
+                    ></div>
                   </div>
                   <div className="flex gap-2">
                     <button 
-                      onClick={() => handleViewProject(project)}
-                      className="flex-1 secondary !border-0 hover:!bg-gray-50 hover:!text-[#0E792E] py-2 text-sm rounded-lg hover:bg-blue-50 transition-colors flex items-center justify-center gap-1"
+                      onClick={() => {
+                        setDonationDialogData({
+                          donationType: "project",
+                          title: "Support School Project",
+                          description: "Help fund this school project",
+                          itemData: project
+                        });
+                        setDonationDialogOpen(true);
+                      }}
+                      className="flex-1 bg-green-600 text-white py-2 text-sm rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-1"
                     >
-                      <Eye className="w-3 h-3" />
-                      View
+                      <Heart className="w-3 h-3" />
+                      Donate
                     </button>
                     <button 
-                      onClick={() => handleDeleteProject(project.ngoProjectId || project.ngo_project_id)}
-                      className="px-3 py-2 text-sm rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+                      onClick={() => handleViewProject(project)}
+                      className="px-3 py-2 text-sm rounded-lg bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors"
                     >
-                      <Trash2 className="w-3 h-3" />
+                      <Eye className="w-3 h-3" />
                     </button>
                   </div>
                 </div>
@@ -292,16 +528,9 @@ export default function NgoDashboard() {
             )) : (
               <div className="col-span-3 text-center py-12 text-gray-500 bg-white rounded-xl">
                 <div className="flex flex-col items-center gap-3">
-                  <span className="text-4xl">📋</span>
-                  <span className="text-lg font-medium">No projects created yet</span>
-                  <span className="text-sm">Click "Add Project" to create your first project</span>
-                  <button 
-                    onClick={handleAddProject}
-                    className="mt-4 secondary !border-0 hover:!bg-gray-50 hover:!text-[#0E792E] bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Create Project
-                  </button>
+                  <span className="text-4xl">📚</span>
+                  <span className="text-lg font-medium">No school projects available</span>
+                  <span className="text-sm">Check back later for new projects to support</span>
                 </div>
               </div>
             )}
@@ -403,7 +632,7 @@ export default function NgoDashboard() {
 
               <div className="pt-4 border-t border-gray-200">
                 <div className="text-xs text-gray-500 text-center">
-                  {data.ngoProjects.filter(p => (p.status || '').toLowerCase() === 'active').length} active projects • 
+                  {data.schoolProjects.length} school projects • 
                   {data.assignedSchools.length} schools reached
                 </div>
               </div>

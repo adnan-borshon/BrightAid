@@ -226,6 +226,7 @@ public class DonationService {
                 .updatedAt(result[14] != null ? ((java.sql.Timestamp) result[14]).toLocalDateTime() : null)
                 .transactionRef((String) result[15]) // Transaction reference from native query
                 .projectName((String) result[16]) // Project name from native query
+                .recipientName((String) result[17]) // Recipient name from native query
                 .build();
     }
 

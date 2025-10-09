@@ -10,196 +10,117 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class DonorGamificationService {
 
-    private final DonorGamificationRepository gamificationRepository;
+    private final DonorGamificationRepository donorGamificationRepository;
     private final DonorRepository donorRepository;
 
-    public List<DonorGamificationDto> getAllGamifications() {
-        return gamificationRepository.findAll().stream()
-                .map(this::toDto)
-                .toList();
+    public List<DonorGamificationDto> getAllDonorGamification() {
+        return donorGamificationRepository.findAll().stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
     }
 
-    public DonorGamificationDto getGamificationById(Integer id) {
-        return gamificationRepository.findById(id)
-                .map(this::toDto)
-                .orElseThrow(() -> new RuntimeException("Gamification not found"));
+    public DonorGamificationDto getDonorGamificationByDonorId(Integer donorId) {
+        DonorGamification gamification = donorGamificationRepository.findByDonorDonorId(donorId)
+                .orElseThrow(() -> new RuntimeException("Donor gamification not found"));
+        return convertToDto(gamification);
     }
 
-    @Transactional
-    public DonorGamificationDto create(DonorGamificationDto dto) {
-        Donor donor = donorRepository.findById(dto.getDonorIdRequest())
-                .orElseThrow(() -> new RuntimeException("Donor not found with ID: " + dto.getDonorIdRequest()));
+    public DonorGamificationDto createOrUpdateDonorGamification(DonorGamificationDto dto) {
+        Donor donor = donorRepository.findById(dto.getDonorId())
+                .orElseThrow(() -> new RuntimeException("Donor not found"));
 
-        DonorGamification gamification = DonorGamification.builder()
-                .donor(donor)
-                .totalPoints(dto.getTotalPointsRequest())
-                .badgesEarned(dto.getBadgesEarnedRequest())
-                .lastUpdated(LocalDateTime.now())
-                .build();
+        DonorGamification gamification = donorGamificationRepository.findByDonorDonorId(dto.getDonorId())
+                .orElse(DonorGamification.builder()
+                        .donor(donor)
+                        .totalPoints(0)
+                        .impactScore(0.0)
+                        .badgesEarned(new ArrayList<>())
+                        .lastUpdated(LocalDateTime.now())
+                        .build());
 
-        return toDto(gamificationRepository.save(gamification));
-    }
-
-    // Get all donors for reference
-    public List<Donor> getAllDonors() {
-        return donorRepository.findAll();
-    }
-
-    @Transactional
-    public DonorGamificationDto update(Integer id, DonorGamificationDto dto) {
-        DonorGamification gamification = gamificationRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Gamification not found"));
-
-        if (dto.getTotalPointsRequest() != null) gamification.setTotalPoints(dto.getTotalPointsRequest());
-        if (dto.getBadgesEarnedRequest() != null) gamification.setBadgesEarned(dto.getBadgesEarnedRequest());
-
+        // Update fields
+        if (dto.getTotalPoints() != null) {
+            gamification.setTotalPoints(dto.getTotalPoints());
+        }
+        if (dto.getImpactScore() != null) {
+            gamification.setImpactScore(dto.getImpactScore());
+        }
+        if (dto.getBadgesEarned() != null) {
+            gamification.setBadgesEarned(dto.getBadgesEarned());
+        }
+        if (dto.getDonorName() != null) {
+            gamification.setDonorName(dto.getDonorName());
+        }
+        
         gamification.setLastUpdated(LocalDateTime.now());
 
-        return toDto(gamificationRepository.save(gamification));
+        DonorGamification saved = donorGamificationRepository.save(gamification);
+        return convertToDto(saved);
     }
 
-    private DonorGamificationDto toDto(DonorGamification entity) {
-        // Calculate progress to next level
-        int points = entity.getTotalPoints() != null ? entity.getTotalPoints() : 0;
-        String level = calculateLevelFromPoints(points); // Calculate level based on points
-        
-        int pointsToNext = calculatePointsToNextLevel(points, level);
-        double progressPercent = calculateProgressPercentage(points, level);
-        String nextLevel = getNextLevel(level);
-        
-        // Calculate ranking dynamically
-        Integer ranking = gamificationRepository.calculateDonorRanking(entity.getDonor().getDonorId());
-        
-        return DonorGamificationDto.builder()
-                .gamificationId(entity.getGamificationId())
-                .donorId(entity.getDonor().getDonorId())
-                .donorName(entity.getDonorName())
-                .organizationName(entity.getDonor().getDonorName())
-                .totalPoints(entity.getTotalPoints())
-                .currentLevel(level)
-                .badgesEarned(entity.getBadgesEarned())
-                .rankingPosition(ranking != null ? ranking : 999)
-                .lastUpdated(entity.getLastUpdated())
-                .pointsToNextLevel(pointsToNext)
-                .progressPercentage(progressPercent)
-                .nextLevel(nextLevel)
-                .build();
+    public void deleteDonorGamification(Integer donorId) {
+        DonorGamification gamification = donorGamificationRepository.findByDonorDonorId(donorId)
+                .orElseThrow(() -> new RuntimeException("Donor gamification not found"));
+        donorGamificationRepository.delete(gamification);
     }
 
-    @Transactional
-    public void deleteGamification(Integer id) {
-        gamificationRepository.deleteById(id);
+    public Integer getUniqueSchoolsCountByDonor(Integer donorId) {
+        // This would require a native query to count unique schools from donations
+        // For now, return a default value
+        return donorGamificationRepository.getUniqueSchoolsCountByDonor(donorId);
     }
 
-    // Get gamification by donor ID
-    public DonorGamificationDto getGamificationByDonorId(Integer donorId) {
-        return gamificationRepository.findByDonor_DonorId(donorId)
-                .map(this::toDto)
-                .orElse(createDefaultGamification(donorId));
-    }
-
-    // Create default gamification for new donors
-    private DonorGamificationDto createDefaultGamification(Integer donorId) {
-        Donor donor = donorRepository.findById(donorId)
-                .orElseThrow(() -> new RuntimeException("Donor not found"));
+    public Map<String, Object> getDonorStats(Integer donorId) {
+        DonorGamification gamification = donorGamificationRepository.findByDonorDonorId(donorId)
+                .orElse(null);
         
-        return DonorGamificationDto.builder()
-                .donorId(donorId)
-                .donorName(donor.getDonorName())
-                .organizationName(donor.getDonorName())
-                .totalPoints(0)
-                .currentLevel("Bronze")
-                .badgesEarned(java.util.Arrays.asList("New Donor"))
-                .rankingPosition(999) // Default ranking for new donors
-                .lastUpdated(java.time.LocalDateTime.now())
-                .pointsToNextLevel(10000)
-                .progressPercentage(0.0)
-                .nextLevel("Silver")
-                .build();
+        Map<String, Object> stats = new java.util.HashMap<>();
+        if (gamification != null) {
+            stats.put("totalPoints", gamification.getTotalPoints());
+            stats.put("impactScore", gamification.getImpactScore());
+            stats.put("badgesEarned", gamification.getBadgesEarned() != null ? gamification.getBadgesEarned().size() : 0);
+            stats.put("level", calculateLevel(gamification.getTotalPoints()));
+        } else {
+            stats.put("totalPoints", 0);
+            stats.put("impactScore", 0.0);
+            stats.put("badgesEarned", 0);
+            stats.put("level", "Beginner");
+        }
+        
+        // Add unique schools count
+        stats.put("uniqueSchools", getUniqueSchoolsCountByDonor(donorId));
+        
+        return stats;
     }
-    
-    // Helper methods for progress calculation
-    private int calculatePointsToNextLevel(int currentPoints, String level) {
-        return switch (level) {
-            case "Bronze" -> Math.max(0, 10000 - currentPoints);
-            case "Silver" -> Math.max(0, 50001 - currentPoints);
-            case "Gold" -> Math.max(0, 150001 - currentPoints);
-            case "Platinum" -> 0;
-            default -> 10000 - currentPoints;
-        };
-    }
-    
-    private double calculateProgressPercentage(int currentPoints, String level) {
-        return switch (level) {
-            case "Bronze" -> {
-                // Bronze: 0-9999 points, progress within this range
-                yield Math.min(100.0, Math.max(0.0, (currentPoints / 10000.0) * 100));
-            }
-            case "Silver" -> {
-                // Silver: 10000-50000 points, progress within this range
-                if (currentPoints < 10000) yield 0.0;
-                if (currentPoints >= 50001) yield 100.0;
-                yield ((currentPoints - 10000) / 40001.0) * 100;
-            }
-            case "Gold" -> {
-                // Gold: 50001-150000 points, progress within this range
-                if (currentPoints < 50001) yield 0.0;
-                if (currentPoints >= 150001) yield 100.0;
-                yield ((currentPoints - 50001) / 100000.0) * 100;
-            }
-            case "Platinum" -> 100.0; // Max level
-            default -> Math.min(100.0, Math.max(0.0, (currentPoints / 10000.0) * 100));
-        };
-    }
-    
-    private String getNextLevel(String currentLevel) {
-        return switch (currentLevel) {
-            case "Bronze" -> "Silver";
-            case "Silver" -> "Gold";
-            case "Gold" -> "Platinum";
-            case "Platinum" -> "Max Level";
-            default -> "Silver";
-        };
-    }
-    
-    // Calculate level based on points
-    private String calculateLevelFromPoints(int points) {
-        if (points >= 150001) return "Platinum";
-        if (points >= 50001) return "Gold";
-        if (points >= 10000) return "Silver";
+
+    private String calculateLevel(Integer totalPoints) {
+        if (totalPoints == null || totalPoints == 0) return "Beginner";
+        if (totalPoints >= 50000) return "Diamond";
+        if (totalPoints >= 25000) return "Platinum";
+        if (totalPoints >= 10000) return "Gold";
+        if (totalPoints >= 2500) return "Silver";
         return "Bronze";
     }
-    
-    // Get unique schools count for donor based on sponsored students and projects
-    public Integer getUniqueSchoolsCount(Integer donorId) {
-        return gamificationRepository.getUniqueSchoolsCountByDonor(donorId);
-    }
-    
-    // Get donor statistics (calculated dynamically)
-    public com.example.Bright_Aid.Dto.DonorStatsDto getDonorStats(Integer donorId) {
-        Donor donor = donorRepository.findById(donorId)
-                .orElseThrow(() -> new RuntimeException("Donor not found"));
-        
-        return com.example.Bright_Aid.Dto.DonorStatsDto.builder()
-                .donorId(donor.getDonorId())
-                .donorName(donor.getDonorName())
-                .taxId(donor.getTaxId())
-                .isAnonymous(donor.getIsAnonymous())
-                .totalDonated(donorRepository.calculateTotalDonated(donorId))
-                .totalSchoolsSupported(donorRepository.calculateTotalSchoolsSupported(donorId))
-                .totalStudentsSponsored(donorRepository.calculateTotalStudentsSponsored(donorId))
-                .totalProjectsDonated(donorRepository.calculateTotalProjectsDonated(donorId))
+
+    private DonorGamificationDto convertToDto(DonorGamification gamification) {
+        return DonorGamificationDto.builder()
+                .gamificationId(gamification.getGamificationId())
+                .donorId(gamification.getDonor().getDonorId())
+                .totalPoints(gamification.getTotalPoints())
+                .impactScore(gamification.getImpactScore())
+                .badgesEarned(gamification.getBadgesEarned())
+                .donorName(gamification.getDonorName())
+                .lastUpdated(gamification.getLastUpdated())
                 .build();
-    }
-    
-    // Get total project contributions for a donor
-    public java.math.BigDecimal getTotalProjectContributions(Integer donorId) {
-        return donorRepository.calculateTotalProjectContributions(donorId);
     }
 }

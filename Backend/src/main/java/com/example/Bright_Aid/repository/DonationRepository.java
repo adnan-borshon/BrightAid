@@ -34,10 +34,16 @@ public interface DonationRepository extends JpaRepository<Donation, Integer> {
            "d.donation_type, d.transaction_id, d.payment_status, d.purpose, d.donor_message, " +
            "d.is_anonymous, d.donated_at, d.payment_completed_at, d.created_at, d.updated_at, " +
            "COALESCE(pt.transaction_reference, CONCAT('TXN', LPAD(d.donation_id, 9, '0'))) as transaction_ref, " +
-           "COALESCE(sp.project_title, CONCAT('Donation #', d.donation_id)) as project_name " +
+           "COALESCE(sp.project_title, s.student_name, 'General Donation') as project_name, " +
+           "CASE " +
+           "  WHEN d.student_id IS NOT NULL THEN CONCAT('Student: ', s.student_name) " +
+           "  WHEN d.project_id IS NOT NULL THEN CONCAT('Project: ', sp.project_title) " +
+           "  ELSE 'General Donation' " +
+           "END as recipient_name " +
            "FROM donations d " +
            "LEFT JOIN payment_transactions pt ON d.transaction_id = pt.transaction_id " +
            "LEFT JOIN school_projects sp ON d.project_id = sp.project_id " +
+           "LEFT JOIN students s ON d.student_id = s.student_id " +
            "WHERE d.donor_id = :donorId " +
            "ORDER BY COALESCE(d.donated_at, d.created_at) DESC", nativeQuery = true)
     List<Object[]> findDonationsByDonorWithDetailsOrderByDateDesc(@Param("donorId") Integer donorId);

@@ -5,6 +5,7 @@ import './index.css'
 import App from './App.jsx'
 import { AppProvider } from './context/AppContext.jsx'
 import { DonorProvider } from './context/DonorContext.jsx'
+import { NgoProvider } from './context/NgoContext.jsx'
 import SignUp from './components/Authentication/Signup/SignUp.jsx'
 import SignUp1 from './components/Authentication/SignUp1.jsx'
 import SchoolProfilePage from './components/Authentication/Signup/SchoolProfilePage.jsx'
@@ -20,8 +21,15 @@ import DonorStudentsView from './components/DonorStudentsView'
 import Reporting from './components/Reporting'
 import SchoolReporting from './components/SchoolReporting'
 import NgoDashboard from './components/NgoDashboard'
+import NgoProjects from './components/NgoProjects'
+import NgoDonations from './components/NgoDonations'
+import NgoReporting from './components/NgoReporting'
+import NgoDonationHistory from './components/NgoDonationHistory'
+import NgoGamification from './components/NgoGamification'
 import DonorProfile from './components/DonorProfile'
 import NgoProfile from './components/NgoProfile'
+import DonorDonations from './components/DonorDonations'
+import DonorGamification from './components/DonorGamification'
 import Login from './components/Authentication/Login'
 import PaymentSuccess from './components/PaymentSuccess'
 import PaymentClose from './components/PaymentClose'
@@ -102,12 +110,48 @@ const router = createBrowserRouter([
     element: <DonorStudentsView /> 
   },
   { 
+    path: "/donor-donations/:id", 
+    element: <DonorDonations /> 
+  },
+  { 
+    path: "/donor-gamification/:id", 
+    element: <DonorGamification /> 
+  },
+  { 
     path: "/donor-reporting/:id", 
     element: <Reporting /> 
   },
   { 
     path: "/ngo-dashboard/:ngoId", 
     element: <NgoDashboard /> 
+  },
+  { 
+    path: "/ngo-projects/:ngoId", 
+    element: <NgoProjects /> 
+  },
+  { 
+    path: "/ngo-donations/:ngoId", 
+    element: <NgoDonations /> 
+  },
+  { 
+    path: "/ngo-reporting/:ngoId", 
+    element: <NgoReporting /> 
+  },
+  { 
+    path: "/ngo-gamification/:ngoId", 
+    element: <NgoGamification /> 
+  },
+  { 
+    path: "/ngo-account/:ngoId", 
+    element: <div className="p-8 text-center"><h1 className="text-2xl font-bold">NGO Account</h1><p className="text-gray-600 mt-2">Coming Soon...</p></div> 
+  },
+  { 
+    path: "/ngo-support/:ngoId", 
+    element: <div className="p-8 text-center"><h1 className="text-2xl font-bold">NGO Support</h1><p className="text-gray-600 mt-2">Coming Soon...</p></div> 
+  },
+  { 
+    path: "/ngo-settings/:ngoId", 
+    element: <div className="p-8 text-center"><h1 className="text-2xl font-bold">NGO Settings</h1><p className="text-gray-600 mt-2">Coming Soon...</p></div> 
   },
   { 
     path: "/admin-dashboard/:adminId", 
@@ -132,12 +176,12 @@ const router = createBrowserRouter([
 ])
 createRoot(document.getElementById('root')).render(
   <StrictMode>
+    <NgoProvider>
       <DonorProvider>
-    <AppProvider>
-    
-        <RouterProvider router={router} />
-      
-    </AppProvider>
-    </DonorProvider>
+        <AppProvider>
+          <RouterProvider router={router} />
+        </AppProvider>
+      </DonorProvider>
+    </NgoProvider>
   </StrictMode>,
 );

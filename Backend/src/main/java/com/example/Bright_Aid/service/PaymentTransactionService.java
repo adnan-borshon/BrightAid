@@ -303,11 +303,11 @@ public class PaymentTransactionService {
             // Convert to int first, then multiply by 5 for exact calculation
             int pointsToAward = amount.intValue() * 5;
             
-            DonorGamification gamification = gamificationRepository.findByDonor(donor)
+            DonorGamification gamification = gamificationRepository.findByDonorDonorId(donor.getDonorId())
                     .orElse(DonorGamification.builder()
                             .donor(donor)
                             .totalPoints(0)
-                       
+                            .impactScore(0.0)
                             .lastUpdated(LocalDateTime.now())
                             .build());
             

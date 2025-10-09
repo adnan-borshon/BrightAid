@@ -1,75 +1,63 @@
 package com.example.Bright_Aid.controller;
 
 import com.example.Bright_Aid.Dto.DonorGamificationDto;
-import com.example.Bright_Aid.Entity.DonorGamification;
 import com.example.Bright_Aid.service.DonorGamificationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/donor-gamifications")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 public class DonorGamificationController {
 
     private final DonorGamificationService donorGamificationService;
 
-    // GET all gamifications
     @GetMapping
-    public ResponseEntity<List<DonorGamificationDto>> getAllGamifications() {
-        return ResponseEntity.ok(donorGamificationService.getAllGamifications());
+    public ResponseEntity<List<DonorGamificationDto>> getAllDonorGamification() {
+        List<DonorGamificationDto> gamificationList = donorGamificationService.getAllDonorGamification();
+        return ResponseEntity.ok(gamificationList);
     }
 
-    // GET by ID
-    @GetMapping("/{id}")
-    public ResponseEntity<DonorGamificationDto> getById(@PathVariable Integer id) {
-        return ResponseEntity.ok(donorGamificationService.getGamificationById(id));
+    @GetMapping("/donor/{donorId}")
+    public ResponseEntity<DonorGamificationDto> getDonorGamificationByDonorId(@PathVariable Integer donorId) {
+        DonorGamificationDto gamification = donorGamificationService.getDonorGamificationByDonorId(donorId);
+        return ResponseEntity.ok(gamification);
     }
 
-    // POST new gamification
+    @GetMapping("/donor/{donorId}/unique-schools")
+    public ResponseEntity<Integer> getUniqueSchoolsCountByDonor(@PathVariable Integer donorId) {
+        Integer count = donorGamificationService.getUniqueSchoolsCountByDonor(donorId);
+        return ResponseEntity.ok(count);
+    }
+
+    @GetMapping("/donor/{donorId}/stats")
+    public ResponseEntity<Map<String, Object>> getDonorStats(@PathVariable Integer donorId) {
+        Map<String, Object> stats = donorGamificationService.getDonorStats(donorId);
+        return ResponseEntity.ok(stats);
+    }
+
     @PostMapping
-    public ResponseEntity<DonorGamificationDto> create(@RequestBody DonorGamificationDto dto) {
-        return ResponseEntity.ok(donorGamificationService.create(dto));
+    public ResponseEntity<DonorGamificationDto> createDonorGamification(@RequestBody DonorGamificationDto donorGamificationDto) {
+        DonorGamificationDto created = donorGamificationService.createOrUpdateDonorGamification(donorGamificationDto);
+        return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
 
-    // PUT update gamification
-    @PutMapping("/{id}")
-    public ResponseEntity<DonorGamificationDto> update(@PathVariable Integer id,
-                                                       @RequestBody DonorGamificationDto dto) {
-        return ResponseEntity.ok(donorGamificationService.update(id, dto));
+    @PutMapping("/donor/{donorId}")
+    public ResponseEntity<DonorGamificationDto> updateDonorGamification(@PathVariable Integer donorId, @RequestBody DonorGamificationDto donorGamificationDto) {
+        donorGamificationDto.setDonorId(donorId);
+        DonorGamificationDto updated = donorGamificationService.createOrUpdateDonorGamification(donorGamificationDto);
+        return ResponseEntity.ok(updated);
     }
 
-    // DELETE gamification
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Integer id) {
-        donorGamificationService.deleteGamification(id);
+    @DeleteMapping("/donor/{donorId}")
+    public ResponseEntity<Void> deleteDonorGamification(@PathVariable Integer donorId) {
+        donorGamificationService.deleteDonorGamification(donorId);
         return ResponseEntity.noContent().build();
     }
-
-    // GET gamification by donor ID
-    @GetMapping("/donor/{donorId}")
-    public ResponseEntity<DonorGamificationDto> getByDonorId(@PathVariable Integer donorId) {
-        return ResponseEntity.ok(donorGamificationService.getGamificationByDonorId(donorId));
-    }
-
-    // GET unique schools count for donor
-    @GetMapping("/donor/{donorId}/unique-schools")
-    public ResponseEntity<Integer> getUniqueSchoolsCount(@PathVariable Integer donorId) {
-        return ResponseEntity.ok(donorGamificationService.getUniqueSchoolsCount(donorId));
-    }
-
-    // GET donor statistics
-    @GetMapping("/donor/{donorId}/stats")
-    public ResponseEntity<com.example.Bright_Aid.Dto.DonorStatsDto> getDonorStats(@PathVariable Integer donorId) {
-        return ResponseEntity.ok(donorGamificationService.getDonorStats(donorId));
-    }
-    
-    // GET total project contributions
-    @GetMapping("/donor/{donorId}/project-contributions")
-    public ResponseEntity<java.math.BigDecimal> getTotalProjectContributions(@PathVariable Integer donorId) {
-        return ResponseEntity.ok(donorGamificationService.getTotalProjectContributions(donorId));
-    }
-
 }

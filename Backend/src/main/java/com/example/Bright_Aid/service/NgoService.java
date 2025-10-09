@@ -7,6 +7,8 @@ import com.example.Bright_Aid.Entity.User;
 import com.example.Bright_Aid.Entity.NgoProject;
 import com.example.Bright_Aid.repository.NgoRepository;
 import com.example.Bright_Aid.repository.UserRepository;
+import java.util.Map;
+import java.util.HashMap;
 // import com.example.Bright_Aid.repository.AdminRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -238,6 +240,24 @@ public class NgoService {
                 .orElseThrow(() -> new RuntimeException("NGO not found for user ID: " + userId));
 
         return convertToDto(ngo);
+    }
+    
+    public java.util.Map<String, Object> getNgoStats(Integer ngoId) {
+        log.info("Fetching stats for NGO ID: {}", ngoId);
+        
+        // Use native queries to count data directly from database
+        Long totalDonated = ngoRepository.getTotalDonatedByNgo(ngoId);
+        Long studentsHelped = ngoRepository.getStudentsHelpedByNgo(ngoId);
+        Long schoolProjectsCount = ngoRepository.getSchoolProjectsCount();
+        Long schoolsReached = ngoRepository.getSchoolsReachedByNgo(ngoId);
+        
+        java.util.Map<String, Object> stats = new java.util.HashMap<>();
+        stats.put("totalDonated", totalDonated != null ? totalDonated : 0L);
+        stats.put("studentsHelped", studentsHelped != null ? studentsHelped : 0L);
+        stats.put("schoolProjectsCount", schoolProjectsCount != null ? schoolProjectsCount : 0L);
+        stats.put("schoolsReached", schoolsReached != null ? schoolsReached : 0L);
+        
+        return stats;
     }
 
     private NgoDto convertToDto(Ngo ngo) {

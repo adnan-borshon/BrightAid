@@ -139,6 +139,14 @@ public class NgoController {
         return ResponseEntity.ok(rejectedNgo);
     }
 
+    @GetMapping("/{ngoId}/stats")
+    public ResponseEntity<?> getNgoStats(@PathVariable Integer ngoId) {
+        log.info("REST request to get stats for NGO ID: {}", ngoId);
+        
+        var stats = ngoService.getNgoStats(ngoId);
+        return ResponseEntity.ok(stats);
+    }
+
     @DeleteMapping("/{ngoId}")
     public ResponseEntity<Void> deleteNgo(@PathVariable Integer ngoId) {
         log.info("REST request to delete NGO with ID: {}", ngoId);
