@@ -26,7 +26,7 @@ const getRiskColor = (risk) => {
   return "text-green-600";
 };
 
-export default function SchoolProjectCard({ project, onViewDetails, onRecordExpense, onPostUpdate, showAllButtons = true, showDescription = true }) {
+export default function SchoolProjectCard({ project, onViewDetails, onRecordExpense, onPostUpdate, showAllButtons = true, showDescription = true, showProjectInfo = true }) {
   const [openUpdate, setOpenUpdate] = useState(false);
   const [openExpense, setOpenExpense] = useState(false);
   const [projectData, setProjectData] = useState(project);
@@ -140,7 +140,7 @@ export default function SchoolProjectCard({ project, onViewDetails, onRecordExpe
   };
 
   return (
-    <div className="bg-card rounded-lg shadow-sm border border-border hover:shadow-md transition-shadow">
+    <div className="bg-card rounded-lg shadow-sm border border-border hover:shadow-md transition-shadow flex flex-col h-full">
            {/* Modals */}
       <ProjectPostUpdateModal 
         isOpen={openUpdate} 
@@ -155,7 +155,7 @@ export default function SchoolProjectCard({ project, onViewDetails, onRecordExpe
         project={projectData} 
       />
       
-      <div className="p-6">
+      <div className="p-6 flex flex-col flex-1">
         {/* Header */}
         <div className="flex items-start justify-between mb-4">
           <div className="flex-grow">
@@ -170,99 +170,110 @@ export default function SchoolProjectCard({ project, onViewDetails, onRecordExpe
               </span>
               </div>
             </div>
-            <div className="text-muted-foreground text-sm mb-3">
-              <div>{projectData.projectTypeName || projectData.project_type || 'Unknown Type'}</div>
-              {showDescription && (projectData.projectDescription || projectData.project_description) && (
-                <div className="mt-1 text-xs text-gray-600 line-clamp-2">
-                  {projectData.projectDescription || projectData.project_description}
-                </div>
-              )}
+             <div className="text-muted-foreground text-sm mb-3">
+                <div>{projectData.projectTypeName || projectData.project_type || 'Unknown Type'}</div>
+              </div>
+            {/* Always show description if enabled, regardless of showProjectInfo */}
+            {showDescription && (projectData.projectDescription || projectData.project_description) && (
+              <div className="mt-2 text-xs text-gray-600 line-clamp-2 mb-3">
+                {projectData.projectDescription || projectData.project_description}
+              </div>
+            )}
+            
+             
+            
+            {showProjectInfo && (
+              <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
+                <span className="flex items-center gap-1">
+                  <Target className="w-4 h-4" />
+                  {projectData.projectTypeName || projectData.project_type || 'Unknown'}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Users className="w-4 h-4" />
+                  Project ID: {projectData.projectId || projectData.project_id || 'N/A'}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Calendar className="w-4 h-4" />
+                  Created: {projectData.createdAt ? new Date(projectData.createdAt).toLocaleDateString() : 'N/A'}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Progress Section - Fixed height for alignment */}
+    
+
+        {/* Action Buttons - pushed to bottom */}
+        <div className="mt-auto">
+              <div className="mb-4 flex flex-col ">
+          {/* Funding Progress */}
+          <div className="mb-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-semibold text-foreground">
+                Raised: Tk {raisedAmount.toLocaleString()} / Tk {requiredAmount.toLocaleString()}
+              </span>
+              <span className="text-sm text-muted-foreground">
+                {fundingPercentage}%
+              </span>
             </div>
-            <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
-              <span className="flex items-center gap-1">
-                <Target className="w-4 h-4" />
-                {projectData.projectTypeName || projectData.project_type || 'Unknown'}
+            <div className="w-full bg-secondary rounded-full h-2">
+              <div
+                className="bg-green-500 h-2  rounded-full transition-all"
+                style={{ width: `${fundingPercentage}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Completion Progress */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-semibold text-foreground">
+                Completion: {Math.round(completionRate)}%
               </span>
-              <span className="flex items-center gap-1">
-                <Users className="w-4 h-4" />
-                Project ID: {projectData.projectId || projectData.project_id || 'N/A'}
-              </span>
-              <span className="flex items-center gap-1">
-                <Calendar className="w-4 h-4" />
-                Created: {projectData.createdAt ? new Date(projectData.createdAt).toLocaleDateString() : 'N/A'}
-              </span>
+            </div>
+            <div className="w-full bg-secondary rounded-full h-2">
+              <div
+                className="bg-blue-500 h-2 rounded-full transition-all"
+                style={{ width: `${Math.round(completionRate)}%` }}
+              />
             </div>
           </div>
         </div>
-
-        {/* Funding Progress */}
-        <div className="mb-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-semibold text-foreground">
-              Raised: Tk {raisedAmount.toLocaleString()} / Tk {requiredAmount.toLocaleString()}
-            </span>
-            <span className="text-sm text-muted-foreground">
-              {fundingPercentage}%
-            </span>
-          </div>
-          <div className="w-full bg-secondary rounded-full h-2">
-            <div
-              className="bg-green-500 h-2  rounded-full transition-all"
-              style={{ width: `${fundingPercentage}%` }}
-            />
-          </div>
-        </div>
-
-        {/* Completion Progress */}
-        <div className="mb-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-semibold text-foreground">
-              Completion: {Math.round(completionRate)}%
-            </span>
-          </div>
-          <div className="w-full bg-secondary rounded-full h-2">
-            <div
-              className="bg-blue-500 h-2 rounded-full transition-all"
-              style={{ width: `${Math.round(completionRate)}%` }}
-            />
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        {showAllButtons ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+          {showAllButtons ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+              <button
+                onClick={() => onViewDetails(projectData.projectId || projectData.project_id)}
+                
+                className="third flex items-center justify-center gap-2"
+              >
+                <Eye className="w-4 h-4" />
+                View Details
+              </button>
+              <button
+                onClick={() => setOpenExpense(true)}
+                className="flex items-center justify-center gap-2"
+              >
+                <Receipt className="w-4 h-4" />
+                Record Expense
+              </button>
+              <button
+                onClick={() => setOpenUpdate(true)}
+                className="flex items-center justify-center gap-2"
+              >
+                <Send className="w-4 h-4" />
+                Post Update
+              </button>
+            </div>
+          ) : (
             <button
               onClick={() => onViewDetails(projectData.projectId || projectData.project_id)}
-              
-              className="third flex items-center justify-center gap-2"
+              className="secondary !border-0 hover:!bg-gray-50 hover:!text-[#0E792E] w-full py-2 text-sm rounded-lg transition-colors flex items-center justify-center gap-1"
             >
-              <Eye className="w-4 h-4" />
-              View Details
+              <Eye className="w-4 h-4" /> View Details
             </button>
-            <button
-              onClick={() => setOpenExpense(true)}
-              className="flex items-center justify-center gap-2"
-            >
-              <Receipt className="w-4 h-4" />
-              Record Expense
-            </button>
-            <button
-              onClick={() => setOpenUpdate(true)}
-              className="flex items-center justify-center gap-2"
-            >
-              <Send className="w-4 h-4" />
-              Post Update
-            </button>
-          </div>
-        ) : (
-          <button
-            onClick={() => onViewDetails(projectData.projectId || projectData.project_id)}
-            className="secondary w-full flex items-center justify-center gap-2"
-          >
-            <Eye className="w-4 h-4" />
-            View Details
-          </button>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

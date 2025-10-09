@@ -39,9 +39,9 @@ public class Donor extends BaseEntity {
     @Builder.Default
     private Boolean isAnonymous = false;
 
-
-
-
+    // Donor profile image
+    @Column(name = "donor_image")
+    private String donorImage;
 
     @OneToMany(mappedBy = "donor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @ToString.Exclude

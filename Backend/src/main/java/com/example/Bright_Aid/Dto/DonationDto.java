@@ -57,4 +57,6 @@ public class DonationDto {
     // Additional fields for reporting with transaction and project details
     private String transactionRef;
     private String projectName;
+    private String donorName;
+    private String recipientName;
 }

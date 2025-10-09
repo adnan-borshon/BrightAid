@@ -1,14 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Search, AlertTriangle, Users as UsersIcon, Layers } from 'lucide-react';
+import { Search, AlertTriangle, Users as UsersIcon, Layers, Plus } from 'lucide-react';
 import Sidebar from './DashSidebar';
 import { useApp } from '../context/AppContext';
 import SchoolProjectCard from './SchoolProjectCard';
+import ProjectCreateModal from './Modal/ProjectCreateModal';
 
 export default function SchoolProjects() {
   const { schoolId } = useParams();
   const navigate = useNavigate();
-  const { schoolData, projectsData, loading, refreshData } = useApp();
+  const { schoolData, projectsData, loading, refreshData, API_BASE_URL } = useApp();
+  
+  // Modals
+  const [projectModalOpen, setProjectModalOpen] = useState(false);
   
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -82,6 +86,50 @@ export default function SchoolProjects() {
     navigate(`/project-details/${projectId}`);
   };
 
+  const handleProjectCreation = async (formData) => {
+    try {
+      const jsonData = {
+        schoolId: parseInt(schoolId),
+        projectTitle: formData.get('project_title'),
+        projectDescription: formData.get('project_description'),
+        projectTypeId: parseInt(formData.get('project_type_id'))
+      };
+      
+      const response = await fetch(`${API_BASE_URL}/school-projects`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(jsonData)
+      });
+      
+      if (response.ok) {
+        const projectData = await response.json();
+        
+        const projectImage = formData.get('project_image');
+        if (projectImage && projectImage.size > 0) {
+          const imageFormData = new FormData();
+          imageFormData.append('image', projectImage);
+          
+          await fetch(`${API_BASE_URL}/school-projects/${projectData.projectId}/image`, {
+            method: 'POST',
+            body: imageFormData,
+          }).catch(error => console.error('Image upload failed:', error));
+        }
+        
+        setProjectModalOpen(false);
+        refreshData(schoolId);
+      } else {
+        const errorData = await response.text();
+        console.error('Project creation failed:', errorData);
+        alert('Failed to create project: ' + errorData);
+      }
+    } catch (error) {
+      console.error('Error creating project:', error);
+      alert('Error creating project: ' + error.message);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen bg-gray-50">
@@ -95,15 +143,28 @@ export default function SchoolProjects() {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      {/* <Sidebar activeNav={activeNav} setActiveNav={setActiveNav} schoolData={data.school} /> */}
- <Sidebar />
+      <ProjectCreateModal
+        isOpen={projectModalOpen}
+        onClose={() => setProjectModalOpen(false)}
+        onSubmit={handleProjectCreation}
+      />
+      <Sidebar />
       <div className="flex-1 overflow-auto">
 
         <div className="p-6">
           {/* Header */}
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold text-gray-800">Project Overview</h1>
-            <p className="text-sm text-gray-500">View your key stats at a glance</p>
+          <div className="mb-6 flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-800">Project Overview</h1>
+              <p className="text-sm text-gray-500">View your key stats at a glance</p>
+            </div>
+            <button
+              onClick={() => setProjectModalOpen(true)}
+              className="normal flex items-center gap-2 px-4 py-2 rounded-lg transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              Create Project
+            </button>
           </div>
 
           {/* Stats Cards */}

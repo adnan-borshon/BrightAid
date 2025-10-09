@@ -228,4 +228,33 @@ public class DonationService {
                 .projectName((String) result[16]) // Project name from native query
                 .build();
     }
+
+    // Get recent donations RECEIVED by a specific school using native query
+    public List<DonationDto> getRecentDonationsBySchool(Integer schoolId) {
+        List<Object[]> results = donationRepository.findRecentDonationsReceivedBySchool(schoolId);
+        return results.stream()
+                .map(this::mapSchoolDonationResultToDto)
+                .collect(Collectors.toList());
+    }
+
+    // Get all donations RECEIVED by a specific school using native query
+    public List<DonationDto> getAllDonationsBySchool(Integer schoolId) {
+        List<Object[]> results = donationRepository.findAllDonationsReceivedBySchool(schoolId);
+        return results.stream()
+                .map(this::mapSchoolDonationResultToDto)
+                .collect(Collectors.toList());
+    }
+
+    // Map school donation native query result to DTO
+    private DonationDto mapSchoolDonationResultToDto(Object[] result) {
+        return DonationDto.builder()
+                .donationId((Integer) result[0])
+                .amount(result[1] != null ? new BigDecimal(result[1].toString()) : BigDecimal.ZERO)
+                .paymentStatus(result[2] != null ? Donation.PaymentStatus.valueOf((String) result[2]) : Donation.PaymentStatus.PENDING)
+                .donatedAt(result[3] != null ? ((java.sql.Timestamp) result[3]).toLocalDateTime() : null)
+                .transactionRef((String) result[4])
+                .donorName((String) result[5])
+                .recipientName((String) result[6])
+                .build();
+    }
 }

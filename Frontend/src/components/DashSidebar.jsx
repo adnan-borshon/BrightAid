@@ -103,15 +103,28 @@ export default function DashSidebar() {
         {/* User Profile Section */}
         <div className="flex items-center gap-3 mb-6 bg-white rounded-lg p-3">
           <div 
-            className="w-10 h-10 bg-orange-200 rounded-full flex items-center justify-center cursor-pointer hover:bg-orange-300 transition-colors"
+            className="w-10 h-10 rounded-full cursor-pointer hover:opacity-80 transition-opacity flex-shrink-0 relative overflow-hidden"
             onClick={() => setIsProfileModalOpen(true)}
           >
-            <span className="text-lg font-bold text-orange-600">
-              {profileData?.fullName?.charAt(0)?.toUpperCase() || userData?.username?.charAt(0)?.toUpperCase() || '?'}
-            </span>
+            {profileData?.profileImageUrl ? (
+              <img 
+                src={`http://localhost:8081${profileData.profileImageUrl}`} 
+                alt="Profile" 
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'flex';
+                }}
+              />
+            ) : null}
+            <div className={`w-full h-full bg-orange-200 rounded-full flex items-center justify-center ${profileData?.profileImageUrl ? 'hidden' : ''}`}>
+              <span className="text-lg font-bold text-orange-600">
+                {profileData?.fullName?.charAt(0)?.toUpperCase() || userData?.username?.charAt(0)?.toUpperCase() || '?'}
+              </span>
+            </div>
           </div>
           <div 
-            className="flex-1 cursor-pointer"
+            className="flex-1 min-w-0 cursor-pointer"
             onClick={() => setIsProfileModalOpen(true)}
           >
             <div className="text-sm font-semibold text-gray-800 truncate">
@@ -123,21 +136,21 @@ export default function DashSidebar() {
           </div>
           <button
             onClick={handleLogout}
-            className="p-1 hover:bg-red-50 rounded transition-colors group"
+            className="p-1 hover:bg-red-50 rounded transition-colors group flex-shrink-0"
             title="Logout"
           >
             <LogOut className="w-4 h-4 text-gray-400 group-hover:text-red-600" />
           </button>
         </div>
 
-        <div className="mb-6 relative">
+        {/* <div className="mb-6 relative">
           <Search className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
           <input 
             type="text" 
             placeholder="Search" 
             className="w-full pl-10 pr-3 py-2 bg-white rounded-lg text-sm border-none focus:outline-none focus:ring-2 focus:ring-green-300"
           />
-        </div>
+        </div> */}
 
         <nav className="flex-1 space-y-1">
           {navItems.map((item) => {

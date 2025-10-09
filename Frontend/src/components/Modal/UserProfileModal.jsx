@@ -1,21 +1,36 @@
-// UserProfile Modal Component
+
+import { X, Mail, Phone, MapPin, Calendar  } from 'lucide-react';
+
 const UserProfileModal = ({ isOpen, onClose, userData, profileData }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 backdrop-blur-xs bg-opacity-50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="relative bg-gradient-to-r from-green-600 to-green-700 p-6 rounded-t-xl">
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 text-white hover:bg-white hover:bg-opacity-20 rounded-full p-1 transition-colors"
+            className="absolute top-4 right-4 text-white hover:bg-green-600 hover:bg-opacity-50 rounded-full p-1 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
           <div className="flex flex-col items-center">
-            <div className="w-24 h-24 bg-orange-200 rounded-full mb-3 flex items-center justify-center text-4xl font-bold text-orange-600">
-              {profileData?.fullName?.charAt(0)?.toUpperCase() || userData?.username?.charAt(0)?.toUpperCase() || '?'}
+            <div className="w-24 h-24 rounded-full mb-3 relative overflow-hidden">
+              {profileData?.profileImageUrl ? (
+                <img 
+                  src={`http://localhost:8081${profileData.profileImageUrl}`} 
+                  alt="Profile" 
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'flex';
+                  }}
+                />
+              ) : null}
+              <div className={`w-full h-full bg-orange-200 rounded-full flex items-center justify-center text-4xl font-bold text-orange-600 ${profileData?.profileImageUrl ? 'hidden' : ''}`}>
+                {profileData?.fullName?.charAt(0)?.toUpperCase() || userData?.username?.charAt(0)?.toUpperCase() || '?'}
+              </div>
             </div>
             <h2 className="text-2xl font-bold text-white">
               {profileData?.fullName || userData?.username || 'User'}

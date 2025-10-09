@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ChevronRight, MoreVertical, Users, Briefcase, Plus, Download, Camera } from 'lucide-react';
+import { ChevronRight, Users, Briefcase, Plus, Download, Camera, Eye } from 'lucide-react';
 import Sidebar from './DashSidebar';
 import { useApp } from '../context/AppContext';
 import StudentEnrollmentModal from './Modal/StudentEnrollmentModal';
@@ -10,14 +10,38 @@ import SchoolProjectCard from './SchoolProjectCard';
 export default function SchoolDashboard() {
   const { schoolId } = useParams();
   const navigate = useNavigate();
-  const { schoolData, studentsData, projectsData, loading, refreshData, API_BASE_URL } = useApp();
+  const { schoolData, studentsData, projectsData, donationsData, loading, refreshData, API_BASE_URL } = useApp();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [ProjectModalOpen, setProjectModalOpen] = useState(false);
+  const [recentDonations, setRecentDonations] = useState([]);
   useEffect(() => {
     if (schoolId) {
       refreshData(schoolId);
+      fetchRecentDonations();
     }
   }, [schoolId]);
+
+  // Fetch recent donations for this school using backend filtering
+  const fetchRecentDonations = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/donations/school/${schoolId}/recent`);
+      if (response.ok) {
+        const donations = await response.json();
+        const processedDonations = donations.map(donation => ({
+          id: donation.donationId,
+          donorName: donation.donorName || 'Anonymous Donor',
+          amount: donation.amount || 0,
+          date: donation.donatedAt,
+          status: donation.paymentStatus || 'PENDING',
+          transactionRef: donation.transactionRef,
+          recipient: donation.recipientName || 'Unknown'
+        }));
+        setRecentDonations(processedDonations);
+      }
+    } catch (error) {
+      console.error('Error fetching recent donations:', error);
+    }
+  };
 
   // Process data from context
   const processedStudents = studentsData
@@ -31,7 +55,8 @@ export default function SchoolDashboard() {
       total_amount: student.totalAmount || student.total_amount || 0,
       risk_status: student.riskStatus || student.risk_status || 'Low Risk',
       attendance_rate: student.attendanceRate || student.attendance_rate || 0,
-      performance_score: student.performanceScore || student.performance_score || 0
+      performance_score: student.performanceScore || student.performance_score || 0,
+      profileImage: student.profileImage
     }));
 
   const processedProjects = projectsData
@@ -117,8 +142,13 @@ export default function SchoolDashboard() {
     }
   };
 
+  // Calculate total funds received from donations context
+  const totalFundsReceived = donationsData
+    .filter(donation => donation.paymentStatus === 'COMPLETED')
+    .reduce((total, donation) => total + (donation.amount || 0), 0);
+
   const formatCurrency = (amount) => {
-    return `$${Math.abs(amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    return `Tk ${Math.abs(amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   const formatClassLevel = (classLevel) => {
@@ -256,7 +286,20 @@ export default function SchoolDashboard() {
             </div>
           </div>
           <div className="w-96 h-48 rounded-xl overflow-hidden shadow-lg relative group">
-            <div className="w-full h-full bg-gradient-to-br from-green-600 to-green-800 flex items-center justify-center">
+            {schoolData?.schoolImage ? (
+              <img 
+                src={`http://localhost:8081${schoolData.schoolImage}`} 
+                alt="School" 
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  console.log('Image failed to load:', `http://localhost:8081${schoolData.schoolImage}`);
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'flex';
+                }}
+                onLoad={() => console.log('Image loaded successfully:', `http://localhost:8081${schoolData.schoolImage}`)}
+              />
+            ) : null}
+            <div className={`w-full h-full bg-gradient-to-br from-green-600 to-green-800 flex items-center justify-center ${schoolData?.schoolImage ? 'hidden' : ''}`}>
               <div className="text-white text-6xl opacity-20">🏫</div>
             </div>
             <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
@@ -264,24 +307,35 @@ export default function SchoolDashboard() {
                 <input
                   type="file"
                   accept="image/*"
-                  onChange={(e) => {
+                  onChange={async (e) => {
                     const file = e.target.files[0];
-                    if (file) {
+                    if (file && schoolId) {
+                      console.log('Uploading school image:', file.name, 'for school:', schoolId);
+                      
                       const formData = new FormData();
                       formData.append('image', file);
-                      const authData = JSON.parse(localStorage.getItem('authData') || '{}');
-                      const userId = authData.user?.userId;
-                      if (userId) {
-                        fetch(`http://localhost:8081/api/images/user/${userId}`, {
+                      
+                      try {
+                        const response = await fetch(`http://localhost:8081/api/images/school/${schoolId}`, {
                           method: 'POST',
                           body: formData,
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                          console.log('User image updated:', data.imagePath);
+                        });
+                        
+                        console.log('Upload response status:', response.status);
+                        
+                        if (response.ok) {
+                          const data = await response.json();
+                          console.log('School image updated successfully:', data.imagePath);
+                          alert('School image updated successfully!');
                           refreshData(schoolId);
-                        })
-                        .catch(error => console.error('Error uploading image:', error));
+                        } else {
+                          const errorText = await response.text();
+                          console.error('Upload failed:', response.status, errorText);
+                          alert(`Upload failed: ${errorText}`);
+                        }
+                      } catch (error) {
+                        console.error('Error uploading school image:', error);
+                        alert(`Error uploading image: ${error.message}`);
                       }
                     }
                   }}
@@ -308,14 +362,17 @@ export default function SchoolDashboard() {
                 <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
                   <span className="text-green-600">💰</span>
                 </div>
-                <MoreVertical className="w-4 h-4 text-gray-400" />
+                
               </div>
               <div className="text-sm text-gray-500 mb-1">Funds Received</div>
               <div className="text-3xl font-bold text-gray-800 mb-2">
-                {schoolData?.total_received ? formatCurrency(schoolData.total_received) : '$0.00'}
+                {formatCurrency(totalFundsReceived)}
               </div>
               <div className="text-xs text-green-600">+ {processedProjects.length} active projects</div>
-              <button className=" mt-4 text-sm font-medium flex items-center gap-1">
+              <button 
+                onClick={() => navigate(`/account/${schoolId}`)}
+                className="secondary !border-0 hover:!bg-gray-50 hover:!text-[#0E792E] mt-4 text-sm font-medium flex items-center gap-1"
+              >
                 View Account <ChevronRight className="w-4 h-4" />
               </button>
             </div>
@@ -325,12 +382,15 @@ export default function SchoolDashboard() {
                 <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
                   <Users className="w-5 h-5 text-green-600" />
                 </div>
-                <MoreVertical className="w-4 h-4 text-gray-400" />
+             
               </div>
               <div className="text-sm text-gray-500 mb-1">Total Students</div>
               <div className="text-3xl font-bold text-gray-800 mb-2">{studentsData.filter(s => (s.schoolId || s.school_id) == schoolId).length}</div>
               <div className="text-xs text-red-600">+ {highRiskStudents.length} High Risk Students</div>
-              <button className="secondary !border-0 hover:!bg-gray-50 hover:!text-[#0E792E] mt-4 font-medium flex items-center gap-1">
+              <button 
+                onClick={() => navigate(`/students/${schoolId}`)}
+                className="secondary !border-0 hover:!bg-gray-50 hover:!text-[#0E792E] mt-4 text-sm font-medium flex items-center gap-1"
+              >
                 View students <ChevronRight className="w-4 h-4" />
               </button>
             </div>
@@ -340,12 +400,15 @@ export default function SchoolDashboard() {
                 <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
                   <Briefcase className="w-5 h-5 text-green-600" />
                 </div>
-                <MoreVertical className="w-4 h-4 text-gray-400" />
+               
               </div>
               <div className="text-sm text-gray-500 mb-1">Active Projects</div>
               <div className="text-3xl font-bold text-gray-800 mb-2">{processedProjects.length}</div>
               <div className="text-xs text-red-600">+ 2 Report Pending</div>
-              <button className="secondary !border-0 hover:!bg-gray-50 hover:!text-[#0E792E] mt-4 text-sm  font-medium flex items-center gap-1">
+              <button 
+                onClick={() => navigate(`/projects/${schoolId}`)}
+                className="secondary !border-0 hover:!bg-gray-50 hover:!text-[#0E792E] mt-4 text-sm font-medium flex items-center gap-1"
+              >
                 View projects <ChevronRight className="w-4 h-4" />
               </button>
             </div>
@@ -363,7 +426,7 @@ export default function SchoolDashboard() {
               onClick={() => navigate(`/students/${schoolId}`)}
               className="secondary !border-0 hover:!bg-gray-50 hover:!text-[#0E792E] text-sm font-medium flex items-center gap-1"
             >
-              View All <ChevronRight className="w-4 h-4" />
+              View All
             </button>
           </div>
 
@@ -378,11 +441,24 @@ export default function SchoolDashboard() {
 
             {processedStudents.length > 0 ? processedStudents.map((student) => (
               <div key={student.student_id} className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleStudentClick(student.student_id)}>
-                <div className="relative h-40  ">
+                <div className="relative h-40">
+                  {student.profileImage ? (
+                    <img 
+                      src={`http://localhost:8081${student.profileImage}`} 
+                      alt="Student" 
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'flex';
+                      }}
+                    />
+                  ) : null}
+                  <div className={`w-full h-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center ${student.profileImage ? 'hidden' : ''}`}>
+                    <div className="text-blue-400 text-4xl">👨‍🎓</div>
+                  </div>
                   <span className="absolute top-3 right-3 bg-white px-2 py-1 rounded-full text-xs font-medium text-orange-600">
                     {student.risk_status || 'At Risk'}
                   </span>
-                
                 </div>
                 <div className="p-4">
                   <div className="text-xs text-green-600 mb-1">Scholarship from @anisha3228</div>
@@ -392,8 +468,8 @@ export default function SchoolDashboard() {
                   <div className="text-xs text-gray-500 mb-4">
                     Fund Received: {formatCurrency(student.scholarship_amount || 0)} / {formatCurrency(student.total_amount || 0)}
                   </div>
-                  <button className="secondary !border-0 hover:!bg-gray-50 hover:!text-[#0E792E] w-full py-2 text-sm rounded-lg hover:bg-green-50 transition-colors" onClick={(e) => { e.stopPropagation(); console.log('Update report for student:', student.student_id); }}>
-                    Update Report
+                  <button className="secondary !border-0 hover:!bg-gray-50 hover:!text-[#0E792E] w-full py-2 text-sm rounded-lg transition-colors flex items-center justify-center gap-1" onClick={(e) => { e.stopPropagation(); console.log('Update report for student:', student.student_id); }}>
+                    <Eye className="w-4 h-4" /> View Details
                   </button>
                 </div>
               </div>
@@ -424,7 +500,7 @@ export default function SchoolDashboard() {
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-4 gap-4">
             <div
             onClick={() => setProjectModalOpen(true)}
             className="bg-white rounded-xl p-6 border-2 border-dashed border-gray-300 flex flex-col items-center justify-center min-h-[280px] hover:border-green-400 transition-colors cursor-pointer">
@@ -439,6 +515,8 @@ export default function SchoolDashboard() {
                 project={project}
                 onViewDetails={handleProjectClick}
                 showAllButtons={false}
+                showDescription={true}
+                showProjectInfo={false}
               />
             )) : (
               <div className="col-span-3 text-center py-12 text-gray-500">
@@ -463,7 +541,10 @@ export default function SchoolDashboard() {
                   <Download className="w-4 h-4" />
                   Download
                 </button>
-                <button className="secondary !border-0 hover:!bg-gray-50 hover:!text-[#0E792E] px-3 py-1.5 text-sm rounded-lg ">
+                <button 
+                  onClick={() => navigate(`/reporting/${schoolId}`)}
+                  className="secondary !border-0 hover:!bg-gray-50 hover:!text-[#0E792E] px-3 py-1.5 text-sm rounded-lg"
+                >
                   View report
                 </button>
               </div>
@@ -481,30 +562,57 @@ export default function SchoolDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td colSpan="5" className="py-8 text-center text-gray-500">
-                      <div className="flex flex-col items-center gap-2">
-                        <span className="text-2xl">💰</span>
-                        <span className="text-sm">No donations yet</span>
-                      </div>
-                    </td>
-                  </tr>
+                  {recentDonations.length > 0 ? recentDonations.map((donation) => (
+                    <tr key={donation.id} className="border-b border-gray-100 hover:bg-gray-50">
+                      <td className="py-3 text-sm text-gray-900">
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center text-xs font-bold text-green-600">
+                            {donation.donorName.charAt(0).toUpperCase()}
+                          </div>
+                          <span className="truncate">{donation.donorName}</span>
+                        </div>
+                      </td>
+                      <td className="py-3 text-sm text-gray-600 font-mono">{donation.transactionRef}</td>
+                      <td className="py-3 text-sm font-semibold text-gray-900">Tk {donation.amount.toLocaleString()}</td>
+                      <td className="py-3 text-sm text-gray-600">{new Date(donation.date).toLocaleDateString()}</td>
+                      <td className="py-3">
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                          donation.status === 'COMPLETED' ? 'bg-green-100 text-green-700' :
+                          donation.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' :
+                          'bg-red-100 text-red-700'
+                        }`}>
+                          {donation.status === 'COMPLETED' ? 'Completed' : 
+                           donation.status === 'PENDING' ? 'Pending' : 'Failed'}
+                        </span>
+                      </td>
+                    </tr>
+                  )) : (
+                    <tr>
+                      <td colSpan="5" className="py-8 text-center text-gray-500">
+                        <div className="flex flex-col items-center gap-2">
+                          <span className="text-2xl">💰</span>
+                          <span className="text-sm">No donations yet</span>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
 
-            <div className="flex items-center justify-between mt-4 text-sm text-gray-600">
-              <span>Page 1 of 10</span>
-              <div className="flex gap-2">
-                <button className="secondary !border-0 hover:!bg-gray-50 hover:!text-[#0E792E] px-3 py-1 rounded-lg">Previous</button>
-                <button className="secondary !border-0 hover:!bg-gray-50 hover:!text-[#0E792E] px-3 py-1  rounded-lg ">Next</button>
-              </div>
-            </div>
           </div>
 
           {/* High Risk Students */}
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-            <h2 className="text-lg font-bold text-gray-800 mb-4">High Risk Students</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-gray-800">High Risk Students</h2>
+              <button 
+                onClick={() => navigate(`/students/${schoolId}?filter=high-risk`)}
+                className="secondary !border-0 hover:!bg-gray-50 hover:!text-[#0E792E] text-sm font-medium flex items-center gap-1"
+              >
+                View All <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
             
             <div className="space-y-3">
               {highRiskStudents.length > 0 ? highRiskStudents.map((student) => (
@@ -537,9 +645,7 @@ export default function SchoolDashboard() {
               )}
             </div>
 
-            <button className="secondary !border-0 hover:!bg-gray-50 hover:!text-[#0E792E] w-full mt-4 text-sm font-medium flex items-center justify-center gap-1">
-              View All <ChevronRight className="w-4 h-4" />
-            </button>
+
           </div>
         </div>
       </div>

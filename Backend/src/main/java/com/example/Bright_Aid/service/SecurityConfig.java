@@ -103,6 +103,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/payment-customer-info/**").permitAll()
                         .requestMatchers("/api/user-profiles/**").permitAll()
                         .requestMatchers("/api/fund-utilizations/**").permitAll()
+                        .requestMatchers("/api/images/**").permitAll()
+                        .requestMatchers("/images/**").permitAll()
 
                         // All other endpoints require authentication
                         .anyRequest().authenticated()

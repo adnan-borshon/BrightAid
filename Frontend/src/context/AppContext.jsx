@@ -14,6 +14,7 @@ export const AppProvider = ({ children }) => {
   const [schoolData, setSchoolData] = useState(null);
   const [studentsData, setStudentsData] = useState([]);
   const [projectsData, setProjectsData] = useState([]);
+  const [donationsData, setDonationsData] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const API_BASE_URL = 'http://localhost:8081/api';
@@ -73,6 +74,21 @@ export const AppProvider = ({ children }) => {
     return [];
   };
 
+  const fetchDonationsData = async (schoolId) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/donations/school/${schoolId}`);
+      if (response.ok) {
+        const data = await response.json();
+        const donations = Array.isArray(data) ? data : [];
+        setDonationsData(donations);
+        return donations;
+      }
+    } catch (error) {
+      console.error('Error fetching donations data:', error);
+    }
+    return [];
+  };
+
   const refreshData = async (schoolId) => {
     setLoading(true);
     try {
@@ -80,7 +96,8 @@ export const AppProvider = ({ children }) => {
       if (schoolData) {
         await Promise.all([
           fetchStudentsData(schoolId),
-          fetchProjectsData(schoolId)
+          fetchProjectsData(schoolId),
+          fetchDonationsData(schoolId)
         ]);
       } else {
         console.error(`School with ID ${schoolId} not found. Please check if this school exists.`);
@@ -95,10 +112,12 @@ export const AppProvider = ({ children }) => {
     schoolData,
     studentsData,
     projectsData,
+    donationsData,
     loading,
     fetchSchoolData,
     fetchStudentsData,
     fetchProjectsData,
+    fetchDonationsData,
     refreshData,
     API_BASE_URL
   };

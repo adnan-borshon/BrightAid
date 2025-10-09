@@ -84,6 +84,10 @@ public class School {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    // School profile image
+    @Column(name = "school_image")
+    private String schoolImage;
+
     @OneToMany(mappedBy = "school", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @ToString.Exclude
     private List<Student> students;
