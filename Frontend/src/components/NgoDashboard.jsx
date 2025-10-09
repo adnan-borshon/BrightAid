@@ -4,6 +4,7 @@ import { ChevronRight, MoreVertical, Briefcase, School, Plus, Trash2, Edit, Eye,
 import NgoDashSidebar from './NgoDashSidebar';
 import ProjectCreateModal from './Modal/ProjectCreateModal';
 import DonorGamificationCard from './DonorGamificationCard';
+import { useNgo } from '../context/NgoContext';
 
 const mockStudentsForSponsorship = [
   {
@@ -47,132 +48,159 @@ const emptyData = {
 export default function NgoDashboard() {
   const { ngoId } = useParams();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
+  const { 
+    ngoData, 
+    projectsData, 
+    donationsData, 
+    gamificationData, 
+    loading, 
+    error, 
+    fetchNgoData, 
+    refreshData 
+  } = useNgo();
+  
   const [data, setData] = useState(emptyData);
   const [apiError, setApiError] = useState(false);
   const [showAddProject, setShowAddProject] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
-  const [donationsData, setDonationsData] = useState([]);
   const [ngoStats, setNgoStats] = useState({
     totalDonated: 0,
     studentsHelped: 0,
     schoolProjectsCount: 0,
     schoolsReached: 0
   });
-  const [gamificationData, setGamificationData] = useState(null);
   const [donationDialogOpen, setDonationDialogOpen] = useState(false);
   const [donationDialogData, setDonationDialogData] = useState(null);
 
   useEffect(() => {
     if (ngoId) {
-      fetchNgoData();
+      console.log('NgoDashboard: Initializing for NGO ID:', ngoId);
+      fetchNgoData(ngoId);
+      // Delay additional data fetch to ensure context is loaded first
+      setTimeout(() => fetchAdditionalData(), 500);
     }
   }, [ngoId]);
 
-  const fetchNgoData = async () => {
-    setLoading(true);
+  // Refresh data when context data changes
+  useEffect(() => {
+    if (ngoData || projectsData || donationsData) {
+      updateLocalData();
+    }
+  }, [ngoData, projectsData, donationsData, gamificationData]);
+
+  // Refresh stats when donations or projects change
+  useEffect(() => {
+    if (ngoId && (donationsData || projectsData)) {
+      fetchAdditionalData();
+    }
+  }, [donationsData, projectsData]);
+
+  // Fetch additional data not covered by context
+  const fetchAdditionalData = async () => {
     try {
       const API_BASE_URL = 'http://localhost:8081/api';
-      const [ngoRes, schoolProjectsRes, schoolsRes, updatesRes, studentDonationsRes, projectDonationsRes, gamificationRes, statsRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/ngos/${ngoId}`).catch(() => null),
+      const [schoolProjectsRes, statsRes] = await Promise.all([
         fetch(`${API_BASE_URL}/school-projects`).catch(() => null),
-        fetch(`${API_BASE_URL}/ngo-project-schools`).catch(() => null),
-        fetch(`${API_BASE_URL}/project-updates`).catch(() => null),
-        fetch(`${API_BASE_URL}/ngo-student-donations`).catch(() => null),
-        fetch(`${API_BASE_URL}/ngo-project-donations`).catch(() => null),
-        fetch(`${API_BASE_URL}/ngo-gamification`).catch(() => null),
         fetch(`${API_BASE_URL}/ngos/${ngoId}/stats`).catch(() => null),
       ]);
 
-      const newData = { ...emptyData };
+      const newData = { ...data };
       
-      if (ngoRes && ngoRes.ok) {
-        newData.ngo = await ngoRes.json();
-      }
-      
+      // Fetch available school projects for donation
       if (schoolProjectsRes && schoolProjectsRes.ok) {
         const projectsData = await schoolProjectsRes.json();
-        const allProjects = Array.isArray(projectsData) ? projectsData : projectsData.data || [];
-        newData.schoolProjects = allProjects;
+        const allProjects = Array.isArray(projectsData) ? projectsData : [];
+        newData.schoolProjects = allProjects.slice(0, 6); // Limit to 6 for dashboard
       }
-      
-      if (schoolsRes && schoolsRes.ok) {
-        const schoolsData = await schoolsRes.json();
-        const allSchools = Array.isArray(schoolsData) ? schoolsData : schoolsData.data || [];
-        newData.assignedSchools = allSchools;
-      }
-      
-      if (updatesRes && updatesRes.ok) {
-        const updatesData = await updatesRes.json();
-        newData.projectUpdates = Array.isArray(updatesData) ? updatesData : updatesData.data || [];
-      }
-      
-      if (gamificationRes && gamificationRes.ok) {
-        const allGamificationData = await gamificationRes.json();
-        const currentNgoGamification = Array.isArray(allGamificationData) 
-          ? allGamificationData.find(g => g.ngoId == ngoId)
-          : null;
-        setGamificationData(currentNgoGamification);
-      }
-      
-      // Process donation data
-      let allDonations = [];
-      if (studentDonationsRes && studentDonationsRes.ok) {
-        const studentDonations = await studentDonationsRes.json();
-        const ngoStudentDonations = Array.isArray(studentDonations) ? studentDonations.filter(d => d.ngoId == ngoId) : [];
-        allDonations = [...allDonations, ...ngoStudentDonations];
-      }
-      
-      if (projectDonationsRes && projectDonationsRes.ok) {
-        const projectDonations = await projectDonationsRes.json();
-        const ngoProjectDonations = Array.isArray(projectDonations) ? projectDonations.filter(d => d.ngoId == ngoId) : [];
-        allDonations = [...allDonations, ...ngoProjectDonations];
-      }
-      
-      setDonationsData(allDonations);
       
       // Fetch stats from backend using native queries
       if (statsRes && statsRes.ok) {
         const stats = await statsRes.json();
+        console.log('Fetched NGO stats:', stats); // Debug log
         setNgoStats({
           totalDonated: stats.totalDonated || 0,
           studentsHelped: stats.studentsHelped || 0,
           schoolProjectsCount: stats.schoolProjectsCount || 0,
           schoolsReached: stats.schoolsReached || 0
         });
+      } else {
+        console.warn('Failed to fetch stats, response status:', statsRes?.status);
+        // Use context data as fallback
+        const contextDonationsTotal = (donationsData || []).reduce((sum, d) => sum + (d.amount || 0), 0);
+        const fallbackStats = {
+          totalDonated: contextDonationsTotal,
+          studentsHelped: (donationsData || []).length, // Approximate
+          schoolProjectsCount: (projectsData || []).length,
+          schoolsReached: Math.min((projectsData || []).length, 5) // Approximate
+        };
+        console.log('Using fallback stats:', fallbackStats);
+        setNgoStats(fallbackStats);
       }
-      
-      const totalBudget = newData.schoolProjects.reduce((sum, p) => sum + (p.requiredAmount || 0), 0);
-      const utilizedBudget = newData.schoolProjects.reduce((sum, p) => sum + (p.raisedAmount || 0), 0);
-      newData.budgetSummary = {
-        totalBudget,
-        utilizedBudget,
-        remainingBudget: totalBudget - utilizedBudget
-      };
       
       setData(newData);
       setApiError(false);
     } catch (error) {
-      console.error('Error fetching NGO data:', error);
+      console.error('Error fetching additional data:', error);
+      // Use context data as fallback
+      const contextDonationsTotal = (donationsData || []).reduce((sum, d) => sum + (d.amount || 0), 0);
+      const fallbackStats = {
+        totalDonated: contextDonationsTotal,
+        studentsHelped: (donationsData || []).length,
+        schoolProjectsCount: (projectsData || []).length,
+        schoolsReached: Math.min((projectsData || []).length, 5)
+      };
+      console.log('Error fallback stats:', fallbackStats);
+      setNgoStats(fallbackStats);
       setApiError(true);
-    } finally {
-      setLoading(false);
     }
+  };
+
+  // Update local data when context data changes
+  const updateLocalData = () => {
+    const newData = { ...emptyData };
+    
+    // Use context data
+    newData.ngo = ngoData;
+    newData.ngoProjects = projectsData || [];
+    
+    // Calculate budget from NGO's own projects
+    const totalBudget = (newData.ngoProjects || []).reduce((sum, p) => sum + (p.budget || 0), 0);
+    const utilizedBudget = (newData.ngoProjects || []).reduce((sum, p) => sum + (p.raisedAmount || 0), 0);
+    newData.budgetSummary = {
+      totalBudget,
+      utilizedBudget,
+      remainingBudget: totalBudget - utilizedBudget
+    };
+    
+    // Set assigned schools from NGO projects
+    newData.assignedSchools = (newData.ngoProjects || []).map(project => ({
+      projectNameForSchool: project.projectName,
+      allocatedBudget: project.budget,
+      participationStatus: project.status || 'active'
+    }));
+    
+    // Keep existing school projects data
+    newData.schoolProjects = data.schoolProjects || [];
+    
+    setData(newData);
   };
 
   const formatCurrency = (amount) => {
     return `Tk ${Math.abs(amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
-  const handleProjectCreation = async (formData) => {
+  const handleProjectCreation = async (submitData) => {
     try {
       const jsonData = {
         ngoId: parseInt(ngoId),
-        projectName: formData.get('project_title'),
-        projectDescription: formData.get('project_description'),
-        projectTypeId: parseInt(formData.get('project_type_id')),
-        budget: parseFloat(formData.get('budget') || 0)
+        projectName: submitData.projectTitle,
+        projectDescription: submitData.projectDescription,
+        projectTypeId: submitData.projectTypeId,
+        budget: submitData.requiredAmount || 0,
+        status: 'ACTIVE'
       };
+      
+      console.log('Creating project from dashboard:', jsonData);
       
       const response = await fetch('http://localhost:8081/api/ngo-projects', {
         method: 'POST',
@@ -184,7 +212,10 @@ export default function NgoDashboard() {
       
       if (response.ok) {
         setShowAddProject(false);
-        fetchNgoData();
+        // Refresh context data and additional data
+        refreshData(ngoId);
+        fetchAdditionalData();
+        console.log('Project created successfully from dashboard');
       } else {
         const errorData = await response.text();
         console.error('Project creation failed:', errorData);
@@ -211,11 +242,13 @@ export default function NgoDashboard() {
   const handleDeleteProject = async (projectId) => {
     if (window.confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
       try {
-        const response = await fetch(`${API_BASE_URL}/ngo-projects/${projectId}`, {
+        const response = await fetch(`http://localhost:8081/api/ngo-projects/${projectId}`, {
           method: 'DELETE',
         });
         if (response.ok) {
-          fetchNgoData();
+          // Refresh context data and additional data
+          refreshData(ngoId);
+          fetchAdditionalData();
           alert('Project deleted successfully');
         } else {
           alert('Failed to delete project');
@@ -246,10 +279,12 @@ export default function NgoDashboard() {
     );
   }
 
-  const ngoData = {
-    schoolName: data.ngo?.ngoName || data.ngo?.ngo_name || `NGO ${ngoId}`,
-    total_students: ngoStats.studentsHelped,
-    active_projects: ngoStats.schoolsReached,
+  const ngoDisplayData = {
+    ngoName: ngoData?.ngoName || data.ngo?.ngoName || `NGO ${ngoId}`,
+    registrationNumber: ngoData?.registrationNumber || data.ngo?.registrationNumber || 'N/A',
+    verificationStatus: ngoData?.verificationStatus || data.ngo?.verificationStatus || 'PENDING',
+    totalStudents: ngoStats.studentsHelped,
+    activeProjects: ngoStats.schoolsReached,
   };
   
   const gamificationInfo = {
@@ -277,24 +312,44 @@ export default function NgoDashboard() {
       <div className="flex-1 overflow-auto">
         {apiError && (
           <div className="m-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
-            ⚠ Using demo data. Connect to backend at <code className="bg-yellow-100 px-2 py-1 rounded">{API_BASE_URL}</code>
+            ⚠ Using demo data. Connect to backend at <code className="bg-yellow-100 px-2 py-1 rounded">http://localhost:8081/api</code>
           </div>
         )}
+
+        {/* Debug Panel - Remove in production */}
+        <div className="m-6 p-4 bg-blue-50 border border-blue-200 rounded-lg text-sm">
+          <div className="flex items-center justify-between mb-2">
+            <span className="font-medium text-blue-800">Debug Info (NGO {ngoId})</span>
+            <button 
+              onClick={() => {
+                console.log('Current stats:', ngoStats);
+                console.log('Context data:', { ngoData, projectsData, donationsData, gamificationData });
+                fetchAdditionalData();
+              }}
+              className="px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700"
+            >
+              Refresh Stats
+            </button>
+          </div>
+          <div className="text-blue-700 text-xs">
+            Stats: Donated={ngoStats.totalDonated}, Students={ngoStats.studentsHelped}, Projects={ngoStats.schoolProjectsCount}, Schools={ngoStats.schoolsReached}
+          </div>
+        </div>
 
         {/* Hero Banner */}
         <div className="bg-gradient-to-r from-green-50 to-green-100 m-6 rounded-2xl p-8 flex items-center justify-between relative overflow-hidden">
           <div className="flex-1 z-10">
             <div className="text-lg text-gray-600 mb-1">Welcome back,</div>
             <div className="text-3xl font-bold text-gray-800 mb-2 flex items-center gap-2">
-              {data.ngo?.ngoName || data.ngo?.ngo_name || `NGO ${ngoId}`}
-              {data.ngo?.verificationStatus === 'verified' && <span className="text-green-500">✓</span>}
+              {ngoDisplayData.ngoName}
+              {ngoDisplayData.verificationStatus === 'VERIFIED' && <span className="text-green-500">✓</span>}
             </div>
             <div className="text-sm text-gray-600 mb-2">
               Managing impactful projects across multiple schools to reduce dropout rates
             </div>
             <div className="text-xs text-gray-500 flex items-center gap-2">
               <span>🏛️</span>
-              Reg. No: {data.ngo?.registrationNumber || data.ngo?.registration_number || 'N/A'}
+              Reg. No: {ngoDisplayData.registrationNumber}
             </div>
           </div>
           <div className="w-96 h-48 rounded-xl overflow-hidden shadow-lg">
@@ -315,31 +370,13 @@ export default function NgoDashboard() {
             <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
               <div className="flex items-start justify-between mb-4">
                 <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                  <Briefcase className="w-5 h-5 text-green-600" />
-                </div>
-                <MoreVertical className="w-4 h-4 text-gray-400" />
-              </div>
-              <div className="text-sm text-gray-500 mb-1">Total Donated</div>
-              <div className="text-3xl font-bold text-gray-800 mb-2">{formatCurrency(ngoStats.totalDonated)}</div>
-              <div className="text-xs text-green-600">{donationsData.length} donations made</div>
-              <button 
-                onClick={() => navigate(`/ngo-donations/${ngoId}`)}
-                className="secondary !border-0 hover:!bg-gray-50 hover:!text-[#0E792E] mt-4 text-sm font-medium flex items-center gap-1"
-              >
-                View Donations <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-              <div className="flex items-start justify-between mb-4">
-                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
                   <Heart className="w-5 h-5 text-green-600" />
                 </div>
                 <MoreVertical className="w-4 h-4 text-gray-400" />
               </div>
               <div className="text-sm text-gray-500 mb-1">Total Donated</div>
-              <div className="text-3xl font-bold text-gray-800 mb-2">{formatCurrency(ngoStats.totalDonated)}</div>
-              <div className="text-xs text-green-600">{donationsData.length} donations made</div>
+              <div className="text-3xl font-bold text-gray-800 mb-2" title={`Raw value: ${ngoStats.totalDonated}`}>{formatCurrency(ngoStats.totalDonated)}</div>
+              <div className="text-xs text-green-600">{(donationsData || []).length} donations made</div>
               <button 
                 onClick={() => navigate(`/ngo-donations/${ngoId}`)}
                 className="secondary !border-0 hover:!bg-gray-50 hover:!text-[#0E792E] mt-4 text-sm font-medium flex items-center gap-1"
@@ -356,7 +393,7 @@ export default function NgoDashboard() {
                 <MoreVertical className="w-4 h-4 text-gray-400" />
               </div>
               <div className="text-sm text-gray-500 mb-1">Students Helped</div>
-              <div className="text-3xl font-bold text-gray-800 mb-2">{ngoStats.studentsHelped}</div>
+              <div className="text-3xl font-bold text-gray-800 mb-2" title={`Raw value: ${ngoStats.studentsHelped}`}>{ngoStats.studentsHelped}</div>
               <div className="text-xs text-green-600">Direct sponsorships</div>
               <button 
                 onClick={() => navigate(`/ngo-reporting/${ngoId}`)}
@@ -368,14 +405,32 @@ export default function NgoDashboard() {
 
             <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
               <div className="flex items-start justify-between mb-4">
+                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <Briefcase className="w-5 h-5 text-blue-600" />
+                </div>
+                <MoreVertical className="w-4 h-4 text-gray-400" />
+              </div>
+              <div className="text-sm text-gray-500 mb-1">Projects Created</div>
+              <div className="text-3xl font-bold text-gray-800 mb-2" title={`Projects from context: ${(projectsData || []).length}`}>{(projectsData || []).length}</div>
+              <div className="text-xs text-green-600">Active projects</div>
+              <button 
+                onClick={() => navigate(`/ngo-projects/${ngoId}`)}
+                className="secondary !border-0 hover:!bg-gray-50 hover:!text-[#0E792E] mt-4 text-sm font-medium flex items-center gap-1"
+              >
+                View Projects <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+              <div className="flex items-start justify-between mb-4">
                 <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
                   <TrendingUp className="w-5 h-5 text-orange-600" />
                 </div>
                 <MoreVertical className="w-4 h-4 text-gray-400" />
               </div>
               <div className="text-sm text-gray-500 mb-1">Schools Reached</div>
-              <div className="text-3xl font-bold text-gray-800 mb-2">{ngoStats.schoolsReached}</div>
-              <div className="text-xs text-green-600">Through projects</div>
+              <div className="text-3xl font-bold text-gray-800 mb-2" title={`Raw value: ${ngoStats.schoolsReached}`}>{ngoStats.schoolsReached}</div>
+              <div className="text-xs text-green-600">Through donations</div>
               <button 
                 onClick={() => navigate(`/ngo-gamification/${ngoId}`)}
                 className="secondary !border-0 hover:!bg-gray-50 hover:!text-[#0E792E] mt-4 text-sm font-medium flex items-center gap-1"

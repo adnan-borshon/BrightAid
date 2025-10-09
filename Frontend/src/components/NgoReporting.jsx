@@ -22,31 +22,48 @@ export default function NgoReporting() {
   const fetchFundUtilizationData = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:8081/api/fund-utilization/ngo/${ngoId}`);
-      if (response.ok) {
-        const data = await response.json();
-        setFundUtilizationData(data);
+      // Fetch donations made by this NGO
+      const donationsResponse = await fetch(`http://localhost:8081/api/donations/ngo/${ngoId}`);
+      if (donationsResponse.ok) {
+        const donations = await donationsResponse.json();
+        // Map donations to fund utilization format
+        const utilizationData = donations.map(donation => ({
+          utilizationId: donation.donationId,
+          donation: donation,
+          project: donation.project,
+          amountUsed: donation.amount,
+          utilizationStatus: donation.paymentStatus,
+          utilizationDate: donation.donatedAt,
+          detailedDescription: donation.donorMessage || 'NGO donation',
+          specificPurpose: donation.purpose,
+          createdAt: donation.createdAt
+        }));
+        setFundUtilizationData(utilizationData);
       } else {
-        console.error('Failed to fetch fund utilization data');
+        console.error('Failed to fetch donation data');
         setFundUtilizationData([]);
       }
     } catch (err) {
-      console.error('Error fetching fund utilization data:', err);
+      console.error('Error fetching donation data:', err);
       setFundUtilizationData([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const totalReceived = fundUtilizationData.reduce((sum, d) => sum + parseFloat(d.donation?.amount || 0), 0);
-  const totalUsed = fundUtilizationData.reduce((sum, d) => sum + parseFloat(d.amountUsed || 0), 0);
-  const totalBeneficiaries = fundUtilizationData.reduce((sum, d) => sum + (d.project?.beneficiaryCount || 1), 0);
-  const utilizationRate = totalReceived > 0 ? ((totalUsed / totalReceived) * 100).toFixed(1) : '0.0';
-  const uniqueSchools = [...new Set(fundUtilizationData.map(d => d.project?.school?.schoolName).filter(Boolean))].length;
+  const totalDonated = fundUtilizationData.reduce((sum, d) => sum + parseFloat(d.donation?.amount || 0), 0);
+  const completedDonations = fundUtilizationData.filter(d => d.utilizationStatus === 'COMPLETED');
+  const totalCompleted = completedDonations.reduce((sum, d) => sum + parseFloat(d.amountUsed || 0), 0);
+  const totalBeneficiaries = fundUtilizationData.reduce((sum, d) => {
+    if (d.donation?.purpose === 'STUDENT_SPONSORSHIP') return sum + 1;
+    return sum + (d.project?.beneficiaryCount || 1);
+  }, 0);
+  const utilizationRate = totalDonated > 0 ? ((totalCompleted / totalDonated) * 100).toFixed(1) : '0.0';
+  const uniqueSchools = [...new Set(fundUtilizationData.map(d => d.project?.school?.schoolName || d.donation?.student?.school?.schoolName).filter(Boolean))].length;
 
-  const categoryBreakdown = fundUtilizationData.reduce((acc, item) => {
-    const category = item.project?.projectType?.typeName || 'General';
-    acc[category] = (acc[category] || 0) + parseFloat(item.amountUsed || 0);
+  const purposeBreakdown = fundUtilizationData.reduce((acc, item) => {
+    const purpose = item.donation?.purpose || 'GENERAL_SUPPORT';
+    acc[purpose] = (acc[purpose] || 0) + parseFloat(item.amountUsed || 0);
     return acc;
   }, {});
 
@@ -129,9 +146,9 @@ export default function NgoReporting() {
                     <DollarSign size={16} className="text-green-700" />
                   </div>
                 </div>
-                <div className="text-2xl font-bold text-green-800">Tk {totalReceived.toLocaleString()}</div>
+                <div className="text-2xl font-bold text-green-800">Tk {totalDonated.toLocaleString()}</div>
                 <div className="text-xs text-green-600 mt-1">
-                  From donors & grants
+                  Total donated by NGO
                 </div>
               </div>
 
@@ -142,7 +159,7 @@ export default function NgoReporting() {
                     <TrendingUp size={16} className="text-blue-700" />
                   </div>
                 </div>
-                <div className="text-2xl font-bold text-blue-800">Tk {totalUsed.toLocaleString()}</div>
+                <div className="text-2xl font-bold text-blue-800">Tk {totalCompleted.toLocaleString()}</div>
                 <div className="text-xs text-blue-600 mt-1">
                   {utilizationRate}% utilization rate
                 </div>
@@ -170,7 +187,7 @@ export default function NgoReporting() {
                 </div>
                 <div className="text-2xl font-bold text-orange-800">{uniqueSchools}</div>
                 <div className="text-xs text-orange-600 mt-1">
-                  Educational institutions
+                  Schools reached through donations
                 </div>
               </div>
             </div>
@@ -227,17 +244,23 @@ export default function NgoReporting() {
         <div className="px-6 pb-6">
           {activeTab === "overview" && (
             <div className="grid grid-cols-3 gap-6">
-              {/* Fund Allocation Chart */}
+              {/* Donation Distribution by Purpose */}
               <div className="col-span-2 bg-white border border-gray-200 rounded-xl p-6">
-                <h3 className="text-lg font-bold mb-4">Fund Utilization by Category</h3>
+                <h3 className="text-lg font-bold mb-4">Donation Distribution by Purpose</h3>
                 <div className="space-y-4">
-                  {Object.entries(categoryBreakdown).map(([category, amount]) => {
-                    const percentage = ((amount / totalUsed) * 100).toFixed(1);
+                  {Object.entries(purposeBreakdown).map(([purpose, amount]) => {
+                    const percentage = ((amount / totalCompleted) * 100).toFixed(1);
+                    const purposeLabel = {
+                      'SCHOOL_PROJECT': 'School Projects',
+                      'STUDENT_SPONSORSHIP': 'Student Sponsorship',
+                      'NGO_PROJECT': 'NGO Projects',
+                      'GENERAL_SUPPORT': 'General Support'
+                    }[purpose] || purpose;
                     return (
-                      <div key={category} className="flex items-center justify-between">
+                      <div key={purpose} className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className={`w-4 h-4 rounded ${getCategoryColor(category)}`}></div>
-                          <span className="font-medium">{category}</span>
+                          <div className={`w-4 h-4 rounded ${getCategoryColor(purposeLabel)}`}></div>
+                          <span className="font-medium">{purposeLabel}</span>
                         </div>
                         <div className="text-right">
                           <div className="font-bold">Tk {amount.toLocaleString()}</div>
@@ -265,8 +288,8 @@ export default function NgoReporting() {
                   </div>
                   <div className="text-sm text-gray-600">
                     <div className="flex justify-between">
-                      <span>Used: Tk {totalUsed.toLocaleString()}</span>
-                      <span>Available: Tk {(totalReceived - totalUsed).toLocaleString()}</span>
+                      <span>Completed: Tk {totalCompleted.toLocaleString()}</span>
+                      <span>Pending: Tk {(totalDonated - totalCompleted).toLocaleString()}</span>
                     </div>
                   </div>
                 </div>

@@ -33,15 +33,18 @@ export default function NgoProjects() {
     }
   };
 
-  const handleCreateProject = async (formData) => {
+  const handleCreateProject = async (submitData) => {
     try {
       const jsonData = {
         ngoId: parseInt(ngoId),
-        projectName: formData.get('project_title'),
-        projectDescription: formData.get('project_description'),
-        projectTypeId: parseInt(formData.get('project_type_id')),
-        budget: parseFloat(formData.get('budget') || 0)
+        projectName: submitData.projectTitle,
+        projectDescription: submitData.projectDescription,
+        projectTypeId: submitData.projectTypeId,
+        budget: submitData.requiredAmount || 0,
+        status: 'ACTIVE'
       };
+      
+      console.log('Creating project with data:', jsonData);
       
       const response = await fetch('http://localhost:8081/api/ngo-projects', {
         method: 'POST',
@@ -52,9 +55,15 @@ export default function NgoProjects() {
       if (response.ok) {
         setShowCreateModal(false);
         fetchProjects();
+        console.log('Project created successfully');
+      } else {
+        const errorText = await response.text();
+        console.error('Failed to create project:', errorText);
+        alert('Failed to create project: ' + errorText);
       }
     } catch (error) {
       console.error('Error creating project:', error);
+      alert('Error creating project: ' + error.message);
     }
   };
 

@@ -147,6 +147,19 @@ public class NgoController {
         return ResponseEntity.ok(stats);
     }
 
+    @PostMapping("/{ngoId}/test-data")
+    public ResponseEntity<?> createTestData(@PathVariable Integer ngoId) {
+        log.info("REST request to create test data for NGO ID: {}", ngoId);
+        
+        try {
+            var result = ngoService.createTestDataForNgo(ngoId);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            log.error("Error creating test data for NGO {}: {}", ngoId, e.getMessage());
+            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+        }
+    }
+
     @DeleteMapping("/{ngoId}")
     public ResponseEntity<Void> deleteNgo(@PathVariable Integer ngoId) {
         log.info("REST request to delete NGO with ID: {}", ngoId);

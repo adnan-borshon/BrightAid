@@ -3,6 +3,7 @@ package com.example.Bright_Aid.service;
 import com.example.Bright_Aid.Entity.NgoGamification;
 import com.example.Bright_Aid.Dto.NgoGamificationDTO;
 import com.example.Bright_Aid.repository.NgoGamificationRepository;
+import com.example.Bright_Aid.repository.NgoRepository;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -14,9 +15,11 @@ import java.util.stream.Collectors;
 public class NgoGamificationService {
 
     private final NgoGamificationRepository repository;
+    private final NgoRepository ngoRepository;
 
-    public NgoGamificationService(NgoGamificationRepository repository) {
+    public NgoGamificationService(NgoGamificationRepository repository, NgoRepository ngoRepository) {
         this.repository = repository;
+        this.ngoRepository = ngoRepository;
     }
 
     // ===================== CREATE =====================
@@ -66,6 +69,26 @@ public class NgoGamificationService {
                 .collect(Collectors.toList());
     }
 
+    // ===================== GET BY NGO ID =====================
+    public NgoGamificationDTO getByNgoId(Integer ngoId) {
+        NgoGamification entity = repository.findByNgoId(ngoId);
+        if (entity == null) {
+            // Create default gamification data if not exists
+            NgoGamificationDTO defaultDto = NgoGamificationDTO.builder()
+                    .ngoId(ngoId)
+                    .ngoName("NGO " + ngoId)
+                    .totalPoints(0)
+                    .impactScore(BigDecimal.valueOf(0.0))
+                    .badgesEarned("[\"New NGO\"]")
+                    .lastUpdated(LocalDateTime.now())
+                    .build();
+            
+            // Auto-create the gamification record
+            return create(defaultDto);
+        }
+        return mapToDTO(entity);
+    }
+
     // ===================== DELETE =====================
     public void delete(Integer id) {
         repository.deleteById(id);
@@ -107,8 +130,8 @@ public class NgoGamificationService {
     }
 
     private int calculateTotalPoints(Integer ngoId) {
-        // Points calculation logic:
-        // - 100 points per completed project
+        // Points calculation logic using actual data:
+        // - 100 points per completed donation
         // - 50 points per active project
         // - 10 points per school helped
         // - 5 points per student impacted
@@ -118,12 +141,32 @@ public class NgoGamificationService {
         // Base points for having an NGO profile
         points += 50;
         
-        // Simulate project-based points (you can replace with actual queries)
-        // Example: points += completedProjects * 100 + activeProjects * 50
-        points += (ngoId % 5) * 100; // Completed projects simulation
-        points += (ngoId % 3) * 50;  // Active projects simulation
-        points += (ngoId % 10) * 10; // Schools helped simulation
-        points += (ngoId % 20) * 5;  // Students impacted simulation
+        try {
+            // Get actual stats from NGO repository using native queries
+            Long totalDonated = ngoRepository.getTotalDonatedByNgo(ngoId);
+            Long studentsHelped = ngoRepository.getStudentsHelpedByNgo(ngoId);
+            Long schoolsReached = ngoRepository.getSchoolsReachedByNgo(ngoId);
+            
+            // Calculate points based on actual data
+            if (totalDonated != null && totalDonated > 0) {
+                points += Math.min((int)(totalDonated / 1000), 500); // 1 point per 1000 donated, max 500
+            }
+            
+            if (studentsHelped != null) {
+                points += studentsHelped.intValue() * 5; // 5 points per student
+            }
+            
+            if (schoolsReached != null) {
+                points += schoolsReached.intValue() * 10; // 10 points per school
+            }
+            
+        } catch (Exception e) {
+            // Fallback to simulation if queries fail
+            points += (ngoId % 5) * 100; // Completed projects simulation
+            points += (ngoId % 3) * 50;  // Active projects simulation
+            points += (ngoId % 10) * 10; // Schools helped simulation
+            points += (ngoId % 20) * 5;  // Students impacted simulation
+        }
         
         return Math.max(points, 50); // Minimum 50 points
     }

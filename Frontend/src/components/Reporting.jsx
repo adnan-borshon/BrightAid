@@ -5,7 +5,7 @@ import { useDonor } from "@/context/DonorContext";
 import Sidebar from './DonorDashSidebar';
 
 export default function Reporting() {
-  const { id: userId } = useParams(); // URL param is now userId
+  const { id: userId } = useParams(); 
   const { donationsData, loading, refreshDonorData } = useDonor();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
@@ -18,7 +18,6 @@ export default function Reporting() {
     }
   }, []);
 
-  // Map backend donation status to frontend status
   const mapDonationStatus = (backendStatus) => {
     switch (backendStatus) {
       case 'COMPLETED':

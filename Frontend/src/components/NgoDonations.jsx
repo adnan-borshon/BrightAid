@@ -20,22 +20,30 @@ export default function NgoDonations() {
     setLoading(true);
     try {
       const API_BASE_URL = 'http://localhost:8081/api';
+      
+      // Fetch both student and project donations for this NGO
       const [studentRes, projectRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/ngo-student-donations`).catch(() => null),
-        fetch(`${API_BASE_URL}/ngo-project-donations`).catch(() => null),
+        fetch(`${API_BASE_URL}/ngo-student-donations/ngo/${ngoId}`).catch(() => null),
+        fetch(`${API_BASE_URL}/ngo-project-donations/ngo/${ngoId}`).catch(() => null)
       ]);
+
+      let studentDonations = [];
+      let projectDonations = [];
 
       if (studentRes && studentRes.ok) {
         const studentData = await studentRes.json();
-        const ngoStudentDonations = Array.isArray(studentData) ? studentData.filter(d => d.ngoId == ngoId) : [];
-        setStudentDonations(ngoStudentDonations);
+        studentDonations = Array.isArray(studentData) ? studentData : [];
       }
 
       if (projectRes && projectRes.ok) {
         const projectData = await projectRes.json();
-        const ngoProjectDonations = Array.isArray(projectData) ? projectData.filter(d => d.ngoId == ngoId) : [];
-        setProjectDonations(ngoProjectDonations);
+        projectDonations = Array.isArray(projectData) ? projectData : [];
       }
+
+      console.log('Fetched donations:', { studentDonations, projectDonations });
+      setStudentDonations(studentDonations);
+      setProjectDonations(projectDonations);
+      
     } catch (error) {
       console.error('Error fetching donations:', error);
     } finally {
@@ -47,9 +55,9 @@ export default function NgoDonations() {
     return `Tk ${Math.abs(amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
-  const totalDonated = [...studentDonations, ...projectDonations].reduce((sum, d) => sum + (d.amount || 0), 0);
-  const uniqueStudents = new Set(studentDonations.map(d => d.studentId)).size;
-  const uniqueProjects = new Set(projectDonations.map(d => d.projectId)).size;
+  const totalDonated = [...studentDonations, ...projectDonations].reduce((sum, d) => sum + parseFloat(d.amount || 0), 0);
+  const uniqueStudents = new Set(studentDonations.filter(d => d.student).map(d => d.student.studentId)).size;
+  const uniqueProjects = new Set(projectDonations.filter(d => d.project).map(d => d.project.projectId)).size;
 
   const getFilteredDonations = () => {
     if (activeTab === 'students') return studentDonations.map(d => ({...d, type: 'student'}));
@@ -183,7 +191,8 @@ export default function NgoDonations() {
                   {getFilteredDonations().length > 0 ? getFilteredDonations().map((donation, index) => (
                     <tr key={index} className="hover:bg-gray-50">
                       <td className="px-6 py-4 text-sm text-gray-900">
-                        {new Date(donation.donatedAt || donation.createdAt).toLocaleDateString()}
+                        {donation.donatedAt ? new Date(donation.donatedAt).toLocaleDateString() : 
+                         donation.createdAt ? new Date(donation.createdAt).toLocaleDateString() : 'N/A'}
                       </td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
@@ -196,11 +205,11 @@ export default function NgoDonations() {
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-900">
                         {donation.type === 'student' 
-                          ? `Student ID: ${donation.studentId}` 
-                          : `Project ID: ${donation.projectId}`}
+                          ? `Student ID: ${donation.studentId || 'N/A'}`
+                          : `Project ID: ${donation.projectId || 'N/A'}`}
                       </td>
                       <td className="px-6 py-4 text-sm font-semibold text-gray-900">
-                        {formatCurrency(donation.amount)}
+                        {formatCurrency(parseFloat(donation.amount || 0))}
                       </td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${

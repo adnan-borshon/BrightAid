@@ -19,6 +19,7 @@ import DonorDashboard from './components/DonorDashboard'
 import DonorProjectView from './components/DonorProjectView'
 import DonorStudentsView from './components/DonorStudentsView'
 import Reporting from './components/Reporting'
+import DonorReporting from './components/DonorReporting'
 import SchoolReporting from './components/SchoolReporting'
 import NgoDashboard from './components/NgoDashboard'
 import NgoProjects from './components/NgoProjects'
@@ -119,7 +120,7 @@ const router = createBrowserRouter([
   },
   { 
     path: "/donor-reporting/:id", 
-    element: <Reporting /> 
+    element: <DonorReporting /> 
   },
   { 
     path: "/ngo-dashboard/:ngoId", 

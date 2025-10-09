@@ -68,8 +68,7 @@ const ProjectCreateModal = ({ isOpen, onClose, onSubmit }) => {
       projectTitle: formData.project_title,
       projectDescription: formData.project_description,
       projectTypeId: parseInt(formData.project_type_id),
-      requiredAmount: parseFloat(formData.required_amount),
-      schoolId: parseInt(localStorage.getItem('schoolId')) // Get from localStorage or context
+      requiredAmount: parseFloat(formData.required_amount)
     };
 
     // Call the onSubmit callback with JSON data

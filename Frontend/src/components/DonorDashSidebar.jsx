@@ -134,14 +134,6 @@ export default function DonorDashSidebar() {
         </button>
       </div>
 
-      {/* <div className="mb-6 relative">
-        <Search className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
-        <input 
-          type="text" 
-          placeholder="Search" 
-          className="w-full pl-10 pr-3 py-2 bg-white bg-opacity-20 rounded-lg text-sm border-none focus:outline-none focus:ring-2 focus:ring-white text-white placeholder-green-100"
-        />
-      </div> */}
 
       <nav className="flex-1 space-y-1">
         {navItems.map((item) => {

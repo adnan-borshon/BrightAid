@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { Home, Users, Briefcase, FileText, CreditCard, HelpCircle, Settings, LogOut, Heart, Trophy } from 'lucide-react';
 import UserProfileModal from './Modal/UserProfileModal';
+import { useNgo } from '../context/NgoContext';
 
 export default function NgoDashSidebar() {
   const navigate = useNavigate();
   const { ngoId } = useParams();
   const location = useLocation();
+  const { refreshData } = useNgo();
   
   const [userData, setUserData] = useState(null);
   const [profileData, setProfileData] = useState(null);
@@ -86,9 +88,9 @@ export default function NgoDashSidebar() {
   return (
     <>
       <div className="w-64 bg-gradient-to-b from-green-50 to-green-100 p-6 flex flex-col">
-        <div className="flex items-center gap-2 mb-8">
+        <div className="flex justify-center items-center gap-2 mb-4">
           <div>
-            <img src="/logo_institute.svg" alt="BrightAid Logo" className="h-7" />
+            <img src="/logo.svg" alt="BrightAid Logo" className="h-8" />
           </div>
         </div>
 
@@ -144,7 +146,13 @@ export default function NgoDashSidebar() {
               return (
                 <div key={item.name} className="border-t border-gray-300 pt-6 mt-6 space-y-1">
                   <button
-                    onClick={() => navigate(item.path)}
+                    onClick={() => {
+                      navigate(item.path);
+                      // Refresh data when navigating to ensure latest data is shown
+                      if (ngoId) {
+                        setTimeout(() => refreshData(ngoId), 100);
+                      }
+                    }}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
                       isActive
                         ? 'bg-white text-green-700 shadow-sm'
@@ -161,7 +169,13 @@ export default function NgoDashSidebar() {
             return (
               <button
                 key={item.name}
-                onClick={() => navigate(item.path)}
+                onClick={() => {
+                  navigate(item.path);
+                  // Refresh data when navigating to ensure latest data is shown
+                  if (ngoId) {
+                    setTimeout(() => refreshData(ngoId), 100);
+                  }
+                }}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
                   isActive
                     ? 'bg-white text-green-700 shadow-sm'

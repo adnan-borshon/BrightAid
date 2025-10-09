@@ -42,6 +42,12 @@ public class NgoProjectDonationsController {
         return ResponseEntity.ok(service.getAll());
     }
 
+    // ===================== GET BY NGO ID =====================
+    @GetMapping("/ngo/{ngoId}")
+    public ResponseEntity<List<NgoProjectDonationsDTO>> getByNgoId(@PathVariable Integer ngoId) {
+        return ResponseEntity.ok(service.getByNgoId(ngoId));
+    }
+
     // ===================== DELETE =====================
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {

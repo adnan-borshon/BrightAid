@@ -63,6 +63,15 @@ public class NgoProjectDonationsService {
                 .collect(Collectors.toList());
     }
 
+    // ===================== GET BY NGO ID =====================
+    public List<NgoProjectDonationsDTO> getByNgoId(Integer ngoId) {
+        return repository.findAll()
+                .stream()
+                .filter(donation -> donation.getNgoId().equals(ngoId))
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
+
     // ===================== DELETE =====================
     public void delete(Integer id) {
         repository.deleteById(id);
