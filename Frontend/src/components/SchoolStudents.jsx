@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Search, Plus, AlertTriangle, Users as UsersIcon, Layers, Camera } from 'lucide-react';
 import Sidebar from './DashSidebar';
 import { useApp } from '../context/AppContext';
@@ -8,6 +8,7 @@ import StudentEnrollmentModal from './Modal/StudentEnrollmentModal';
 
 export default function SchoolStudents() {
   const { schoolId } = useParams();
+  const navigate = useNavigate();
   const { schoolData, studentsData, loading, refreshData, API_BASE_URL } = useApp();
   const [isModalOpen, setIsModalOpen] = useState(false);
   // Filters
@@ -163,8 +164,7 @@ export default function SchoolStudents() {
   const currentStudents = filteredStudents.slice(indexOfFirstStudent, indexOfLastStudent);
 
   const handleStudentClick = (studentId) => {
-    console.log('Viewing student details for ID:', studentId);
-    // Navigate to student detail page
+    navigate(`/student-profile/${schoolId}/${studentId}`);
   };
 
   const handleImageUpdate = (studentId, imagePath) => {
@@ -326,34 +326,7 @@ export default function SchoolStudents() {
   <span className={`absolute top-3 right-3 ${badge.bg} ${badge.text} px-2 py-1 rounded-full text-xs font-medium`}>
     • {badge.label}
   </span>
-  <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-    <label className="cursor-pointer">
-      <input
-        type="file"
-        accept="image/*"
-        onChange={(e) => {
-          const file = e.target.files[0];
-          if (file) {
-            const formData = new FormData();
-            formData.append('image', file);
-            fetch(`http://localhost:8081/api/students/${student.student_id}/image`, {
-              method: 'POST',
-              body: formData,
-            })
-            .then(response => response.json())
-            .then(data => {
-              handleImageUpdate(student.student_id, data.imagePath);
-            })
-            .catch(error => console.error('Error uploading image:', error));
-          }
-        }}
-        className="hidden"
-      />
-      <div className="bg-white bg-opacity-90 rounded-full p-2 hover:bg-opacity-100 transition-all">
-        <Camera className="w-5 h-5 text-gray-700" />
-      </div>
-    </label>
-  </div>
+
 </div>
                   <div className="p-4">
                     <div className="text-xs text-green-600 mb-1">Scholarship from {student.donor_username}</div>
@@ -367,10 +340,10 @@ export default function SchoolStudents() {
                       className="w-full py-2 text-sm text-green-600 bg-white rounded-lg hover:bg-green-100 transition-colors"
                       onClick={(e) => {
                         e.stopPropagation();
-                        console.log('Update report for student:', student.student_id);
+                        navigate(`/student-profile/${schoolId}/${student.student_id}`);
                       }}
                     >
-                      Update Report
+                     View Details
                     </button>
                   </div>
                 </div>

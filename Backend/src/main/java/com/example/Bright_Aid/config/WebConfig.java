@@ -10,6 +10,10 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         // Serve static images from the resources/static/images directory
+        registry.addResourceHandler("/images/**")
+                .addResourceLocations("classpath:/static/images/");
+        
+        // Keep the old mapping for backward compatibility
         registry.addResourceHandler("/static/images/**")
                 .addResourceLocations("classpath:/static/images/");
     }

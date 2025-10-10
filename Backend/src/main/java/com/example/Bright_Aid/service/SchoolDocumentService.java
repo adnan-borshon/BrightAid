@@ -5,9 +5,15 @@ import com.example.Bright_Aid.Dto.SchoolDocumentDto;
 import com.example.Bright_Aid.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,6 +30,57 @@ public class SchoolDocumentService {
         this.schoolDocumentRepository = schoolDocumentRepository;
         this.schoolRepository = schoolRepository;
         this.userRepository = userRepository;
+    }
+
+    // Create SchoolDocument with file upload
+    public SchoolDocumentDto saveSchoolDocumentWithFile(MultipartFile file, String documentTitle, 
+                                                        String documentDescription, String documentType, 
+                                                        Integer schoolId) {
+        try {
+            // Extract student ID from description
+            String studentId = "unknown";
+            if (documentDescription.contains("Student ID: ")) {
+                studentId = documentDescription.substring(documentDescription.indexOf("Student ID: ") + 12).trim();
+            }
+            
+            // Create performance directory if it doesn't exist
+            String uploadDir = "src/main/resources/static/images/marksheets/school_" + schoolId + "/student_" + studentId + "/";
+            Path uploadPath = Paths.get(uploadDir);
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
+
+            // Generate filename with timestamp
+            String originalFilename = file.getOriginalFilename();
+            String fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
+            String filename = "marksheet_" + System.currentTimeMillis() + fileExtension;
+            
+            // Save file
+            Path filePath = uploadPath.resolve(filename);
+            Files.copy(file.getInputStream(), filePath);
+            
+            // Create relative URL for database
+            String fileUrl = "/images/marksheets/school_" + schoolId + "/student_" + studentId + "/" + filename;
+            
+            // Get current user ID (hardcoded for now, should come from authentication)
+            Integer uploadedBy = 1; // TODO: Get from authentication context
+            
+            SchoolDocumentDto documentDto = SchoolDocumentDto.builder()
+                    .schoolId(schoolId)
+                    .documentType(documentType)
+                    .documentTitle(documentTitle)
+                    .documentDescription(documentDescription)
+                    .fileUrl(fileUrl)
+                    .uploadDate(LocalDate.now())
+                    .uploadedBy(uploadedBy)
+                    .isCurrent(true)
+                    .build();
+                    
+            return saveSchoolDocument(documentDto);
+            
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to upload file: " + e.getMessage());
+        }
     }
 
     // Create or update SchoolDocument

@@ -5,7 +5,12 @@ import com.example.Bright_Aid.Dto.SchoolDto;
 import com.example.Bright_Aid.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -67,6 +72,7 @@ public class SchoolService {
                 .longitude(schoolDto.getLongitude())
                 .verificationStatus(parseVerificationStatus(schoolDto.getVerificationStatus()))
                 .status(parseSchoolStatus(schoolDto.getStatus()))
+                .schoolImage(schoolDto.getSchoolImage())
                 .createdAt(LocalDateTime.now())
                 .build();
 
@@ -106,6 +112,9 @@ public class SchoolService {
         existingSchool.setUpazila(upazila);
         existingSchool.setLatitude(schoolDto.getLatitude());
         existingSchool.setLongitude(schoolDto.getLongitude());
+        if (schoolDto.getSchoolImage() != null) {
+            existingSchool.setSchoolImage(schoolDto.getSchoolImage());
+        }
         existingSchool.setUpdatedAt(LocalDateTime.now());
 
         School updated = schoolRepository.save(existingSchool);
@@ -181,6 +190,58 @@ public class SchoolService {
         return schoolRepository.findByDistrictId(districtId)
                 .stream().map(this::mapToDto).collect(Collectors.toList());
     }
+    
+    // -------------------- IMAGE UPLOAD --------------------
+    public String updateSchoolImage(Integer schoolId, MultipartFile file) {
+        System.out.println("Updating image for school ID: " + schoolId);
+        School school = schoolRepository.findById(schoolId)
+                .orElseThrow(() -> new RuntimeException("School not found"));
+        
+        String imagePath = saveSchoolImage(file, schoolId);
+        System.out.println("Image saved at path: " + imagePath);
+        school.setSchoolImage(imagePath);
+        school.setUpdatedAt(LocalDateTime.now());
+        schoolRepository.save(school);
+        System.out.println("School profile image updated successfully. Final path: " + imagePath);
+        
+        return imagePath;
+    }
+    
+    private String saveSchoolImage(MultipartFile file, Integer schoolId) {
+        try {
+            System.out.println("Saving image for school ID: " + schoolId);
+            String uploadDir = "src/main/resources/static/images/schools/";
+            Path uploadPath = Paths.get(uploadDir);
+            
+            System.out.println("Upload directory: " + uploadPath.toAbsolutePath());
+            
+            if (!Files.exists(uploadPath)) {
+                System.out.println("Creating directory: " + uploadPath);
+                Files.createDirectories(uploadPath);
+            }
+            
+            String fileExtension = getFileExtension(file.getOriginalFilename());
+            String fileName = "school_" + schoolId + fileExtension;
+            Path filePath = uploadPath.resolve(fileName);
+            
+            System.out.println("Saving file to: " + filePath.toAbsolutePath());
+            Files.copy(file.getInputStream(), filePath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            System.out.println("File saved successfully");
+            
+            return "/images/schools/" + fileName;
+        } catch (IOException e) {
+            System.err.println("IOException while saving image: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Failed to save image: " + e.getMessage());
+        }
+    }
+    
+    private String getFileExtension(String filename) {
+        if (filename == null || filename.lastIndexOf('.') == -1) {
+            return ".png";
+        }
+        return filename.substring(filename.lastIndexOf('.'));
+    }
 
     // -------------------- HELPER METHODS --------------------
     private void validateGeographicHierarchy(Integer divisionId, Integer districtId, Integer upazilaId) {
@@ -233,6 +294,7 @@ public class SchoolService {
                 .status(school.getStatus().name())
                 .createdAt(school.getCreatedAt())
                 .updatedAt(school.getUpdatedAt())
+                .schoolImage(school.getSchoolImage())
                 .build();
     }
 }

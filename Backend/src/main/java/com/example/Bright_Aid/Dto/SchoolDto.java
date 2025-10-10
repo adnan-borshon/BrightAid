@@ -52,4 +52,7 @@ public class SchoolDto {
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    
+    // School profile image
+    private String schoolImage;
 }

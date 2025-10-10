@@ -7,8 +7,10 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/schools")
@@ -115,5 +117,29 @@ public class SchoolController {
     public ResponseEntity<List<SchoolDto>> getSchoolsByDistrict(@PathVariable Integer districtId) {
         List<SchoolDto> schools = schoolService.findSchoolsByDistrict(districtId);
         return new ResponseEntity<>(schools, HttpStatus.OK);
+    }
+    
+    // -------------------- IMAGE UPLOAD --------------------
+    @PostMapping("/{schoolId}/image")
+    public ResponseEntity<Map<String, String>> uploadSchoolImage(
+            @PathVariable Integer schoolId, 
+            @RequestParam("image") MultipartFile file) {
+        try {
+            System.out.println("Received image upload request for school ID: " + schoolId);
+            System.out.println("File name: " + file.getOriginalFilename());
+            System.out.println("File size: " + file.getSize());
+            System.out.println("File empty: " + file.isEmpty());
+            
+            if (file.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "File is empty"));
+            }
+            
+            String imagePath = schoolService.updateSchoolImage(schoolId, file);
+            return ResponseEntity.ok(Map.of("imagePath", imagePath));
+        } catch (Exception e) {
+            System.err.println("Error uploading image: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 }

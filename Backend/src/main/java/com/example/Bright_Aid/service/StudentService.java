@@ -103,6 +103,35 @@ public class StudentService {
         studentRepository.deleteById(id);
     }
 
+public String saveStudentImageWithSchool(MultipartFile file, Integer studentId, Integer schoolId) {
+    try {
+        System.out.println("Saving image for student ID: " + studentId + ", school ID: " + schoolId);
+        String uploadDir = "src/main/resources/static/images/students/";
+        Path uploadPath = Paths.get(uploadDir);
+        
+        System.out.println("Upload directory: " + uploadPath.toAbsolutePath());
+        
+        if (!Files.exists(uploadPath)) {
+            System.out.println("Creating directory: " + uploadPath);
+            Files.createDirectories(uploadPath);
+        }
+        
+        String fileExtension = getFileExtension(file.getOriginalFilename());
+        String fileName = "school_" + schoolId + "_student_" + studentId + fileExtension;
+        Path filePath = uploadPath.resolve(fileName);
+        
+        System.out.println("Saving file to: " + filePath.toAbsolutePath());
+        Files.copy(file.getInputStream(), filePath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+        System.out.println("File saved successfully");
+        
+        return "/images/students/" + fileName;
+    } catch (IOException e) {
+        System.err.println("IOException while saving image: " + e.getMessage());
+        e.printStackTrace();
+        throw new RuntimeException("Failed to save image: " + e.getMessage());
+    }
+}
+
 public String saveStudentImage(MultipartFile file, Integer studentId) {
     try {
         System.out.println("Saving image for student ID: " + studentId);
@@ -121,10 +150,9 @@ public String saveStudentImage(MultipartFile file, Integer studentId) {
         Path filePath = uploadPath.resolve(fileName);
         
         System.out.println("Saving file to: " + filePath.toAbsolutePath());
-        Files.copy(file.getInputStream(), filePath);
+        Files.copy(file.getInputStream(), filePath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
         System.out.println("File saved successfully");
         
-        // ✅ CHANGED: Return without /static prefix
         return "/images/students/" + fileName;
     } catch (IOException e) {
         System.err.println("IOException while saving image: " + e.getMessage());
@@ -164,11 +192,11 @@ public String saveStudentImage(MultipartFile file, Integer studentId) {
         Student student = studentRepository.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
         
-        String imagePath = saveStudentImage(file, studentId);
+        String imagePath = saveStudentImageWithSchool(file, studentId, student.getSchool().getSchoolId());
         System.out.println("Image saved at path: " + imagePath);
         student.setProfileImage(imagePath);
         studentRepository.save(student);
-        System.out.println("Student profile image updated successfully");
+        System.out.println("Student profile image updated successfully. Final path: " + imagePath);
         
         return imagePath;
     }

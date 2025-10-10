@@ -184,7 +184,7 @@ export default function SchoolDashboard() {
   };
 
   const handleStudentClick = (studentId) => {
-    console.log('Viewing student details for ID:', studentId);
+    navigate(`/student-profile/${schoolId}/${studentId}`, { state: { from: 'dashboard' } });
   };
 
   const handleProjectClick = (projectId) => {
@@ -288,15 +288,15 @@ export default function SchoolDashboard() {
           <div className="w-96 h-48 rounded-xl overflow-hidden shadow-lg relative group">
             {schoolData?.schoolImage ? (
               <img 
-                src={`http://localhost:8081${schoolData.schoolImage}`} 
+                src={`${API_BASE_URL}${schoolData.schoolImage}?t=${Date.now()}`} 
                 alt="School" 
                 className="w-full h-full object-cover"
                 onError={(e) => {
-                  console.log('Image failed to load:', `http://localhost:8081${schoolData.schoolImage}`);
+                  console.log('Image failed to load:', `${API_BASE_URL}${schoolData.schoolImage}`);
                   e.target.style.display = 'none';
                   e.target.nextSibling.style.display = 'flex';
                 }}
-                onLoad={() => console.log('Image loaded successfully:', `http://localhost:8081${schoolData.schoolImage}`)}
+                onLoad={() => console.log('Image loaded successfully:', `${API_BASE_URL}${schoolData.schoolImage}`)}
               />
             ) : null}
             <div className={`w-full h-full bg-gradient-to-br from-green-600 to-green-800 flex items-center justify-center ${schoolData?.schoolImage ? 'hidden' : ''}`}>
@@ -316,7 +316,7 @@ export default function SchoolDashboard() {
                       formData.append('image', file);
                       
                       try {
-                        const response = await fetch(`http://localhost:8081/api/images/school/${schoolId}`, {
+                        const response = await fetch(`${API_BASE_URL}/schools/${schoolId}/image`, {
                           method: 'POST',
                           body: formData,
                         });
@@ -444,7 +444,7 @@ export default function SchoolDashboard() {
                 <div className="relative h-40">
                   {student.profileImage ? (
                     <img 
-                      src={`http://localhost:8081${student.profileImage}`} 
+                      src={`${API_BASE_URL}${student.profileImage}?t=${Date.now()}`} 
                       alt="Student" 
                       className="w-full h-full object-cover"
                       onError={(e) => {
@@ -468,7 +468,7 @@ export default function SchoolDashboard() {
                   <div className="text-xs text-gray-500 mb-4">
                     Fund Received: {formatCurrency(student.scholarship_amount || 0)} / {formatCurrency(student.total_amount || 0)}
                   </div>
-                  <button className="secondary !border-0 hover:!bg-gray-50 hover:!text-[#0E792E] w-full py-2 text-sm rounded-lg transition-colors flex items-center justify-center gap-1" onClick={(e) => { e.stopPropagation(); console.log('Update report for student:', student.student_id); }}>
+                  <button className="secondary !border-0 hover:!bg-gray-50 hover:!text-[#0E792E] w-full py-2 text-sm rounded-lg transition-colors flex items-center justify-center gap-1" onClick={(e) => { e.stopPropagation(); handleStudentClick(student.student_id); }}>
                     <Eye className="w-4 h-4" /> View Details
                   </button>
                 </div>

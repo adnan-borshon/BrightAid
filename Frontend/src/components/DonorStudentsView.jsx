@@ -114,9 +114,12 @@ export default function DonorStudentsView() {
                 >
                   <div className="flex gap-4">
                     <img
-                      src={student.profileImage || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=300&h=300&fit=crop'}
+                      src={student.profileImage ? `http://localhost:8081${student.profileImage}` : 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=300&h=300&fit=crop'}
                       alt={student.studentName || student.name}
                       className="w-20 h-20 rounded-lg object-cover"
+                      onError={(e) => {
+                        e.target.src = 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=300&h=300&fit=crop';
+                      }}
                     />
                     <div className="flex-1">
                       <h3 className="font-semibold text-lg">{student.studentName || student.name}</h3>
@@ -165,9 +168,12 @@ export default function DonorStudentsView() {
                 {/* Student Header */}
                 <div className="flex gap-6 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6">
                   <img
-                    src={selectedStudent.profileImage || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=300&h=300&fit=crop'}
+                    src={selectedStudent.profileImage ? `http://localhost:8081${selectedStudent.profileImage}` : 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=300&h=300&fit=crop'}
                     alt={selectedStudent.studentName || selectedStudent.name}
                     className="w-32 h-32 rounded-lg object-cover"
+                    onError={(e) => {
+                      e.target.src = 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=300&h=300&fit=crop';
+                    }}
                   />
                   <div className="flex-1">
                     <h3 className="text-2xl font-bold mb-2">{selectedStudent.studentName || selectedStudent.name}</h3>

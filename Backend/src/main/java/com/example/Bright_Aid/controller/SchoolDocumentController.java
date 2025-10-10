@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -19,9 +20,23 @@ public class SchoolDocumentController {
         this.schoolDocumentService = schoolDocumentService;
     }
 
-    // Create new school document
+    // Create new school document with file upload
     @PostMapping
-    public ResponseEntity<SchoolDocumentDto> createSchoolDocument(@Valid @RequestBody SchoolDocumentDto schoolDocumentDto) {
+    public ResponseEntity<SchoolDocumentDto> createSchoolDocument(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("documentTitle") String documentTitle,
+            @RequestParam("documentDescription") String documentDescription,
+            @RequestParam("documentType") String documentType,
+            @RequestParam("schoolId") Integer schoolId) {
+        
+        SchoolDocumentDto createdDocument = schoolDocumentService.saveSchoolDocumentWithFile(
+                file, documentTitle, documentDescription, documentType, schoolId);
+        return new ResponseEntity<>(createdDocument, HttpStatus.CREATED);
+    }
+
+    // Create new school document (JSON only)
+    @PostMapping("/json")
+    public ResponseEntity<SchoolDocumentDto> createSchoolDocumentJson(@Valid @RequestBody SchoolDocumentDto schoolDocumentDto) {
         SchoolDocumentDto createdDocument = schoolDocumentService.saveSchoolDocument(schoolDocumentDto);
         return new ResponseEntity<>(createdDocument, HttpStatus.CREATED);
     }

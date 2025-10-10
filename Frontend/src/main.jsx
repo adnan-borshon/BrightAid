@@ -34,6 +34,7 @@ import DonorGamification from './components/DonorGamification'
 import Login from './components/Authentication/Login'
 import PaymentSuccess from './components/PaymentSuccess'
 import PaymentClose from './components/PaymentClose'
+import StudentProfile from './components/StudentProfile'
 
 
 const router = createBrowserRouter([
@@ -73,6 +74,10 @@ const router = createBrowserRouter([
   { 
     path: "/students/:schoolId", 
     element: <SchoolStudents /> 
+  },
+  { 
+    path: "/student-profile/:schoolId/:studentId", 
+    element: <StudentProfile /> 
   },
   { 
     path: "/projects/:schoolId", 
